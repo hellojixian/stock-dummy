@@ -20,7 +20,7 @@ if len(sys.argv)>=2:
 
 
 # 设置显示宽度
-pd.set_option('display.max_rows', 50)
+pd.set_option('display.max_rows', 350)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 encoding_dim = 2
@@ -30,6 +30,9 @@ source_data = pd.DataFrame().from_csv('featured_data.csv')
 model_saved = 'research_ml_model_weights.h5'
 
 # filter bad data
+source_data = source_data[source_data.future_value>-0.2]
+source_data = source_data[source_data.future_value< 0.2]
+
 records_before_filter = len(source_data)
 source_data=source_data.dropna(how='any',axis='index')
 records_after_filter = len(source_data)
@@ -44,6 +47,8 @@ del x['price_pos_60']
 del x['history_amp_100']
 del x['history_amp_60']
 x=x.values
+
+y*=100
 
 split_ratio = int(len(x) * 0.9)
 x_train= x[0:split_ratio]
@@ -78,16 +83,16 @@ def visualize(encoder,x,y):
 
 # construct the autoencoder model
 model = Sequential()
-model.add(Dense(10, activation='tanh',input_shape=(x_train.shape[1],)))
-model.add(Dense(5, activation='tanh'))
+model.add(Dense(32, activation='relu',input_shape=(x_train.shape[1],)))
+# model.add(Dense(6, activation='relu'))
 model.add(Dense(1))
 # load weight
 if os.path.exists(model_saved):
 	model.load_weights(model_saved)
 
 # compile autoencoder
-optimizer = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999)
-model.compile(optimizer=optimizer, loss='mse')
+optimizer = keras.optimizers.Adam(lr=0.0025, beta_1=0.9, beta_2=0.999)
+model.compile(optimizer=optimizer, loss='mean_squared_error')
 
 autosave = ModelCheckpoint(model_saved, monitor='val_loss', 
 					verbose=0, save_best_only=False, 
@@ -98,7 +103,7 @@ for steps in range(training_epoch):
 	print('Training model batch '+str(steps+1)+'/'+str(training_epoch)+' ...')
 	# training
 	model.fit(x_train, y_train,
-					validation_split=0.2,
+					validation_split=0.1,
 	                nb_epoch=1,
 	                batch_size=32,
 	                shuffle=True,
@@ -108,5 +113,16 @@ for steps in range(training_epoch):
 	print('\ntest cost:', cost)
 	print("-"*100)
 	print("\n")
+
+print("Predicting ...")
+res_test = model.predict(x_test)
+res = pd.DataFrame(data=res_test,columns=['test'])
+res['actual'] = pd.Series(y_test, index=res.index)
+res['diff'] = res['actual']-res['test'] 
+# res = res[res.test>4]
+# res = res[res.test<12]
+res = round(res,2)
+print(res)
+print(len(res))
 
 plt.show()

@@ -30,6 +30,8 @@ source_data = pd.DataFrame().from_csv('featured_data.csv')
 model_saved = 'research_v1_model_weights.h5'
 
 # filter bad data
+source_data = source_data[source_data.future_value>-0.2]
+source_data = source_data[source_data.future_value< 0.2]
 records_before_filter = len(source_data)
 source_data=source_data.dropna(how='any',axis='index')
 records_after_filter = len(source_data)

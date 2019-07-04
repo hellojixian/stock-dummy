@@ -5,7 +5,8 @@ import pandas as pd
 import numpy as np
 import os,sys
 
-from keras.models import Model, load_model
+import keras
+from keras.models import Model, load_model, Sequential
 from keras.layers import Dense, Input
 from keras.callbacks import ModelCheckpoint
 import matplotlib.pyplot as plt
@@ -26,16 +27,29 @@ encoding_dim = 2
 
 print('Loading dataset ...')
 source_data = pd.DataFrame().from_csv('featured_data.csv')
-model_saved = 'research_v1_model_weights.h5'
-encoder_saved = 'research_v1_encoder_weights.h5'
+model_saved = 'research_ml_model_weights.h5'
+
+# filter bad data
+source_data=source_data.dropna(how='any',axis='index')
 
 y=source_data['future_value'].values
 x=source_data
 del x['future_value']
+del x['price_ma60_trend']
+del x['price_pos_60']
+del x['history_amp_100']
+del x['history_amp_60']
 x=x.values
 
-# print(source_data['future_value'][0:100])
+split_ratio = int(len(x) * 0.9)
+x_train= x[0:split_ratio]
+y_train= y[0:split_ratio]
+x_test = x[split_ratio:]
+y_test = y[split_ratio:]
+# print(x[0:1])
+# print(x.shape)
 # print(max(y),min(y),y.mean())
+
 # os._exit(0)
 
 def visualize(encoder,x,y):
@@ -58,34 +72,18 @@ def visualize(encoder,x,y):
 	return
 
 
-input_len = x.shape[1]
-input_data=Input(shape=(input_len,))
-
-# encoder layers
-encoded = Dense(12, activation='tanh')(input_data)
-encoded = Dense(8, activation='tanh')(encoded)
-encoded = Dense(4, activation='tanh')(encoded)
-encoder_output = Dense(encoding_dim)(encoded)
-
-# decoder layers
-decoded = Dense(4, activation='tanh')(encoder_output)
-decoded = Dense(8, activation='tanh')(decoded)
-decoded = Dense(12, activation='tanh')(decoded)
-decoded = Dense(input_len, activation='tanh')(decoded)
-
-
-# construct the encoder model for plotting
-encoder = Model(input=input_data, output=encoder_output)
-
 # construct the autoencoder model
-autoencoder = Model(input=input_data, output=decoded)
+model = Sequential()
+model.add(Dense(10, activation='relu',input_shape=(x_train.shape[1],)))
+model.add(Dense(5, activation='tanh'))
+model.add(Dense(1))
+# load weight
 if os.path.exists(model_saved):
-	autoencoder.load_weights(model_saved)
-	encoder = Model(input=autoencoder.input, output=autoencoder.layers[4].output)	
-	visualize(encoder,x,y)
+	model.load_weights(model_saved)
+
 # compile autoencoder
-# autoencoder.compile(optimizer='adam', loss='mse')
-autoencoder.compile(optimizer='adadelta', loss='mse')
+optimizer = keras.optimizers.Adam(lr=0.0001, beta_1=0.9, beta_2=0.999)
+model.compile(optimizer=optimizer, loss='mse')
 
 autosave = ModelCheckpoint(model_saved, monitor='val_loss', 
 					verbose=0, save_best_only=False, 
@@ -95,11 +93,16 @@ autosave = ModelCheckpoint(model_saved, monitor='val_loss',
 for steps in range(training_epoch):
 	print('Training model batch '+str(steps+1)+'/'+str(training_epoch)+' ...')
 	# training
-	autoencoder.fit(x, x,
-	                nb_epoch=10,
-	                batch_size=24,
+	model.fit(x_train, y_train,
+					validation_split=0.2,
+	                nb_epoch=1,
+	                batch_size=32,
 	                shuffle=True,
 	                callbacks=[autosave])
-	visualize(encoder,x,y)
+	print('Testing ------------')
+	cost = model.evaluate(x_test, y_test, batch_size=40)
+	print('\ntest cost:', cost)
+	print("-"*100)
+	print("\n")
 
 plt.show()

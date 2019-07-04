@@ -74,7 +74,7 @@ def visualize(encoder,x,y):
 
 # construct the autoencoder model
 model = Sequential()
-model.add(Dense(10, activation='relu',input_shape=(x_train.shape[1],)))
+model.add(Dense(10, activation='tanh',input_shape=(x_train.shape[1],)))
 model.add(Dense(5, activation='tanh'))
 model.add(Dense(1))
 # load weight

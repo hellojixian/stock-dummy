@@ -30,11 +30,15 @@ source_data = pd.DataFrame().from_csv('featured_data.csv')
 model_saved = 'research_ml_model_weights.h5'
 
 # filter bad data
+records_before_filter = len(source_data)
 source_data=source_data.dropna(how='any',axis='index')
+records_after_filter = len(source_data)
+print(str(records_before_filter-records_after_filter)+' / '+str(records_before_filter)+' records has NAN issue, been filtered out')
 
 y=source_data['future_value'].values
 x=source_data
 del x['future_value']
+del x['security']
 del x['price_ma60_trend']
 del x['price_pos_60']
 del x['history_amp_100']

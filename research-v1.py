@@ -29,14 +29,23 @@ print('Loading dataset ...')
 source_data = pd.DataFrame().from_csv('featured_data.csv')
 model_saved = 'research_v1_model_weights.h5'
 
+# filter bad data
+records_before_filter = len(source_data)
+source_data=source_data.dropna(how='any',axis='index')
+records_after_filter = len(source_data)
+print(str(records_before_filter-records_after_filter)+' / '+str(records_before_filter)+' records has NAN issue, been filtered out')
+
+
 y=source_data['future_value'].values
 x=source_data
 del x['future_value']
+del x['security']
 del x['price_ma60_trend']
 del x['price_pos_60']
 del x['history_amp_100']
 del x['history_amp_60']
 x=x.values
+
 
 
 # print(x[0:1])
@@ -87,7 +96,7 @@ encoder = Model(input=input_data, output=encoder_output)
 autoencoder = Model(input=input_data, output=decoded)
 if os.path.exists(model_saved):
 	autoencoder.load_weights(model_saved)
-	encoder = Model(input=autoencoder.input, output=autoencoder.layers[3].output)
+	encoder = Model(input=autoencoder.input, output=autoencoder.layers[2].output)
 	encoder.summary()	
 	visualize(encoder,x,y)
 # compile autoencoder

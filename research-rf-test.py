@@ -34,6 +34,8 @@ df.loc[df[df.action=='sell'].index,'action'] = 2
 df.loc[df[df.trend=='up'].index,'trend'] = 1
 df.loc[df[df.trend=='down'].index,'trend'] = 0
 
+df = df[df.action==0]
+
 Y = df['action']
 X = df.drop(columns=['date','security','action'])
 
@@ -49,7 +51,6 @@ res_df = pd.DataFrame()
 res_df['actual'] = Y_test
 res_df['predict'] = res
 res_df['error'] = 1
-res_df = res_df[res_df.actual==1]
 res_df.loc[res_df[res_df.actual==res_df.predict].index,'error'] = 0
 
 errors = 0
@@ -59,7 +60,7 @@ if 1 in v_count:
 
 score = clf.score(X_test, Y_test)
 
-print(res_df[res_df.error==1])
+# print(res_df[res_df.predict==1])
 
 print(res_df['error'].value_counts())
 print("-"*100)

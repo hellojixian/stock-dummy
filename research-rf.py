@@ -56,8 +56,8 @@ Y_train, Y_test = Y[:spliter], Y[spliter:]
 
 clf = RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
             max_depth=None, max_features=None, max_leaf_nodes=None,
-            min_impurity_split=1e-07, min_samples_leaf=20,
-            min_samples_split=30, min_weight_fraction_leaf=0,
+            min_impurity_split=1e-07, min_samples_leaf=10,
+            min_samples_split=10, min_weight_fraction_leaf=0,
             n_estimators=60, n_jobs=1, oob_score=True, random_state=0,
             verbose=1, warm_start=True)
 

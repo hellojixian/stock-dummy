@@ -70,7 +70,6 @@ if True:
 	data = data.append(class2)
 	data = data.append(class3)
 
-	data = data.sample(len(data))
 else:
 	data = pd.DataFrame().from_csv(ml_filename)
 

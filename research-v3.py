@@ -47,38 +47,39 @@ if True:
 	# print( source_data['future_change'].value_counts()  )
 	# print(source_data.head(50))
 
-	class0 = source_data[source_data.future_change<0]
-	class1 = source_data[source_data.future_change==1]	
-	class2 = source_data[source_data.future_change>0]
-	class2 = class2[class2.future_change<=3]
-	class3 = source_data[source_data.future_change>3]
+	class0 = source_data[source_data.future_change<=-1]
+	class1 = source_data[source_data.future_change>-1]	
+	class1 = class1[class1.future_change<=1]
+	class2 = source_data[source_data.future_change>=1]
+	# class2 = class2[class2.future_change<=3]
+	# class3 = source_data[source_data.future_change>3]
 	
 	class0.loc[:,'class'] = 0 # 下跌
 	class1.loc[:,'class'] = 1 # 横盘
 	class2.loc[:,'class'] = 2 # 上涨
-	class3.loc[:,'class'] = 3 # 上涨
+	# class3.loc[:,'class'] = 3 # 上涨	
 
 	print([len(class0),len(class1),len(class2),len(class2)])
 	
-	# samples = min([len(class0),len(class1),len(class2),len(class3)])
-	# class0 = class0.sample(samples)
-	# class1 = class1.sample(samples)
-	# class2 = class2.sample(samples)
+	samples = min([len(class0),len(class1),len(class2)])
+	class0 = class0.sample(samples)
+	class1 = class1.sample(samples)
+	class2 = class2.sample(samples)
 	# class3 = class3.sample(samples)
 
 	data = class0.append(class1)
 	data = data.append(class2)
-	data = data.append(class3)
+	# data = data.append(class3)
 
-	data = data.sample(len(data))
 else:
 	data = pd.DataFrame().from_csv(ml_filename)
 
 print( data['class'].value_counts()  )
-data = data.drop(['future_change'],axis=1)
-
-X = data.values
 Y = np_utils.to_categorical(data['class'])
+
+data = data.drop(['future_change','class'],axis=1)
+X = data.values
+print(data.head(2))
 
 splitter = int(len(X)*0.9)
 X_train = X[:splitter]
@@ -90,16 +91,18 @@ Y_test = Y[splitter:]
 
 model = Sequential()
 model.add(Dense(200, activation='tanh', input_shape=(X_train.shape[1],)))
-model.add(Dropout(0.5))
-model.add(Dense(64, activation='relu'))
-model.add(Dropout(0.5))
-model.add(Dense(4, activation='softmax'))
+model.add(Dropout(0.2))
+model.add(Dense(64, activation='tanh'))
+model.add(Dropout(0.2))
+model.add(Dense(32, activation='tanh'))
+model.add(Dropout(0.2))
+model.add(Dense(3, activation='softmax'))
 
 if os.path.exists(model_saved):
 	model.load_weights(model_saved)
 
 # For a multi-class classification problem
-model.compile(optimizer='rmsprop',
+model.compile(optimizer='adam',
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
@@ -110,7 +113,7 @@ autosave = ModelCheckpoint(model_saved, monitor='val_loss',
 
 model.fit(X_train, Y_train,
         validation_split=0.1,
-        nb_epoch=5,
+        nb_epoch=100,
         batch_size=32,
         shuffle=True,
         callbacks=[autosave])

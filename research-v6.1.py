@@ -12,16 +12,24 @@ from sklearn.externals import joblib
 np.random.seed(0)  # for reproducibility
 
 filename = 'featured-v4-HS300-2010-2016.csv'
-model_filename = 'randomforest_model.sav'
+model_filename = 'randomforest_model-v6.2.sav'
 
 print('loading data')
 #load data
-df = pd.read_csv('update_'+filename)
-
+df = pd.read_csv(filename)
+print(len(df))
 df.rename(columns={"Unnamed: 0":"date"}, inplace=True)
-# df = df.drop(columns=['money','high','open','low','close','median',\
-#                     'ma5','ma10','ma60','volume',\
-#                     'hash_close','p_close'])
+
+df['openjump'] = round((df['open'] - df['close'].shift(periods=1)) / df['close'].shift(periods=1),4)
+df['downline'] = round((df['open'] - df['low']) / df['close'].shift(periods=1),4)
+df['upline'] = round((df['high'] - df['open']) / df['close'].shift(periods=1),4)
+
+
+df = df.drop(columns=['money','high','open','low','close','median',\
+                    'ma5','ma10','ma60','volume',\
+                    'hash_close','p_close','action','security'])
+
+
 
 # df = df.drop(columns=['future_c1','future_c2','future_c3','future_c4'])
 print('data loaded')
@@ -44,24 +52,52 @@ df = df.dropna()
 # 	if df['action'].iloc[idx-1]!=0:
 # 		df.loc[df.iloc[idx].name,'action']  = df['action'].iloc[(idx-1)]	
 
-# df.to_csv('update_'+filename)
+df.to_csv('v6_'+filename)
 
-sample_count = min(len(df[df.action==1]),len(df[df.action==2]))
+df['action'] = 0
 
+
+# ----------------------------------------------------------------------------------------------------
+# [Parallel(n_jobs=1)]: Done  10 out of  10 | elapsed:    0.0s finished
+# train score 0.969982219433
+# [Parallel(n_jobs=1)]: Done  10 out of  10 | elapsed:    0.0s finished
+# test score 0.959419885651
+# Error rate:  7.57%
+# Test Samples:  3830
+# ----------------------------------------------------------------------------------------------------
+
+
+df.loc[df.future_c3>0.0,'action']=1
+
+df.loc[df.future_c1<0.00,'action']=0
+df.loc[df.today_c>=0.00,'action']=0
+df.loc[df.prev_c1>=0.00,'action']=0
+df.loc[df.ma60_pos>0.00,'action']=0
+
+df.loc[df[df.trend=='up'].index,'trend'] = 1
+df.loc[df[df.trend=='down'].index,'trend'] = 0
+
+
+sample_count = min(len(df[df.action==1]),len(df[df.action==0]))
+# sample_count = 20000
+print(df.head(5))
+print('sample_count: ',sample_count)
 
 ds_buy  = df[df.action==1].sample(sample_count)
-ds_sell = df[df.action==2].sample(round(sample_count*0.5))
-ds_hold = df[df.action==0].sample(round(sample_count*0.8))
+# ds_sell = df[df.action==2].sample(round(sample_count*0.5))
+ds_hold = df[df.action==0].sample(round(sample_count*1))
 
 df = pd.DataFrame()
-df = ds_buy.append(ds_sell)
-df = df.append(ds_hold)
+# df = ds_buy.append(ds_sell)
+df = ds_buy.append(ds_hold)
 df = shuffle(df)
 
 print(df['action'].value_counts())
 
 Y = df['action']
-X = df.drop(columns=['date','action'])
+X = df.drop(columns=['date','action','future_c1','future_c2','future_c3','future_c4'])
+
+print(X.head(10))
 
 spliter = round(len(X)*0.8)
 X_train, X_test = X[:spliter], X[spliter:]
@@ -69,9 +105,9 @@ Y_train, Y_test = Y[:spliter], Y[spliter:]
 
 clf = RandomForestClassifier(bootstrap=True, class_weight=None, criterion='gini',
             max_depth=None, max_features=None, max_leaf_nodes=None,
-            min_impurity_split=1e-08, min_samples_leaf=1,
+            min_impurity_split=1e-09, min_samples_leaf=1,
             min_samples_split=15, min_weight_fraction_leaf=0,
-            n_estimators=60, n_jobs=1, oob_score=True, random_state=0,
+            n_estimators=15, n_jobs=1, oob_score=False, random_state=0,
             verbose=1, warm_start=True)
 
 clf.fit(X_train, Y_train)

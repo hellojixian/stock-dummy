@@ -19,5 +19,7 @@ days = test_df['date'].value_counts().index.sort_values()
 for trade_date in days:  
   df = test_df[test_df.date==trade_date]
   df = df[df.fu_c1>3].sort_values(by=['fu_c1'],ascending=False)
+
+  df = test_df[(test_df.pre_c3<0) & (test_df.pre_c2<0)]
   print(df)
   break

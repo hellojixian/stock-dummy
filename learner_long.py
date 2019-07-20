@@ -21,7 +21,7 @@ class Learner(object):
         self.pop_size = pop_size
         self.n_kid = n_kid
 
-        self.pop = dict(DNA=5 * np.random.rand(1, self.DNA_size).repeat(self.pop_size, axis=0),         # initialize the pop DNA values,   
+        self.pop = dict(DNA=5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0],         # initialize the pop DNA values,   
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
@@ -81,7 +81,7 @@ class Learner(object):
 
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = profit * ( win_r **5 ) * ( (1+max_risk/10) ** 2)
+            score = profit * ( win_r **5 ) * ( (1+max_risk/10) ** 1.5)
         return {
             "score": score,
             "profit": profit,

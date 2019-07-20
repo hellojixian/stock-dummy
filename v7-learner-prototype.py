@@ -19,8 +19,10 @@ class Learner(object):
         self.pop_size = pop_size
         self.n_kid = n_kid
         
-
-        self.pop = dict(DNA=5 * np.random.rand(1, self.DNA_size).repeat(self.pop_size, axis=0),   # initialize the pop DNA values
+        # init_dna_series = 5 * np.random.rand(1, self.DNA_size).repeat(self.pop_size, axis=0)        
+        init_dna_series = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
+        
+        self.pop = dict(DNA=init_dna_series,   # initialize the pop DNA values
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))                # initialize the pop mutation strength values
 
     # find non-zero fitness for selection

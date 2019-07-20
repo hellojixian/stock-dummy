@@ -73,7 +73,7 @@ class Learner(object):
 
 
 if __name__ == '__main__':
-    ga = Learner(pop_size=100, n_kid=250)
+    ga = Learner(pop_size=50, n_kid=200)
     i = 0 
     for _ in range(N_GENERATIONS):
         dna = ga.evolve()        

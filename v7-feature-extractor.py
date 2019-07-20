@@ -10,7 +10,7 @@ pd.set_option('display.width', 1000)
 
 securities = get_index_stocks('000300.XSHG')
 start_date = datetime.date(2006,1,1)
-end_date = datetime.date(2016,12,31)
+end_date = datetime.date(2006,1,10)
 
 res = pd.DataFrame()
 days = get_trade_days(start_date, end_date)
@@ -20,7 +20,7 @@ def rolling_wr(val):
 
 
 h_dataset = pd.DataFrame()
-h_data_filename = 'featured-v7.1-HS300-2006-2016.csv'
+h_data_filename = 'test-featured-v7.1-HS300-2006-2016.csv'
 if os.path.exists(h_data_filename):
     print('Loading dataset')
     h_dataset = pd.read_csv(h_data_filename,index_col=0)
@@ -93,14 +93,21 @@ for trade_date in days:
     future_res = future_res[['fu_c1','fu_c2','fu_c3','fu_c4']]        
 
     res = res.join(future_res)
-    res['date'] = trade_date
 
+    res['date'] = trade_date
     cols = res.columns.tolist()
     ncols = np.insert(cols[:-1],0, values=[cols[-1]])
     res = res.reindex(columns=ncols)
-    
-    res.index.name = 'security'
 
+    res['security'] = res.index    
+    cols = res.columns.tolist()
+    ncols = np.insert(cols[:-1],0, values=[cols[-1]])
+    res = res.reindex(columns=ncols)
+        
+    res['date'] = res['date'].astype(str)
+    res['id'] = res['security']+"_"+res['date'].str.replace("-",'')
+    res =res.set_index(keys='id')
+    
     remain_sec=int((time.time() - start_timestamp) / ((idx+1)/len(days)) * (1-((idx+1)/len(days))))
     print('\r',trade_date, len(h_dataset),'records\tprogress: ',str(round((idx+1)/len(days)*100,2))+'%\t est: '+str(datetime.timedelta(seconds=remain_sec)),'\tsince start:',int((time.time() - start_timestamp))," "*50, end='')
 
@@ -110,6 +117,6 @@ for trade_date in days:
         h_dataset.to_csv(h_data_filename)
         print('\r\nsave progress.\n')
 
-
+print("\n\n")        
 h_dataset.to_csv(h_data_filename)
 print('\ndone')

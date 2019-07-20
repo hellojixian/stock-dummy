@@ -12,17 +12,20 @@ def min_max_range(x, range_values):
 
 class Learner(object):
 
-    def __init__(self, DNA_sample, dataset, pop_size, n_kid):
+    def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None):
         
         self.dataset = dataset
-        self.factors = dataset.columns.drop(['date','fu_c1','fu_c2', 'fu_c3', 'fu_c4','prewr1','win_r']).values
+        self.factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         self.DNA_sample = DNA_sample
         self.DNA_size = len(self.factors)*2       
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
 
-        self.pop = dict(DNA=5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0],         # initialize the pop DNA values,   
+        if init_dna==None:
+            init_dna = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
+
+        self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,   
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
@@ -77,12 +80,13 @@ class Learner(object):
         risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]
         mean_win = wins.mean()
         if len(risks)>0:
-            max_risk = risks.min()
-            mean_risk = risks.mean()
+            max_risk = risks.quantile(0.1)
+            mean_risk = risks.quantile(0.5)
 
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = profit * ( math.pow(win_r,5) ) * ( math.pow((1+max_risk/10),0.2))
+            # score = profit * ( math.pow((win_r),4) ) * ( math.pow((1+max_risk/11),0.7))
+            score = (win_r **2) * mean_win * hits
         return {
             "score": score,
             "profit": profit,

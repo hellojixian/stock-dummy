@@ -69,11 +69,11 @@ class Learner(object):
     def evolve(self):
         kids = self.make_kid()
         self.kill_bad(kids)   # keep some good parent for elitism            
-        return np.round(self.pop["DNA"][0],0)
+        return np.round(self.pop["DNA"][-1],0)
 
 
 if __name__ == '__main__':
-    ga = Learner(pop_size=100, n_kid=150)
+    ga = Learner(pop_size=100, n_kid=250)
     i = 0 
     for _ in range(N_GENERATIONS):
         dna = ga.evolve()        

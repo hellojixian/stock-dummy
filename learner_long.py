@@ -4,7 +4,7 @@ import pandas as pd
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
-
+EVALUATION_FACTOR = 'fu_c2'
 
 def min_max_range(x, range_values):
     return [round( ((xx - min(x)) / (1.0*(max(x) - min(x)))) * (range_values[1] - range_values[0]) + range_values[0], 2) for xx in x]
@@ -25,7 +25,7 @@ class Learner(object):
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
-        dataset['_evaluate'] = dataset['fu_c1']/100 + 1
+        dataset['_evaluate'] = dataset[EVALUATION_FACTOR]/100 + 1
 
         # init factor 
         scalers = pd.DataFrame()
@@ -40,7 +40,6 @@ class Learner(object):
         return 
 
     def translateDNA(self, dna):
-        dna = np.random.rand(1,1,len(self.factors)*2)[0][0]*self.DNA_bound[1]
         decodedDNA = pd.Series()
         for i in range(len(self.factors)):
             factor = self.factors[i]
@@ -65,7 +64,7 @@ class Learner(object):
 
     def evaluate_dna(self, dna):
         dna = self.translateDNA(dna)
-        rs = self.dataset
+        rs = self.dataset.copy()
         for _ in range(len(self.factors)):
             factor = self.factors[_]
             rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]                
@@ -74,11 +73,11 @@ class Learner(object):
         score = 0
         win_r = 0
         hits = len(rs)
-        max_risk = rs['fu_c1'].min()
-        mean_risk = rs['fu_c1'][rs['fu_c1']<0].mean()
+        max_risk = rs[EVALUATION_FACTOR].min()
+        mean_risk = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0].mean()
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = np.sum(rs['fu_c1'])        
+            score = np.sum(rs[EVALUATION_FACTOR])        
         return {
             "score": win_r,
             "profit": profit,
@@ -119,16 +118,17 @@ class Learner(object):
         fitness = self.get_fitness(self.pop['DNA'])            # calculate global fitness
         idx = np.arange(self.pop['DNA'].shape[0])
         good_idx = idx[fitness.argsort()][-self.pop_size:]   # selected by fitness ranking (not value)
+
         for key in ['DNA', 'mut_strength']:
-            self.pop[key] = self.pop[key][good_idx]
-        return self.pop
+            self.pop[key] = self.pop[key][good_idx]  
+        return 
 
 
     def evolve(self):
         kids = self.make_kid()
         self.kill_bad(kids)   # keep some good parent for elitism    
 
-        return self.pop["DNA"][0]
+        return self.pop["DNA"][-1]
 
 
 

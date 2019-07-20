@@ -4,7 +4,7 @@ import pandas as pd
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
-EVALUATION_FACTOR = 'fu_c2'
+EVALUATION_FACTOR = 'fu_c1'
 
 def min_max_range(x, range_values):
     return [round( ((xx - min(x)) / (1.0*(max(x) - min(x)))) * (range_values[1] - range_values[0]) + range_values[0], 2) for xx in x]
@@ -70,19 +70,24 @@ class Learner(object):
             rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]                
         rs = rs.sort_values(by='date')
         profit = np.prod(rs['_evaluate'])
-        score = 0
-        win_r = 0
+        score,win_r,max_risk,mean_risk,mean_win = 0,0,0,0,0
         hits = len(rs)
-        max_risk = rs[EVALUATION_FACTOR].min()
-        mean_risk = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0].mean()
+        wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]
+        risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]
+        mean_win = wins.mean()
+        if len(risks)>0:
+            max_risk = risks.min()
+            mean_risk = risks.mean()
+
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = np.sum(rs[EVALUATION_FACTOR])        
+            score = profit * ( win_r **5 ) * ( (1+max_risk/10) ** 2)
         return {
-            "score": win_r,
+            "score": score,
             "profit": profit,
             "hits":  hits,
             "win_r": win_r,
+            "mean_win": mean_win,
             "max_risk": max_risk,
             "mean_risk": mean_risk,
         }

@@ -31,9 +31,10 @@ for trade_date in days:
     for i, sample in long_df.iterrows():
         i, sample = next(long_df.iterrows())
         i, sample = next(long_df.iterrows())
+        i, sample = next(long_df.iterrows())
     
-        ga = learnerL(DNA_sample=sample, pop_size=50, n_kid=50 , dataset=train_df)
-        
+        ga = learnerL(DNA_sample=sample, pop_size=50, n_kid=150 , dataset=train_df)
+
         for _ in range(N_GENERATIONS):
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna)
@@ -42,9 +43,10 @@ for trade_date in days:
                 '\tscore:', round(evaluation['score'],3),\
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\thits:',evaluation['hits'],\
-                '\twin_r:',round(evaluation['win_r'],3),\
-                '\tmax_risk:',round(evaluation['max_risk'],3),\
-                '\tmean_risk:',round(evaluation['mean_risk'],3),\
+                '\twin_r:',round(evaluation['win_r'],2),\
+                '\tmean_win:',round(evaluation['mean_win'],2),\
+                '\tmax_risk:',round(evaluation['max_risk'],2),\
+                '\tmean_risk:',round(evaluation['mean_risk'],2),\
                 " "*10)
         break
 

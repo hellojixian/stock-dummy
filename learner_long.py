@@ -14,7 +14,7 @@ class Learner(object):
     def __init__(self, DNA_sample, dataset, pop_size, n_kid):
         
         self.dataset = dataset
-        self.factors = dataset.columns.drop(['date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+        self.factors = dataset.columns.drop(['date','fu_c1','fu_c2', 'fu_c3', 'fu_c4','prewr1','win_r']).values
         self.DNA_sample = DNA_sample
         self.DNA_size = len(self.factors)*2       
         self.DNA_bound = [0, 10]
@@ -74,14 +74,18 @@ class Learner(object):
         score = 0
         win_r = 0
         hits = len(rs)
-        if hits>5:
+        max_risk = rs['fu_c1'].min()
+        mean_risk = rs['fu_c1'][rs['fu_c1']<0].mean()
+        if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = np.sum(rs['fu_c1'])
+            score = np.sum(rs['fu_c1'])        
         return {
-            "score": score,
+            "score": win_r,
             "profit": profit,
             "hits":  hits,
-            "win_r": win_r
+            "win_r": win_r,
+            "max_risk": max_risk,
+            "mean_risk": mean_risk,
         }
 
 

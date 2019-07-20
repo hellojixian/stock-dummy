@@ -10,13 +10,13 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 N_GENERATIONS = 3000
-TARGET_DNA = [6,9,3,1,8,2,3,1,3,4,2,1,2,3,10,0,10,1,2,2,3,1,3,4,1,2,2,3]
-THRESHOLD_PRECENT = 3
+THRESHOLD_PRECENT = 2.5
 
 print('Loading dataset ...')
-# train_df = pd.read_csv('data/featured-v7.1-HS300-2006-2016', index_col=0)
-test_df = pd.read_csv('data/featured-v7.1-HS300-2017-2018.csv', index_col=0)
-train_df = test_df.copy()
+train_df = pd.read_csv('data/featured-v7.1-HS300-2006-2016.csv', index_col=0)
+print(train_df.shape[0],'records')
+# test_df = pd.read_csv('data/featured-v7.1-HS300-2017-2018.csv', index_col=0)
+# train_df = test_df.copy()
 
 days = train_df['date'].value_counts().index.sort_values()
 
@@ -29,7 +29,7 @@ for trade_date in days:
         i, sample = next(long_df.iterrows())
         i, sample = next(long_df.iterrows())
     
-        ga = learnerL(DNA_sample=sample, pop_size=150, n_kid=250 , dataset=train_df)
+        ga = learnerL(DNA_sample=sample, pop_size=150, n_kid=150 , dataset=train_df)
         for _ in range(N_GENERATIONS):
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna)
@@ -38,7 +38,10 @@ for trade_date in days:
                 '\tscore:', round(evaluation['score'],3),\
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\thits:',evaluation['hits'],\
-                '\twin_r:',round(evaluation['win_r'],3)," "*10)
+                '\twin_r:',round(evaluation['win_r'],3),\
+                '\tmax_risk:',round(evaluation['max_risk'],3),\
+                '\tmean_risk:',round(evaluation['mean_risk'],3),\
+                " "*10)
         break
 
 

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import math
 
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
@@ -81,7 +82,7 @@ class Learner(object):
 
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = profit * ( win_r **5 ) * ( (1+max_risk/10) **2)
+            score = profit * ( math.pow(win_r,5) ) * ( math.pow((1+max_risk/10),0.2))
         return {
             "score": score,
             "profit": profit,

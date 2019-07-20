@@ -1,10 +1,5 @@
-"""
-The Evolution Strategy can be summarized as the following term:
-{mu/rho +, lambda}-ES
-Here we use following term to find a maximum point.
-{n_pop/n_pop + n_kid}-ES
-Visit my tutorial website for more: https://morvanzhou.github.io/tutorials/
-"""
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -76,7 +71,7 @@ class Learner(object):
 
 
 if __name__ == '__main__':
-    ga = Learner(pop_size=400, n_kid=150)
+    ga = Learner(pop_size=100, n_kid=150)
     i = 0 
     for _ in range(N_GENERATIONS):
         dna = ga.evolve()        

@@ -33,7 +33,7 @@ for trade_date in days:
         i, sample = next(long_df.iterrows())
         i, sample = next(long_df.iterrows())
     
-        ga = learnerL(DNA_sample=sample, pop_size=50, n_kid=150 , dataset=train_df)
+        ga = learnerL(DNA_sample=sample, pop_size=100, n_kid=200 , dataset=train_df)
 
         for _ in range(N_GENERATIONS):
             best_dna = ga.evolve()        

@@ -81,7 +81,7 @@ class Learner(object):
 
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            score = profit * ( win_r **5 ) * ( (1+max_risk/10) ** 1.5)
+            score = profit * ( win_r **5 ) * ( (1+max_risk/10) **2)
         return {
             "score": score,
             "profit": profit,

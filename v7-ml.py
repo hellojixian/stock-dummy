@@ -1,8 +1,12 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3.7 
 # -*- coding: utf-8 -*-
 
 import pandas as pd
 import numpy as np
+import warnings,sys
+
+if not sys.warnoptions:
+    warnings.simplefilter("ignore")
 
 from lib.learning_manager import LearningManager as Manager
 
@@ -19,5 +23,6 @@ train_df = pd.read_csv(train_data_filename, index_col=0)
 # test_df = pd.read_csv(test_data_filename, index_col=0)
 # train_df = test_df.copy()
 
-manager = Manager(train_set=train_df, key_factor='fu_c1')
-manager.start_learning(how='full')
+if __name__ == '__main__':
+    manager = Manager(train_set=train_df, key_factor='fu_c1')
+    manager.start_learning(how='full')

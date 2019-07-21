@@ -12,8 +12,10 @@ EARLY_STOPPING = 10
 GA_POPSIZE = 100
 GA_N_KID = 200
 N_GENERATIONS = 200
+MIN_GENERATIONS = 50
 
 KB_FILENAME = 'data/knowledge_base.h5'
+KB_KEY = 'KnowledgeBase'
 
 class LearningManager(object):
 
@@ -25,15 +27,16 @@ class LearningManager(object):
         self.short_set = train_set[train_set.fu_c1<-SAMPLE_CHANGE_PRECENT].sort_values(by=[self.key_factor],ascending=True)
 
         if os.path.isfile(KB_FILENAME):
-            self.knowledge_base = h5py.file(KB_FILENAME,'r')
+            self.knowledge_base = pd.read_hdf(KB_FILENAME, key=KB_KEY)
 
         print("Train set: ",self.train_set.shape[0],'records')      
         return 
 
-    def learn(self, sample_id, sample, init_dna=None, init_generation=0):
+    def learn(self, sample_id, sample):
         print("Learning SampleID: ",sample_id)
 
-        improving_stuck_count,last_score = 0,0        
+        improving_stuck_count,last_score = 0,0  
+        init_dna, init_generation = self.get_init_dna(sample_id, sample)
         ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID, 
                       dataset=self.train_set, key_factor=self.key_factor, init_dna=init_dna)
         
@@ -52,11 +55,12 @@ class LearningManager(object):
                 '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', datetime.timedelta(seconds=durtion),\
-                " "*10)
+                " "*5, end="")
                         
 
             if evaluation['score'] <= last_score:
                 improving_stuck_count+=1
+                print("")
             else:
                 improving_stuck_count=0
                 # 有进步就去记录存盘
@@ -67,7 +71,8 @@ class LearningManager(object):
                     'evaluation': evaluation,
                     'generation': real_generation_id
                 }
-                self.save_result(sample_id, knowledge)                
+                self.save_result(sample_id, knowledge) 
+                print("[ saved ]")
 
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")
@@ -77,12 +82,34 @@ class LearningManager(object):
         return
 
     def save_result(self, sample_id, knowledge):
-        print('DNA:', sample_id, '\tGeneration:', knowledge['generation'],'\tsaved')
+        for k in knowledge['evaluation']:
+            knowledge[k]=knowledge['evaluation'][k]
+        del knowledge['evaluation']
+        knowledge['timestamp'] = time.time()
+        knowledge = pd.Series(knowledge)
+        knowledge.name = sample_id
+        if sample_id in self.knowledge_base:
+            self.knowledge_base.loc[sample_id] = knowledge
+        else:
+            self.knowledge_base = self.knowledge_base.append(knowledge)
+
+        self.knowledge_base.to_hdf(KB_FILENAME, KB_KEY)
         return
+
+    def get_init_dna(self, sample_id):
+        if sample_id in self.knowledge_base:
+            k = self.knowledge_base.loc[sample_id]
+            return k['dna','generation']
+        return None,0
 
     def need_learn(self, sample):
         # 如果在已有的知识库里匹配了这个规则 那么返回False
-        
+        if sample_id in self.knowledge_base:            
+            k = self.knowledge_base.loc[sample_id]
+            if k['generation'] <= MIN_GENERATIONS:
+                return True  #如果知识库中虽然有 但是进化代数不够也要继续学习
+            else:
+                return False
         return True
 
     def start_learning(self, how='full'):

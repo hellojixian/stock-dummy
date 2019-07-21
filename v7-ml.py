@@ -9,7 +9,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-N_GENERATIONS = 3000
+N_GENERATIONS = 200
 THRESHOLD_PRECENT = 2.5
 
 print('Loading dataset ...')
@@ -45,12 +45,12 @@ for trade_date in days:
             durtion = int((time.time() - timestamp))
 
             print("G:",_,\
-                '\tscore:', round(evaluation['score'],3),\
+                '\tscore:', round(evaluation['score'],4),\
                 '\thits:',evaluation['hits'],\
-                '\twin_r:',round(evaluation['win_r'],2),\
-                '\tmean_win:',round(evaluation['mean_win'],3),\
+                '\twin_r:',round(evaluation['win_r'],3),\
+                '\tmean_win:',round(evaluation['mean_win'],2),\
                 '\tmax_risk:',round(evaluation['max_risk'],2),\
-                '\tmean_risk:',round(evaluation['mean_risk'],3),\
+                '\tmean_risk:',round(evaluation['mean_risk'],2),\
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', datetime.timedelta(seconds=durtion),\
                 " "*10)

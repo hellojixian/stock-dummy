@@ -59,7 +59,7 @@ class LearningManager(object):
                 '\twin:',round(evaluation['mean_win'],2),'/',round(evaluation['max_win'],2),\
                 '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
                 '\tprofit:', round(evaluation['profit'],3),\
-                '\tdurtion:', datetime.timedelta(seconds=durtion),\
+                '\tdurtion:', str(durtion)+'s',\
                 " "*5, end="")
                         
 
@@ -124,12 +124,35 @@ class LearningManager(object):
             self._full_sample()
         elif how=='random':
             self._random_pick_sample()
+        elif how=='improve':
+            self._improve_knowledge()
         return 
 
-    def _random_pick_sample(self):
+    # 从已有知识库中提取并增强
+    def _improve_knowledge(self):
+        print("Learning Mode: Improve")
+        while True:
+            rec = self.knowledge_base.sample(1)
+            sample_id = rec.index[0]
+            sample = rec['sample'][0]            
+            self.learn(sample_id, sample)
         return
 
+    # 随机挑选样本
+    def _random_pick_sample(self):
+        print("Learning Mode: Random Sample")
+        while True:
+            rec = self.train_set.sample(1)
+            sample_id = rec.index[0]
+            sample = rec.iloc[0]        
+            # 判断是否需要学习
+            if self.need_learn(sample_id, sample):                    
+                self.learn(sample_id, sample)
+        return
+
+    # 按时间顺序学习
     def _full_sample(self):
+        print("Learning Mode: Full Sample")
         days = self.train_set['date'].value_counts().index.sort_values()
         for trade_date in days:
             df = self.long_set[self.long_set.date==trade_date]

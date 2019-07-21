@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+# import modin.pandas as pd
 import math
 
 np.set_printoptions(edgeitems=20)
@@ -14,7 +15,7 @@ class Learner(object):
 
     def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None):
         
-        self.dataset = dataset
+        self.dataset = dataset.sort_values(by='date', ascending=True)
         self.factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         self.DNA_sample = DNA_sample
         self.DNA_size = len(self.factors)*2       
@@ -29,22 +30,24 @@ class Learner(object):
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
-        dataset['_evaluate'] = dataset[EVALUATION_FACTOR]/100 + 1
+        self.dataset['_evaluate'] = self.dataset[EVALUATION_FACTOR]/100 + 1
 
         # init factor 
         scalers = pd.DataFrame()
-        for factor in self.factors:
-            scaler = pd.Series()
+        for factor in self.factors:            
+            scaler_max = self.dataset[factor].quantile(0.99)
+            scaler_min = self.dataset[factor].quantile(0.01)
+            scaler_med = (scaler_max+scaler_min)/2
+            scaler = pd.Series([scaler_max,scaler_min,scaler_med],
+                index=['max','min','med'])
             scaler.name = factor
-            scaler['max'] = self.dataset[factor].quantile(0.99)
-            scaler['min'] = self.dataset[factor].quantile(0.01)
-            scaler['med'] = scaler.mean()
             scalers = scalers.append(scaler)
         self.scalers = scalers
+
         return 
 
     def translateDNA(self, dna):
-        decodedDNA = pd.Series()
+        decodedDNA = {}
         for i in range(len(self.factors)):
             factor = self.factors[i]
             dna_up_idx, dna_down_idx = i*2, i*2+1
@@ -62,17 +65,18 @@ class Learner(object):
         for i in range(len(dna_series)):            
             score = self.evaluate_dna(dna_series[i])['score']
             v=np.append(v,score)            
-            print('\rEvaluating: '+str(round(i/(len(dna_series)-1)*100,2))+"%"+" of "+str(len(dna_series))+" DNA samples" + (" "*10),end='')
-        # print("\n",end="")
+            print('\rEvaluating: '+str(round(i/(len(dna_series)-1)*100,2))+"%"+" of "+str(len(dna_series))+" DNA samples" + (" "*6),end='')
         return v
 
     def evaluate_dna(self, dna):
         dna = self.translateDNA(dna)
-        rs = self.dataset.copy()
+        rs = self.dataset
+        # 筛选
         for _ in range(len(self.factors)):
             factor = self.factors[_]
             rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]                
-        rs = rs.sort_values(by='date')
+        
+        # 评估
         profit = np.prod(rs['_evaluate'])
         score,win_r,max_risk,mean_risk,mean_win = 0,0,0,0,0
         hits = len(rs)
@@ -85,8 +89,7 @@ class Learner(object):
 
         if hits>=3:
             win_r = len(rs[rs._evaluate>=1]) / hits
-            # score = profit * ( math.pow((win_r),4) ) * ( math.pow((1+max_risk/11),0.7))
-            score = (win_r **2) * mean_win * hits
+            score = math.log(hits) * math.tanh(win_r-0.35) 
         return {
             "score": score,
             "profit": profit,

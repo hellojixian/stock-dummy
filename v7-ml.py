@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import json, math
+import json, math, time, datetime
 import pandas as pd
 import numpy as np
 from learner_long import Learner as learnerL
@@ -34,17 +34,22 @@ for trade_date in days:
         ga = learnerL(DNA_sample=sample, pop_size=100, n_kid=200 , dataset=train_df)
 
         for _ in range(N_GENERATIONS):
+            timestamp = time.time()
+            
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna)
             
+            durtion = int((time.time() - timestamp))
+
             print("G:",_,\
                 '\tscore:', round(evaluation['score'],3),\
                 '\thits:',evaluation['hits'],\
                 '\twin_r:',round(evaluation['win_r'],2),\
-                '\tmean_win:',round(evaluation['mean_win'],2),\
+                '\tmean_win:',round(evaluation['mean_win'],3),\
                 '\tmax_risk:',round(evaluation['max_risk'],2),\
-                '\tmean_risk:',round(evaluation['mean_risk'],2),\
+                '\tmean_risk:',round(evaluation['mean_risk'],3),\
                 '\tprofit:', round(evaluation['profit'],3),\
+                '\tdurtion:', datetime.timedelta(seconds=durtion),\
                 " "*10)
         break
 

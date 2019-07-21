@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-# import modin.pandas as pd
 import math
 
 np.set_printoptions(edgeitems=20)
@@ -61,10 +60,10 @@ class Learner(object):
 
     # find non-zero fitness for selection
     def get_fitness(self, dna_series):         
-        v=np.array([])
+        v=np.zeros(len(dna_series))
         for i in range(len(dna_series)):            
             score = self.evaluate_dna(dna_series[i])['score']
-            v=np.append(v,score)            
+            v[i] = score
             print('\rEvaluating: '+str(round(i/(len(dna_series)-1)*100,2))+"%"+" of "+str(len(dna_series))+" DNA samples" + (" "*6),end='')
         return v
 
@@ -177,6 +176,4 @@ class Learner(object):
         self.kill_bad(kids)   # keep some good parent for elitism    
 
         return self.pop["DNA"][-1]
-
-
 

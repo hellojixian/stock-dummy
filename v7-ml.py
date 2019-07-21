@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import json, math, time, datetime
 import pandas as pd
 import numpy as np
-from learner_long import Learner as learnerL
+from lib.learner.long import Learner as learnerL
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -13,9 +14,16 @@ N_GENERATIONS = 200
 THRESHOLD_PRECENT = 2.5
 EARLY_STOPPING = 10
 
+GA_POPSIZE = 100
+GA_N_KID = 200
+
+train_data_filename = 'data/featured-v7.1-HS300-2006-2016.csv'
+test_data_filename  = 'data/featured-v7.1-HS300-2017-2018.csv'
+kb_filename = 'data/knowledge_base.pickle'
+
 print('Loading dataset ...')
-train_df = pd.read_csv('data/featured-v7.1-HS300-2006-2016.csv', index_col=0)
-# test_df = pd.read_csv('data/featured-v7.1-HS300-2017-2018.csv', index_col=0)
+train_df = pd.read_csv(train_data_filename, index_col=0)
+# test_df = pd.read_csv(test_data_filename, index_col=0)
 # train_df = test_df.copy()
 print(train_df.shape[0],'records')
 
@@ -29,23 +37,21 @@ for trade_date in days:
     long_df  = df[df.fu_c1> THRESHOLD_PRECENT].sort_values(by=['fu_c1'],ascending=False)
     short_df = df[df.fu_c1<-THRESHOLD_PRECENT].sort_values(by=['fu_c1'],ascending=True)
 
+    # 取样逻辑
     for sample_id, sample in long_df.iterrows():
-        sample_id, sample = next(long_df.iterrows())
-        sample_id, sample = next(long_df.iterrows())
-        sample_id, sample = next(long_df.iterrows())
-        
-        print("SampleID: ",sample_id)
-        ga = learnerL(DNA_sample=sample, pop_size=100, n_kid=200 , dataset=train_df)
-
+        # 判断是否需要学习
+        # 学习逻辑
         improving_stuck_count,last_score = 0,0
-
-        for _ in range(N_GENERATIONS):
+        print("SampleID: ",sample_id)
+        ga = learnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID, dataset=train_df)
+        
+        for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
             
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
             durtion = int((time.time() - timestamp))
-            print("G:",_,\
+            print("G:",generation_id,\
                 '\tscore:', round(evaluation['score'],4),\
                 '\thits:',evaluation['hits'],\
                 '\twin_r:',round(evaluation['win_r'],3),\
@@ -54,17 +60,20 @@ for trade_date in days:
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', datetime.timedelta(seconds=durtion),\
                 " "*10)
-            
+                        
+
             if evaluation['score'] <= last_score:
                 improving_stuck_count+=1
+            else:
+                # 有进步就去记录存盘
+                # sample_id sample dna generation_id
+                print('DNA:', sample_id, 'saved')
+
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")
                 break
             last_score = evaluation['score']
         break
 
-
-    for _, sample in short_df.iterrows():
-        print(sample)
-
     break
+

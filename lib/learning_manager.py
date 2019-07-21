@@ -54,7 +54,7 @@ class LearningManager(object):
             durtion = int((time.time() - timestamp))
             print("Gen:",real_generation_id,\
                 '\tscore:', round(evaluation['score'],4),\
-                '\thits:',evaluation['hits'],\
+                '\thits:',round(evaluation['hits']),'/',round(evaluation['hits_r'],4),\
                 '\twin_r:',round(evaluation['win_r'],3),\
                 '\twin:',round(evaluation['mean_win'],2),'/',round(evaluation['max_win'],2),\
                 '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
@@ -74,10 +74,11 @@ class LearningManager(object):
                     'sample': sample,
                     'knowledge': ga.translateDNA(best_dna),
                     'evaluation': evaluation,
-                    'generation': real_generation_id
+                    'generation': real_generation_id,
+                    'key_factor': self.key_factor
                 }
                 self.save_result(sample_id, knowledge) 
-                print("[ saved ]")
+                print("[ s ]")
 
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")

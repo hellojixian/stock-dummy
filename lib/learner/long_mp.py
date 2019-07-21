@@ -9,7 +9,6 @@ import time
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
-EVALUATION_FACTOR = 'fu_c1'
 N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
 # N_THREAD = 7
 
@@ -35,7 +34,7 @@ class Learner(object):
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
-        self.dataset['_evaluate'] = self.dataset[EVALUATION_FACTOR]/100 + 1
+        self.dataset['_evaluate'] = self.dataset[self.key_factor]/100 + 1
 
         # init factor 
         scalers = pd.DataFrame()
@@ -144,27 +143,30 @@ class Learner(object):
                  (rs.h10_pos < dna['h10_pos_u']) & (rs.h10_pos > dna['h10_pos_d']) ]
         # 评估
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
-        
+        hits_r = 0
+
         hits = rs.shape[0]
-        wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]        
+        wins = rs[self.key_factor][rs[self.key_factor]>=0]        
 
         if deep_eval==True:
             profit = np.prod(rs['_evaluate'])
             max_win = wins.quantile(0.9)
             mean_win = wins.mean()
-            risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]        
+            risks = rs[self.key_factor][rs[self.key_factor]<0]        
             if risks.shape[0]>0:
                 max_risk = risks.quantile(0.1)
                 mean_risk = risks.mean()
 
         if hits>=3:
             win_r = wins.shape[0] / hits
+            hits_r = rs.shape[0] / self.dataset.shape[0]
             # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.375) *10
+            score = hits_r * math.tanh(win_r-0.55) *10
         return {
             "score": score,
             "profit": profit,
             "hits":  hits,
+            "hits_r":  hits_r,
             "win_r": win_r,
             "max_win": max_win,
             "mean_win": mean_win,

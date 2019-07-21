@@ -106,28 +106,30 @@ class Learner(object):
                  (rs.h100_pos < dna['h100_pos_u']) & (rs.h100_pos > dna['h100_pos_d']) & \
                  (rs.h10_pos < dna['h10_pos_u']) & (rs.h10_pos > dna['h10_pos_d']) ]
         # 评估
-        profit,score,win_r,mean_win,max_risk,mean_risk = 1,0,0,-1,-1, -1
+        profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
         
         hits = rs.shape[0]
         wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]        
 
         if deep_eval==True:
             profit = np.prod(rs['_evaluate'])
+            max_win = wins.quantile(0.9)
             mean_win = wins.mean()
             risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]        
             if risks.shape[0]>0:
                 max_risk = risks.quantile(0.1)
-                mean_risk = risks.quantile(0.5)
+                mean_risk = risks.mean()
 
         if hits>=3:
             win_r = wins.shape[0] / hits
             # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            score = math.log((hits,(self.dataset.shape[0]*0.25*0.05))) * math.tanh(win_r-0.35) 
+            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.35) *10
         return {
             "score": score,
             "profit": profit,
             "hits":  hits,
             "win_r": win_r,
+            "max_win": max_win,
             "mean_win": mean_win,
             "max_risk": max_risk,
             "mean_risk": mean_risk,

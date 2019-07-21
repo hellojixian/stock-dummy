@@ -48,9 +48,8 @@ for trade_date in days:
                 '\tscore:', round(evaluation['score'],4),\
                 '\thits:',evaluation['hits'],\
                 '\twin_r:',round(evaluation['win_r'],3),\
-                '\tmean_win:',round(evaluation['mean_win'],2),\
-                '\tmax_risk:',round(evaluation['max_risk'],2),\
-                '\tmean_risk:',round(evaluation['mean_risk'],2),\
+                '\twin:',round(evaluation['mean_win'],2),'/',round(evaluation['max_win'],2),\
+                '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', datetime.timedelta(seconds=durtion),\
                 " "*10)

@@ -45,12 +45,12 @@ class LearningManager(object):
         
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
-            real_generation_id = init_generation + generation_id
+            real_generation_id = int(init_generation + generation_id + 1)
             
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
             durtion = int((time.time() - timestamp))
-            print("G:",real_generation_id,\
+            print("Gen:",real_generation_id,\
                 '\tscore:', round(evaluation['score'],4),\
                 '\thits:',evaluation['hits'],\
                 '\twin_r:',round(evaluation['win_r'],3),\
@@ -101,7 +101,8 @@ class LearningManager(object):
 
     def get_init_dna(self, sample_id):
         if sample_id in self.knowledge_base.index:            
-            res= self.knowledge_base.loc[sample_id,['dna','generation']].values            
+            res= self.knowledge_base.loc[sample_id,['dna','generation']].values 
+            print("DNA SampleID [",sample_id,"] needs continue learning from Gen:", int(res[1]))
             return res[0],res[1]
         return None,0
 

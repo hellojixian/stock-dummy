@@ -7,9 +7,6 @@ np.core.arrayprint._line_width = 280
 
 EVALUATION_FACTOR = 'fu_c1'
 
-def min_max_range(x, range_values):
-    return [round( ((xx - min(x)) / (1.0*(max(x) - min(x)))) * (range_values[1] - range_values[0]) + range_values[0], 2) for xx in x]
-
 class Learner(object):
 
     def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None):
@@ -46,6 +43,9 @@ class Learner(object):
         return 
 
     def translateDNA(self, dna):
+        def min_max_range(x, range_values):
+            return [round( ((xx - min(x)) / (1.0*(max(x) - min(x)))) * (range_values[1] - range_values[0]) + range_values[0], 2) for xx in x]
+        
         decodedDNA = {}
         for i in range(len(self.factors)):
             factor = self.factors[i]

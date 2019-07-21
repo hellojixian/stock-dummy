@@ -4,7 +4,8 @@
 import json, math, time, datetime
 import pandas as pd
 import numpy as np
-from lib.learner.long import Learner as learnerL
+# from lib.learner.long import Learner as learnerL
+from lib.learner.long_threading import Learner as learnerL
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)

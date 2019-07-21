@@ -40,7 +40,7 @@ for trade_date in days:
             timestamp = time.time()
             
             best_dna = ga.evolve()        
-            evaluation = ga.evaluate_dna(best_dna, eval_risk=True)
+            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)
             
             durtion = int((time.time() - timestamp))
 

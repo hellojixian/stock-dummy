@@ -81,7 +81,7 @@ class Learner(object):
         print("\n")
         return
 
-    def evaluate_dna(self, dna):
+    def evaluate_dna(self, dna, eval_risk=False):
         dna = self.translateDNA(dna)
         rs = self.dataset        
         
@@ -108,14 +108,17 @@ class Learner(object):
         # 评估
         profit = np.prod(rs['_evaluate'])
 
-        score,win_r,max_risk,mean_risk,mean_win = 0,0,0,0,0
+        score,win_r,mean_win,max_risk,mean_risk = 0,0,0,-1, -1
+        
         hits = rs.shape[0]
         wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]
-        risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]
         mean_win = wins.mean()
-        if risks.shape[0]>0:
-            max_risk = risks.quantile(0.1)
-            mean_risk = risks.quantile(0.5)
+
+        if eval_risk==True:
+            risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]        
+            if risks.shape[0]>0:
+                max_risk = risks.quantile(0.1)
+                mean_risk = risks.quantile(0.5)
 
         if hits>=3:
             win_r = wins.shape[0] / hits

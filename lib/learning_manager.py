@@ -102,7 +102,7 @@ class LearningManager(object):
     def get_init_dna(self, sample_id):
         if sample_id in self.knowledge_base.index:            
             res= self.knowledge_base.loc[sample_id,['dna','generation']].values            
-            return res[0],res[0]
+            return res[0],res[1]
         return None,0
 
     def need_learn(self, sample_id, sample):

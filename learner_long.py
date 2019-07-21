@@ -106,7 +106,7 @@ class Learner(object):
                  (rs.h100_pos < dna['h100_pos_u']) & (rs.h100_pos > dna['h100_pos_d']) & \
                  (rs.h10_pos < dna['h10_pos_u']) & (rs.h10_pos > dna['h10_pos_d']) ]
         # 评估
-        profit,score,win_r,mean_win,max_risk,mean_risk = 1,0,0,0,-1, -1
+        profit,score,win_r,mean_win,max_risk,mean_risk = 1,0,0,-1,-1, -1
         
         hits = rs.shape[0]
         wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]        

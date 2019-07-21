@@ -123,7 +123,7 @@ class Learner(object):
         if hits>=3:
             win_r = wins.shape[0] / hits
             # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.35) *10
+            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.365) *10
         return {
             "score": score,
             "profit": profit,

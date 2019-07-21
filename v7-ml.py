@@ -11,6 +11,7 @@ pd.set_option('display.width', 1000)
 
 N_GENERATIONS = 200
 THRESHOLD_PRECENT = 2.5
+EARLY_STOPPING = 10
 
 print('Loading dataset ...')
 train_df = pd.read_csv('data/featured-v7.1-HS300-2006-2016.csv', index_col=0)
@@ -36,14 +37,14 @@ for trade_date in days:
         print("SampleID: ",sample_id)
         ga = learnerL(DNA_sample=sample, pop_size=100, n_kid=200 , dataset=train_df)
 
+        improving_stuck_count,last_score = 0,0
+
         for _ in range(N_GENERATIONS):
             timestamp = time.time()
             
             best_dna = ga.evolve()        
-            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)
-            
+            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
             durtion = int((time.time() - timestamp))
-
             print("G:",_,\
                 '\tscore:', round(evaluation['score'],4),\
                 '\thits:',evaluation['hits'],\
@@ -53,6 +54,13 @@ for trade_date in days:
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', datetime.timedelta(seconds=durtion),\
                 " "*10)
+            
+            if evaluation['score'] <= last_score:
+                improving_stuck_count+=1
+            if improving_stuck_count>=EARLY_STOPPING:
+                print("EARLY_STOPPING")
+                break
+            last_score = evaluation['score']
         break
 
 

@@ -30,7 +30,7 @@ class Learner(object):
             init_dna = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
         else:
             init_dna = np.array([init_dna]).repeat(self.pop_size, axis=0)
-            
+
         self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,   
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
@@ -160,7 +160,7 @@ class Learner(object):
         if hits>=3:
             win_r = wins.shape[0] / hits
             # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.365) *10
+            score = math.log(hits,(self.dataset.shape[0]*0.25*0.05)) * math.tanh(win_r-0.375) *10
         return {
             "score": score,
             "profit": profit,

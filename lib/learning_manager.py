@@ -46,7 +46,9 @@ class LearningManager(object):
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
             real_generation_id = int(init_generation + generation_id + 1)
-            
+            if real_generation_id>=N_GENERATIONS:
+                break
+
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
             durtion = int((time.time() - timestamp))

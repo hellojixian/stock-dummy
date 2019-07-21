@@ -1,11 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 # -*- coding: utf-8 -*-
 
 import json, math, time, datetime
 import pandas as pd
 import numpy as np
 # from lib.learner.long import Learner as learnerL
-from lib.learner.long_threading import Learner as learnerL
+from lib.learner.long_mp import Learner as learnerL
 
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -23,9 +23,9 @@ test_data_filename  = 'data/featured-v7.1-HS300-2017-2018.csv'
 kb_filename = 'data/knowledge_base.pickle'
 
 print('Loading dataset ...')
-train_df = pd.read_csv(train_data_filename, index_col=0)
-# test_df = pd.read_csv(test_data_filename, index_col=0)
-# train_df = test_df.copy()
+# train_df = pd.read_csv(train_data_filename, index_col=0)
+test_df = pd.read_csv(test_data_filename, index_col=0)
+train_df = test_df.copy()
 print(train_df.shape[0],'records')
 
 
@@ -40,6 +40,9 @@ for trade_date in days:
 
     # 取样逻辑
     for sample_id, sample in long_df.iterrows():
+        sample_id, sample = next(long_df.iterrows())
+        sample_id, sample = next(long_df.iterrows())
+        sample_id, sample = next(long_df.iterrows())
         # 判断是否需要学习
         # 学习逻辑
         improving_stuck_count,last_score = 0,0

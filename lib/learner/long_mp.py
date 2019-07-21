@@ -26,9 +26,11 @@ class Learner(object):
         self.pop_size = pop_size
         self.n_kid = n_kid
 
-        if init_dna==None:
+        if init_dna is None:
             init_dna = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
-
+        else:
+            init_dna = np.array([init_dna]).repeat(self.pop_size, axis=0)
+            
         self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,   
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 

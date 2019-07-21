@@ -36,13 +36,16 @@ class LearningManager(object):
         print("Learning SampleID: ",sample_id)
 
         improving_stuck_count,last_score = 0,0  
-        init_dna, init_generation = self.get_init_dna(sample_id, sample)
+        
+        # 尝试调取上次的学习记录 继续进化
+        init_dna, init_generation = self.get_init_dna(sample_id)
+
         ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID, 
                       dataset=self.train_set, key_factor=self.key_factor, init_dna=init_dna)
         
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
-            real_generation_id = init_generation+generation_id
+            real_generation_id = init_generation + generation_id
             
             best_dna = ga.evolve()        
             evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
@@ -88,7 +91,7 @@ class LearningManager(object):
         knowledge['timestamp'] = time.time()
         knowledge = pd.Series(knowledge)
         knowledge.name = sample_id
-        if sample_id in self.knowledge_base:
+        if sample_id in self.knowledge_base.index:
             self.knowledge_base.loc[sample_id] = knowledge
         else:
             self.knowledge_base = self.knowledge_base.append(knowledge)
@@ -97,14 +100,14 @@ class LearningManager(object):
         return
 
     def get_init_dna(self, sample_id):
-        if sample_id in self.knowledge_base:
-            k = self.knowledge_base.loc[sample_id]
-            return k['dna','generation']
+        if sample_id in self.knowledge_base.index:            
+            res= self.knowledge_base.loc[sample_id,['dna','generation']].values            
+            return res[0],res[0]
         return None,0
 
-    def need_learn(self, sample):
+    def need_learn(self, sample_id, sample):
         # 如果在已有的知识库里匹配了这个规则 那么返回False
-        if sample_id in self.knowledge_base:            
+        if sample_id in self.knowledge_base.index:            
             k = self.knowledge_base.loc[sample_id]
             if k['generation'] <= MIN_GENERATIONS:
                 return True  #如果知识库中虽然有 但是进化代数不够也要继续学习
@@ -129,7 +132,7 @@ class LearningManager(object):
             # 取样逻辑
             for sample_id, sample in df.iterrows():
                 # 判断是否需要学习
-                if self.need_learn(sample):
+                if self.need_learn(sample_id, sample):
                     # 从样本中学习
                     self.learn(sample_id, sample)
         return

@@ -126,6 +126,8 @@ class LearningManager(object):
             self._random_pick_sample()
         elif how=='improve':
             self._improve_knowledge()
+        else:
+            print("Unknown learning mode")
         return 
 
     # 从已有知识库中提取并增强

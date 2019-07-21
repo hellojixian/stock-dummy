@@ -18,6 +18,9 @@ train_df = pd.read_csv('data/featured-v7.1-HS300-2006-2016.csv', index_col=0)
 # train_df = test_df.copy()
 print(train_df.shape[0],'records')
 
+
+
+
 days = train_df['date'].value_counts().index.sort_values()
 
 for trade_date in days:  

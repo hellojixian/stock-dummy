@@ -68,27 +68,57 @@ class Learner(object):
             print('\rEvaluating: '+str(round(i/(len(dna_series)-1)*100,2))+"%"+" of "+str(len(dna_series))+" DNA samples" + (" "*6),end='')
         return v
 
+    # 只有在修改了特征的时候才需要手动运行一次
+    # 这是为了静态编译提升性能虽然不好看 但是性能提升了60倍
+    def _compile_filter(dataset):
+        factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+        print("copy paste below code to evaluate_dna() ")
+        for _ in range(len(factors)):
+            factor = factors[_]
+            # 参考代码
+            # rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])] 
+            print(" (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & \\",)
+        print("\n")
+        return
+
     def evaluate_dna(self, dna):
         dna = self.translateDNA(dna)
-        rs = self.dataset
-        # 筛选
-        for _ in range(len(self.factors)):
-            factor = self.factors[_]
-            rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]                
+        rs = self.dataset        
         
+        # 筛选 静态编译
+        rs = rs[(rs.pre_c3 < dna['pre_c3_u']) & (rs.pre_c3 > dna['pre_c3_d']) & \
+                 (rs.pre_c2 < dna['pre_c2_u']) & (rs.pre_c2 > dna['pre_c2_d']) & \
+                 (rs.pre_c1 < dna['pre_c1_u']) & (rs.pre_c1 > dna['pre_c1_d']) & \
+                 (rs.today_c < dna['today_c_u']) & (rs.today_c > dna['today_c_d']) & \
+                 (rs.up_l < dna['up_l_u']) & (rs.up_l > dna['up_l_d']) & \
+                 (rs.dn_l < dna['dn_l_u']) & (rs.dn_l > dna['dn_l_d']) & \
+                 (rs.open_c < dna['open_c_u']) & (rs.open_c > dna['open_c_d']) & \
+                 (rs.ma5_pos < dna['ma5_pos_u']) & (rs.ma5_pos > dna['ma5_pos_d']) & \
+                 (rs.ma10_pos < dna['ma10_pos_u']) & (rs.ma10_pos > dna['ma10_pos_d']) & \
+                 (rs.ma60_pos < dna['ma60_pos_u']) & (rs.ma60_pos > dna['ma60_pos_d']) & \
+                 (rs.ma5_ang < dna['ma5_ang_u']) & (rs.ma5_ang > dna['ma5_ang_d']) & \
+                 (rs.ma10_ang < dna['ma10_ang_u']) & (rs.ma10_ang > dna['ma10_ang_d']) & \
+                 (rs.ma60_ang < dna['ma60_ang_u']) & (rs.ma60_ang > dna['ma60_ang_d']) & \
+                 (rs.p5_wr < dna['p5_wr_u']) & (rs.p5_wr > dna['p5_wr_d']) & \
+                 (rs.p10_wr < dna['p10_wr_u']) & (rs.p10_wr > dna['p10_wr_d']) & \
+                 (rs.prewr1 < dna['prewr1_u']) & (rs.prewr1 > dna['prewr1_d']) & \
+                 (rs.win_r < dna['win_r_u']) & (rs.win_r > dna['win_r_d']) & \
+                 (rs.h100_pos < dna['h100_pos_u']) & (rs.h100_pos > dna['h100_pos_d']) & \
+                 (rs.h10_pos < dna['h10_pos_u']) & (rs.h10_pos > dna['h10_pos_d']) ]
         # 评估
         profit = np.prod(rs['_evaluate'])
+
         score,win_r,max_risk,mean_risk,mean_win = 0,0,0,0,0
-        hits = len(rs)
+        hits = rs.shape[0]
         wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]
         risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]
         mean_win = wins.mean()
-        if len(risks)>0:
+        if risks.shape[0]>0:
             max_risk = risks.quantile(0.1)
             mean_risk = risks.quantile(0.5)
 
         if hits>=3:
-            win_r = len(rs[rs._evaluate>=1]) / hits
+            win_r = wins.shape[0] / hits
             score = math.log(hits) * math.tanh(win_r-0.35) 
         return {
             "score": score,

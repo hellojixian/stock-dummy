@@ -23,9 +23,9 @@ test_data_filename  = 'data/featured-v7.1-HS300-2017-2018.csv'
 kb_filename = 'data/knowledge_base.pickle'
 
 print('Loading dataset ...')
-# train_df = pd.read_csv(train_data_filename, index_col=0)
-test_df = pd.read_csv(test_data_filename, index_col=0)
-train_df = test_df.copy()
+train_df = pd.read_csv(train_data_filename, index_col=0)
+# test_df = pd.read_csv(test_data_filename, index_col=0)
+# train_df = test_df.copy()
 print(train_df.shape[0],'records')
 
 

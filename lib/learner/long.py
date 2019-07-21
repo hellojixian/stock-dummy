@@ -5,12 +5,10 @@ import math
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
-EVALUATION_FACTOR = 'fu_c1'
-
 class Learner(object):
 
-    def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None):
-        
+    def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None, key_factor='fu_c1'):
+        self.key_factor = key_factor
         self.dataset = dataset.sort_values(by='date', ascending=True)
         self.factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         self.DNA_sample = DNA_sample
@@ -26,7 +24,7 @@ class Learner(object):
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
-        self.dataset['_evaluate'] = self.dataset[EVALUATION_FACTOR]/100 + 1
+        self.dataset['_evaluate'] = self.dataset[self.key_factor]/100 + 1
 
         # init factor 
         scalers = pd.DataFrame()
@@ -108,13 +106,13 @@ class Learner(object):
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
         
         hits = rs.shape[0]
-        wins = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]>=0]        
+        wins = rs[self.key_factor][rs[self.key_factor]>=0]        
 
         if deep_eval==True:
             profit = np.prod(rs['_evaluate'])
             max_win = wins.quantile(0.9)
             mean_win = wins.mean()
-            risks = rs[EVALUATION_FACTOR][rs[EVALUATION_FACTOR]<0]        
+            risks = rs[self.key_factor][rs[self.key_factor]<0]        
             if risks.shape[0]>0:
                 max_risk = risks.quantile(0.1)
                 mean_risk = risks.mean()

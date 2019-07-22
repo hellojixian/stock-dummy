@@ -51,6 +51,7 @@ class LearningManager(object):
             if real_generation_id>=N_GENERATIONS:
                 break
 
+            print("")
             best_dna = ga.evolve()
             evaluation_train = ga.evaluate_dna(best_dna, deep_eval=True, dataset="train")
             evaluation_val   = ga.evaluate_dna(best_dna, deep_eval=True, dataset="validation")
@@ -62,7 +63,6 @@ class LearningManager(object):
 
             if evaluation_val['score'] <= last_score:
                 improving_stuck_count+=1
-                print("")
             else:
                 improving_stuck_count=0
                 # 有进步就去记录存盘

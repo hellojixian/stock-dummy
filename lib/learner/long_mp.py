@@ -168,18 +168,19 @@ class Learner(object):
         # 设计数据期望
         wr_min, wr_max = 0.5, 1.0
         hr_min, hr_max = 0.0005,0.01
-        wr_weight, hr_weight = 3.5,  1
+        wr_weight, hr_weight = 10,1
 
-        # 标准化数据表达
-        normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
-        normalized_wr = np.tanh(normalization(win_r, wr_min, wr_max))*1.3
-        sum_weight = sum([wr_weight, hr_weight])
-        wr_weight /= sum_weight
-        hr_weight /= sum_weight
+        if hits_r>hr_min and win_r>wr_min:
+            # 标准化数据表达
+            normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
+            normalized_wr = np.tanh(normalization(win_r , wr_min, wr_max))*1.3
+            sum_weight = sum([wr_weight, hr_weight])
+            wr_weight /= sum_weight
+            hr_weight /= sum_weight
 
-        score = normalized_wr*wr_weight + normalized_hr*hr_weight
-        # 修正标准差过大
-        score -= abs(normalized_wr*wr_weight-normalized_hr*hr_weight)/2
+            score = normalized_wr*wr_weight + normalized_hr*hr_weight
+            # 修正标准差过大
+            score -= abs(normalized_wr*wr_weight-normalized_hr*hr_weight)/2
 
         return {
             "score": score,

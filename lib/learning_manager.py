@@ -9,8 +9,8 @@ from lib.learner.long_mp import Learner as LearnerL
 
 SAMPLE_CHANGE_PRECENT = 2.5
 EARLY_STOPPING = 10
-GA_POPSIZE = 150
-GA_N_KID = 350
+GA_POPSIZE = 100
+GA_N_KID = 200
 N_GENERATIONS = 200
 MIN_GENERATIONS = 50
 

@@ -26,6 +26,9 @@ class Learner(object):
         self.pop_size = pop_size
         self.n_kid = n_kid
 
+        # 编译数据筛选器 用于eval执行
+        self._data_filter = self._compile_filter()
+
         if init_dna is None:
             init_dna = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
         else:
@@ -107,41 +110,20 @@ class Learner(object):
 
     # 只有在修改了特征的时候才需要手动运行一次
     # 这是为了静态编译提升性能虽然不好看 但是性能提升了60倍
-    def _compile_filter(dataset):
-        factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
-        print("copy paste below code to evaluate_dna() ")
+    def _compile_filter(self):
+        factors = self.dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+        filter = "rs["
         for _ in range(len(factors)):
             factor = factors[_]
-            # 参考代码
-            # rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]
-            print(" (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & \\",)
-        print("\n")
-        return
+            filter += " (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & "
+        filter += "True ]"
+        return filter
 
     def evaluate_dna(self, dna, deep_eval=False):
         dna = self.translateDNA(dna)
         rs = self.dataset
-
         # 筛选 静态编译
-        rs = rs[(rs.pre_c3 < dna['pre_c3_u']) & (rs.pre_c3 > dna['pre_c3_d']) & \
-                 (rs.pre_c2 < dna['pre_c2_u']) & (rs.pre_c2 > dna['pre_c2_d']) & \
-                 (rs.pre_c1 < dna['pre_c1_u']) & (rs.pre_c1 > dna['pre_c1_d']) & \
-                 (rs.today_c < dna['today_c_u']) & (rs.today_c > dna['today_c_d']) & \
-                 (rs.up_l < dna['up_l_u']) & (rs.up_l > dna['up_l_d']) & \
-                 (rs.dn_l < dna['dn_l_u']) & (rs.dn_l > dna['dn_l_d']) & \
-                 (rs.open_c < dna['open_c_u']) & (rs.open_c > dna['open_c_d']) & \
-                 (rs.ma5_pos < dna['ma5_pos_u']) & (rs.ma5_pos > dna['ma5_pos_d']) & \
-                 (rs.ma10_pos < dna['ma10_pos_u']) & (rs.ma10_pos > dna['ma10_pos_d']) & \
-                 (rs.ma60_pos < dna['ma60_pos_u']) & (rs.ma60_pos > dna['ma60_pos_d']) & \
-                 (rs.ma5_ang < dna['ma5_ang_u']) & (rs.ma5_ang > dna['ma5_ang_d']) & \
-                 (rs.ma10_ang < dna['ma10_ang_u']) & (rs.ma10_ang > dna['ma10_ang_d']) & \
-                 (rs.ma60_ang < dna['ma60_ang_u']) & (rs.ma60_ang > dna['ma60_ang_d']) & \
-                 (rs.p5_wr < dna['p5_wr_u']) & (rs.p5_wr > dna['p5_wr_d']) & \
-                 (rs.p10_wr < dna['p10_wr_u']) & (rs.p10_wr > dna['p10_wr_d']) & \
-                 (rs.prewr1 < dna['prewr1_u']) & (rs.prewr1 > dna['prewr1_d']) & \
-                 (rs.win_r < dna['win_r_u']) & (rs.win_r > dna['win_r_d']) & \
-                 (rs.h100_pos < dna['h100_pos_u']) & (rs.h100_pos > dna['h100_pos_d']) & \
-                 (rs.h10_pos < dna['h10_pos_u']) & (rs.h10_pos > dna['h10_pos_d']) ]
+        rs = eval(self._data_filter)
         # 评估
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
         hits_r = 0

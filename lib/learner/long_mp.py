@@ -85,7 +85,7 @@ class Learner(object):
 
                 v[i]=score
                 processed_count.value+=1
-                print('\rEvaluating: '+str(round(processed_count.value/total*100,2))+"%"+" of "+str(len(v))+" DNA samples" + (" "*6),end='')
+                print('\rEvaluating: '+str(round(processed_count.value/total*100,2))+"%"+" of "+str(len(v))+" samples" + (" "*6),end='')
 
             return
 
@@ -168,7 +168,7 @@ class Learner(object):
         # 设计数据期望
         wr_min, wr_max = 0.5, 1.0
         hr_min, hr_max = 0.001,0.015
-        wr_weight, hr_weight = 3,  1
+        wr_weight, hr_weight = 1.8,  1
 
         # 标准化数据表达
         normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
@@ -178,6 +178,8 @@ class Learner(object):
         hr_weight /= sum_weight
 
         score = normalized_wr*wr_weight + normalized_hr*hr_weight
+        # 修正标准差过大
+        score -= abs(normalized_hr-normalized_wr)/2
 
         return {
             "score": score,

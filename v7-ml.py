@@ -10,6 +10,10 @@ if not sys.warnoptions:
 
 from lib.learning_manager import LearningManager as Manager
 
+learning_mode = 'full'
+if len(sys.argv)>1 and sys.argv[1] in ['full','random','improve']:
+    learning_mode = sys.argv[1]
+
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -25,4 +29,4 @@ train_df = pd.read_csv(train_data_filename, index_col=0)
 
 if __name__ == '__main__':
     manager = Manager(train_set=train_df, key_factor='fu_c1')
-    manager.start_learning(how='full')
+    manager.start_learning(how=learning_mode)

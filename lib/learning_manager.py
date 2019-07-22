@@ -9,8 +9,8 @@ from lib.learner.long_mp import Learner as LearnerL
 
 SAMPLE_CHANGE_PRECENT = 2.5
 EARLY_STOPPING = 10
-GA_POPSIZE = 100
-GA_N_KID = 200
+GA_POPSIZE = 150
+GA_N_KID = 350
 N_GENERATIONS = 200
 MIN_GENERATIONS = 50
 
@@ -29,28 +29,28 @@ class LearningManager(object):
         if os.path.isfile(KB_FILENAME):
             self.knowledge_base = pd.read_hdf(KB_FILENAME, key=KB_KEY)
 
-        print("Train set: ",self.train_set.shape[0],'records')      
-        return 
+        print("Train set: ",self.train_set.shape[0],'records')
+        return
 
     def learn(self, sample_id, sample):
         print("Learning SampleID: ",sample_id)
 
-        improving_stuck_count,last_score = 0,0  
-        
+        improving_stuck_count,last_score = 0,0
+
         # 尝试调取上次的学习记录 继续进化
         init_dna, init_generation = self.get_init_dna(sample_id)
 
-        ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID, 
+        ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID,
                       dataset=self.train_set, key_factor=self.key_factor, init_dna=init_dna)
-        
+
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
             real_generation_id = int(init_generation + generation_id + 1)
             if real_generation_id>=N_GENERATIONS:
                 break
 
-            best_dna = ga.evolve()        
-            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)            
+            best_dna = ga.evolve()
+            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)
             durtion = int((time.time() - timestamp))
             print("Gen:",real_generation_id,\
                 '\tscore:', round(evaluation['score'],4),\
@@ -61,7 +61,7 @@ class LearningManager(object):
                 '\tprofit:', round(evaluation['profit'],3),\
                 '\tdurtion:', str(durtion)+'s',\
                 " "*5, end="")
-                        
+
 
             if evaluation['score'] <= last_score:
                 improving_stuck_count+=1
@@ -77,14 +77,14 @@ class LearningManager(object):
                     'generation': real_generation_id,
                     'key_factor': self.key_factor
                 }
-                self.save_result(sample_id, knowledge) 
+                self.save_result(sample_id, knowledge)
                 print("[ s ]")
 
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")
                 improving_stuck_count=0
                 break
-            last_score = evaluation['score']        
+            last_score = evaluation['score']
         return
 
     def save_result(self, sample_id, knowledge):
@@ -103,15 +103,15 @@ class LearningManager(object):
         return
 
     def get_init_dna(self, sample_id):
-        if sample_id in self.knowledge_base.index:            
-            res= self.knowledge_base.loc[sample_id,['dna','generation']].values 
+        if sample_id in self.knowledge_base.index:
+            res= self.knowledge_base.loc[sample_id,['dna','generation']].values
             print("DNA SampleID [",sample_id,"] needs continue learning from Gen:", int(res[1]))
             return res[0],res[1]
         return None,0
 
     def need_learn(self, sample_id, sample):
         # 如果在已有的知识库里匹配了这个规则 那么返回False
-        if sample_id in self.knowledge_base.index:            
+        if sample_id in self.knowledge_base.index:
             k = self.knowledge_base.loc[sample_id]
             if k['generation'] <= MIN_GENERATIONS:
                 return True  #如果知识库中虽然有 但是进化代数不够也要继续学习
@@ -128,7 +128,7 @@ class LearningManager(object):
             self._improve_knowledge()
         else:
             print("Unknown learning mode")
-        return 
+        return
 
     # 从已有知识库中提取并增强
     def _improve_knowledge(self):
@@ -136,7 +136,7 @@ class LearningManager(object):
         while True:
             rec = self.knowledge_base.sample(1)
             sample_id = rec.index[0]
-            sample = rec['sample'][0]            
+            sample = rec['sample'][0]
             self.learn(sample_id, sample)
         return
 
@@ -146,9 +146,9 @@ class LearningManager(object):
         while True:
             rec = self.train_set.sample(1)
             sample_id = rec.index[0]
-            sample = rec.iloc[0]        
+            sample = rec.iloc[0]
             # 判断是否需要学习
-            if self.need_learn(sample_id, sample):                    
+            if self.need_learn(sample_id, sample):
                 self.learn(sample_id, sample)
         return
 
@@ -165,4 +165,3 @@ class LearningManager(object):
                     # 从样本中学习
                     self.learn(sample_id, sample)
         return
-    

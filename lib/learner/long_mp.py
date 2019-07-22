@@ -166,12 +166,12 @@ class Learner(object):
             return (x-min)/(max-min)
 
         wr_min, wr_max = 0.5, 1.0
-        hr_min, hr_max = 0.001,0.01
+        hr_min, hr_max = 0.001,0.02
         normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
         normalized_wr = np.tanh(normalization(win_r, wr_min, wr_max))*1.3
         wr_weight, hr_weight = 2/3,  1/3
         score = normalized_wr*wr_weight + normalized_hr*hr_weight
-        
+
         return {
             "score": score,
             "profit": profit,

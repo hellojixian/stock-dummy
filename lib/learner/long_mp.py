@@ -161,8 +161,9 @@ class Learner(object):
             win_r = wins.shape[0] / hits
             hits_r = rs.shape[0] / self.dataset.shape[0]
             # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            # score = math.tanh(hits_r*50))** math.tanh(win_r-0.375) *10
-            score = math.tanh(hits_r*50)+ math.tanh(win_r-0.375) *2
+            score = math.tanh(hits_r*200) * math.tanh(win_r-0.4) *10
+            # score = math.tanh(hits_r/0.015) + math.tanh(win_r-0.375) *10
+            # score = (win_r-0.5)*hits_r*100
         return {
             "score": score,
             "profit": profit,

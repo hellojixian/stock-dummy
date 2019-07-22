@@ -158,7 +158,7 @@ class Learner(object):
                 max_risk = risks.quantile(0.1)
                 mean_risk = risks.mean()
 
-        if hits>=0:
+        if hits>0:
             win_r = wins.shape[0] / hits
         hits_r = rs.shape[0] / self.dataset.shape[0]
 

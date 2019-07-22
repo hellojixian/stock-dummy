@@ -9,9 +9,9 @@ import time
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
+N_THREAD = mp.cpu_count()
 if mp.cpu_count()>=4:
     N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
-N_THREAD = mp.cpu_count()
 
 
 class Learner(object):

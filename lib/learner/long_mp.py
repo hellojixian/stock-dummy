@@ -165,11 +165,18 @@ class Learner(object):
         def normalization(x,min,max):
             return (x-min)/(max-min)
 
+        # 设计数据期望
         wr_min, wr_max = 0.5, 1.0
         hr_min, hr_max = 0.001,0.015
+        wr_weight, hr_weight = 3,  1
+
+        # 标准化数据表达
         normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
         normalized_wr = np.tanh(normalization(win_r, wr_min, wr_max))*1.3
-        wr_weight, hr_weight = 2/3,  1/3
+        sum_weight = sum([wr_weight, hr_weight])
+        wr_weight /= sum_weight
+        hr_weight /= sum_weight
+
         score = normalized_wr*wr_weight + normalized_hr*hr_weight
 
         return {

@@ -179,8 +179,7 @@ class Learner(object):
 
         score = normalized_wr*wr_weight + normalized_hr*hr_weight
         # 修正标准差过大
-        score -= abs(normalized_wr*wr_weight-normalized_hr*hr_weight)
-        score *=2
+        score -= abs(normalized_wr*wr_weight-normalized_hr*hr_weight)/2
 
         return {
             "score": score,

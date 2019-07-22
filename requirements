@@ -1,4 +1,4 @@
 h5py
-pandas
-numpy
+pandas>=0.25
+numpy>=0.13
 tables

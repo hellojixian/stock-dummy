@@ -19,9 +19,10 @@ KB_KEY = 'KnowledgeBase'
 
 class LearningManager(object):
 
-    def __init__(self, train_set, key_factor):
+    def __init__(self, train_set, validation_set, key_factor):
         self.key_factor = key_factor
         self.train_set = train_set
+        self.validation_set = validation_set
         self.knowledge_base = pd.DataFrame()
         self.long_set  = train_set[train_set.fu_c1> SAMPLE_CHANGE_PRECENT].sort_values(by=[self.key_factor],ascending=False)
         self.short_set = train_set[train_set.fu_c1<-SAMPLE_CHANGE_PRECENT].sort_values(by=[self.key_factor],ascending=True)
@@ -29,19 +30,20 @@ class LearningManager(object):
         if os.path.isfile(KB_FILENAME):
             self.knowledge_base = pd.read_hdf(KB_FILENAME, key=KB_KEY)
 
-        print("Train set: ",self.train_set.shape[0],'records')
+        print("Train Set:\t",self.train_set.shape[0],'records')
+        print("Validation Set:\t",self.validation_set.shape[0],'records')
         return
 
     def learn(self, sample_id, sample):
-        print("Learning SampleID: ",sample_id)
-
+        print("SampleID:\t",sample_id)
         improving_stuck_count,last_score = 0,0
 
         # 尝试调取上次的学习记录 继续进化
         init_dna, init_generation = self.get_init_dna(sample_id)
 
         ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID,
-                      dataset=self.train_set, key_factor=self.key_factor, init_dna=init_dna)
+                      train_set=self.train_set, validation_set=self.validation_set,
+                      key_factor=self.key_factor, init_dna=init_dna)
 
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
@@ -50,20 +52,15 @@ class LearningManager(object):
                 break
 
             best_dna = ga.evolve()
-            evaluation = ga.evaluate_dna(best_dna, deep_eval=True)
+            evaluation_train = ga.evaluate_dna(best_dna, deep_eval=True, dataset="train")
+            evaluation_val   = ga.evaluate_dna(best_dna, deep_eval=True, dataset="validation")
             durtion = int((time.time() - timestamp))
-            print("Gen:",real_generation_id,\
-                '\tscore:', round(evaluation['score'],4),\
-                '\thits:',round(evaluation['hits']),'/',round(evaluation['hits_r'],4),\
-                '\twin_r:',round(evaluation['win_r'],3),\
-                '\twin:',round(evaluation['mean_win'],2),'/',round(evaluation['max_win'],2),\
-                '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
-                '\tprofit:', round(evaluation['profit'],3),\
-                '\tdurtion:', str(durtion)+'s',\
-                " "*5, end="")
 
+            print("Gen:",real_generation_id,"Duration:",str(durtion)+"s")
+            self._print_report(evaluation_train, name="Training Set")
+            self._print_report(evaluation_val, name="Validation Set")
 
-            if evaluation['score'] <= last_score:
+            if evaluation_train['score'] <= last_score:
                 improving_stuck_count+=1
                 print("")
             else:
@@ -73,18 +70,18 @@ class LearningManager(object):
                     'dna': best_dna,
                     'sample': sample,
                     'knowledge': ga.translateDNA(best_dna),
-                    'evaluation': evaluation,
+                    'evaluation': evaluation_train,
                     'generation': real_generation_id,
                     'key_factor': self.key_factor
                 }
                 self.save_result(sample_id, knowledge)
-                print("[ s ]")
+                print("[ saved ]")
 
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")
                 improving_stuck_count=0
                 break
-            last_score = evaluation['score']
+            last_score = evaluation_train['score']
         return
 
     def save_result(self, sample_id, knowledge):
@@ -130,9 +127,21 @@ class LearningManager(object):
             print("Unknown learning mode")
         return
 
+    def _print_report(self, evaluation, name=""):
+        print(
+            'name:', name, \
+            '\tscore:', round(evaluation['score'],4),\
+            '\thits:',round(evaluation['hits']),'/',round(evaluation['hits_r'],4),\
+            '\twin_r:',round(evaluation['win_r'],3),\
+            '\twin:',round(evaluation['mean_win'],2),'/',round(evaluation['max_win'],2),\
+            '\trisk:',round(evaluation['mean_risk'],2),'/',round(evaluation['max_risk'],2),\
+            '\tprofit:', round(evaluation['profit'],3),\
+            " "*5,)
+        return
+
     # 从已有知识库中提取并增强
     def _improve_knowledge(self):
-        print("Learning Mode: Improve")
+        print("Learning Mode:\t","Improve")
         while True:
             rec = self.knowledge_base.sample(1)
             sample_id = rec.index[0]
@@ -142,7 +151,7 @@ class LearningManager(object):
 
     # 随机挑选样本
     def _random_pick_sample(self):
-        print("Learning Mode: Random Sample")
+        print("Learning Mode:\t","Random Sample")
         while True:
             rec = self.train_set.sample(1)
             sample_id = rec.index[0]
@@ -154,7 +163,7 @@ class LearningManager(object):
 
     # 按时间顺序学习
     def _full_sample(self):
-        print("Learning Mode: Full Sample")
+        print("Learning Mode:\t","Full Sample")
         days = self.train_set['date'].value_counts().index.sort_values()
         for trade_date in days:
             df = self.long_set[self.long_set.date==trade_date]

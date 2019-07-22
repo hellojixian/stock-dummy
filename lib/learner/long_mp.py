@@ -16,15 +16,21 @@ if mp.cpu_count()>=4:
 
 class Learner(object):
 
-    def __init__(self, DNA_sample, dataset, pop_size, n_kid, init_dna=None, key_factor='fu_c1'):
+    def __init__(self, DNA_sample, train_set, pop_size,
+            n_kid, init_dna=None,validation_set=None, key_factor='fu_c1'):
         self.key_factor = key_factor
-        self.dataset = dataset.sort_values(by='date', ascending=True)
-        self.factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+        self.train_set = train_set.sort_values(by='date', ascending=True)
+        self.factors = train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         self.DNA_sample = DNA_sample
         self.DNA_size = len(self.factors)*2
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
+
+        if validation_set is None:
+            self.validation_set = self.train_set
+        else:
+            self.validation_set = validation_set.sort_values(by="date", ascending=True)
 
         # 编译数据筛选器 用于eval执行
         self._data_filter = self._compile_filter()
@@ -34,17 +40,20 @@ class Learner(object):
         else:
             init_dna = np.array([init_dna]).repeat(self.pop_size, axis=0)
 
-        self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,
-                        mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
+        # initialize the pop DNA values,
+        # initialize the pop mutation strength values
+        self.pop = dict(DNA=init_dna,
+                        mut_strength=np.random.rand(self.pop_size, self.DNA_size))
 
         # 添加评估标准 用于连乘
-        self.dataset['_evaluate'] = self.dataset[self.key_factor]/100 + 1
+        self.train_set['_evaluate'] = self.train_set[self.key_factor]/100 + 1
+        self.validation_set['_evaluate'] = self.validation_set[self.key_factor]/100 + 1
 
         # init factor
         scalers = pd.DataFrame()
         for factor in self.factors:
-            scaler_max = self.dataset[factor].quantile(0.99)
-            scaler_min = self.dataset[factor].quantile(0.01)
+            scaler_max = self.train_set[factor].quantile(0.99)
+            scaler_min = self.train_set[factor].quantile(0.01)
             scaler_med = (scaler_max+scaler_min)/2
             scaler = pd.Series([scaler_max,scaler_min,scaler_med],
                 index=['max','min','med'])
@@ -111,7 +120,7 @@ class Learner(object):
     # 只有在修改了特征的时候才需要手动运行一次
     # 这是为了静态编译提升性能虽然不好看 但是性能提升了60倍
     def _compile_filter(self):
-        factors = self.dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+        factors = self.train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         filter = "rs["
         for _ in range(len(factors)):
             factor = factors[_]
@@ -119,9 +128,17 @@ class Learner(object):
         filter += "True ]"
         return filter
 
-    def evaluate_dna(self, dna, deep_eval=False):
+    def evaluate_dna(self, dna, deep_eval=False, dataset="train"):
+        """
+        Args
+            deep_eval: 是否进行深度评估，包括风险评估等，消耗性能多一些，只在保存之前使用
+            dataset: 使用哪个样本集进行评估 ['train','validation']
+        """
         dna = self.translateDNA(dna)
-        rs = self.dataset
+        if dataset == "validation":
+            rs = self.validation_set
+        else:
+            rs = self.train_set
         # 筛选 静态编译
         rs = eval(self._data_filter)
         # 评估
@@ -142,7 +159,7 @@ class Learner(object):
 
         if hits>0:
             win_r = wins.shape[0] / hits
-        hits_r = rs.shape[0] / self.dataset.shape[0]
+        hits_r = rs.shape[0] / self.train_set.shape[0]
 
         def normalization(x,min,max):
             return (x-min)/(max-min)

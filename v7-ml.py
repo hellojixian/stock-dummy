@@ -19,14 +19,15 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 
-train_data_filename = 'data/featured-v7.1-HS300-2006-2016.csv'
-test_data_filename  = 'data/featured-v7.1-HS300-2017-2018.csv'
+train_data_filename      = 'data/featured-v7.1-HS300-2006-2016.csv'
+validation_data_filename = 'data/featured-v7.1-HS300-2017-2018.csv'
 
 print('Loading dataset ...')
 train_df = pd.read_csv(train_data_filename, index_col=0)
-# test_df = pd.read_csv(test_data_filename, index_col=0)
-# train_df = test_df.copy()
+validation_df = pd.read_csv(validation_data_filename, index_col=0)
 
 if __name__ == '__main__':
-    manager = Manager(train_set=train_df, key_factor='fu_c1')
+    manager = Manager(train_set=train_df,
+                      validation_set=validation_df,
+                      key_factor='fu_c1')
     manager.start_learning(how=learning_mode)

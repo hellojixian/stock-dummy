@@ -166,11 +166,13 @@ class Learner(object):
             return (x-min)/(max-min)
 
         # 设计数据期望
-        wr_min, wr_max = 0.5, 1.0
+        wr_min, wr_max = 0.5, 0.98
         hr_min, hr_max = 0.0005,0.01
         wr_weight, hr_weight = 10,1
 
-        if hits_r>hr_min and win_r>wr_min:
+        # 扔掉极端值
+        if  hits_r>hr_min and\
+            win_r>wr_min and win_r<wr_max:
             # 标准化数据表达
             normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
             normalized_wr = np.tanh(normalization(win_r , wr_min, wr_max))*1.3

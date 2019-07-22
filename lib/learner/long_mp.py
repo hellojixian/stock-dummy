@@ -9,8 +9,9 @@ import time
 np.set_printoptions(edgeitems=20)
 np.core.arrayprint._line_width = 280
 
-N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
-# N_THREAD = 7
+if mp.cpu_count()>=4:
+    N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
+N_THREAD = mp.cpu_count()
 
 
 class Learner(object):
@@ -168,8 +169,9 @@ class Learner(object):
         hr_min, hr_max = 0.001,0.01
         normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
         normalized_wr = np.tanh(normalization(win_r, wr_min, wr_max))*1.3
-
-        score = normalized_wr*3 + normalized_hr        
+        wr_weight, hr_weight = 2/3,  1/3
+        score = normalized_wr*wr_weight + normalized_hr*hr_weight
+        
         return {
             "score": score,
             "profit": profit,

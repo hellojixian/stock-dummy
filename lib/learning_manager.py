@@ -56,11 +56,11 @@ class LearningManager(object):
             evaluation_val   = ga.evaluate_dna(best_dna, deep_eval=True, dataset="validation")
             durtion = int((time.time() - timestamp))
 
-            print("Gen:",real_generation_id,"Duration:",str(durtion)+"s")
+            print("Gen:",real_generation_id,"\tDuration:",str(durtion)+"s")
             self._print_report(evaluation_train, name="Training Set")
             self._print_report(evaluation_val, name="Validation Set")
 
-            if evaluation_train['score'] <= last_score:
+            if evaluation_val['score'] <= last_score:
                 improving_stuck_count+=1
                 print("")
             else:
@@ -81,7 +81,7 @@ class LearningManager(object):
                 print("EARLY_STOPPING")
                 improving_stuck_count=0
                 break
-            last_score = evaluation_train['score']
+            last_score = evaluation_val['score']
         return
 
     def save_result(self, sample_id, knowledge):

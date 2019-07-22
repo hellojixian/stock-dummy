@@ -20,7 +20,7 @@ class Learner(object):
         self.dataset = dataset.sort_values(by='date', ascending=True)
         self.factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
         self.DNA_sample = DNA_sample
-        self.DNA_size = len(self.factors)*2       
+        self.DNA_size = len(self.factors)*2
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
@@ -30,15 +30,15 @@ class Learner(object):
         else:
             init_dna = np.array([init_dna]).repeat(self.pop_size, axis=0)
 
-        self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,   
+        self.pop = dict(DNA=init_dna,         # initialize the pop DNA values,
                         mut_strength=np.random.rand(self.pop_size, self.DNA_size))               # initialize the pop mutation strength values
 
         # 添加评估标准 用于连乘
         self.dataset['_evaluate'] = self.dataset[self.key_factor]/100 + 1
 
-        # init factor 
+        # init factor
         scalers = pd.DataFrame()
-        for factor in self.factors:            
+        for factor in self.factors:
             scaler_max = self.dataset[factor].quantile(0.99)
             scaler_min = self.dataset[factor].quantile(0.01)
             scaler_med = (scaler_max+scaler_min)/2
@@ -48,7 +48,7 @@ class Learner(object):
             scalers = scalers.append(scaler)
         self.scalers = scalers
 
-        return 
+        return
 
     def translateDNA(self, dna):
         def min_max_range(x, range_values):
@@ -61,34 +61,34 @@ class Learner(object):
             sample_value = self.DNA_sample[factor]
             factor_max, factor_min = self.scalers.loc[factor,['max','min']].values
             dna_up_bias    = min_max_range([self.DNA_bound[0],dna[dna_up_idx],self.DNA_bound[1]], (sample_value,factor_max) )[1]
-            dna_down_bias  = min_max_range([self.DNA_bound[0],dna[dna_down_idx],self.DNA_bound[1]], (factor_min,sample_value))[1]                
+            dna_down_bias  = min_max_range([self.DNA_bound[0],dna[dna_down_idx],self.DNA_bound[1]], (factor_min,sample_value))[1]
             decodedDNA[factor+'_u'] = dna_up_bias
             decodedDNA[factor+'_d'] = dna_down_bias
         return decodedDNA
 
     # 增加多线程内核
-    def get_fitness(self, dna_series):         
+    def get_fitness(self, dna_series):
         # v=np.zeros(len(dna_series))
         v = mp.Array('f',len(dna_series))
         v[:] = np.zeros(len(dna_series))
 
-        # 切分任务到多个线程        
+        # 切分任务到多个线程
         splited = np.array_split(v, N_THREAD)
         threads = []
-        start = 0        
+        start = 0
         processed_count = mp.Value('i',0)
         def runner(v, start, end, processed_count):
             total = len(v[:])
             for i in range(start,end):
                 score = self.evaluate_dna(dna_series[i])['score']
 
-                v[i]=score                
+                v[i]=score
                 processed_count.value+=1
                 print('\rEvaluating: '+str(round(processed_count.value/total*100,2))+"%"+" of "+str(len(v))+" DNA samples" + (" "*6),end='')
-                
+
             return
 
-        for i in range(len(splited)):    
+        for i in range(len(splited)):
             end = start + len(splited[i])
             t = mp.Process(target=runner, args=(v, start, end, processed_count))
             start = end
@@ -100,7 +100,7 @@ class Learner(object):
         # join all threads
         for t in threads:
             t.join()
-    
+
         v = np.array(v[:])
         return v
 
@@ -112,15 +112,15 @@ class Learner(object):
         for _ in range(len(factors)):
             factor = factors[_]
             # 参考代码
-            # rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])] 
+            # rs = rs[ (rs[factor] < dna[factor+'_u']) & (rs[factor] > dna[factor+'_d'])]
             print(" (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & \\",)
         print("\n")
         return
 
     def evaluate_dna(self, dna, deep_eval=False):
         dna = self.translateDNA(dna)
-        rs = self.dataset        
-        
+        rs = self.dataset
+
         # 筛选 静态编译
         rs = rs[(rs.pre_c3 < dna['pre_c3_u']) & (rs.pre_c3 > dna['pre_c3_d']) & \
                  (rs.pre_c2 < dna['pre_c2_u']) & (rs.pre_c2 > dna['pre_c2_d']) & \
@@ -146,24 +146,30 @@ class Learner(object):
         hits_r = 0
 
         hits = rs.shape[0]
-        wins = rs[self.key_factor][rs[self.key_factor]>=0]        
+        wins = rs[self.key_factor][rs[self.key_factor]>=0]
 
         if deep_eval==True:
             profit = np.prod(rs['_evaluate'])
             max_win = wins.quantile(0.9)
             mean_win = wins.mean()
-            risks = rs[self.key_factor][rs[self.key_factor]<0]        
+            risks = rs[self.key_factor][rs[self.key_factor]<0]
             if risks.shape[0]>0:
                 max_risk = risks.quantile(0.1)
                 mean_risk = risks.mean()
 
-        if hits>=3:
+        if hits>=0:
             win_r = wins.shape[0] / hits
-            hits_r = rs.shape[0] / self.dataset.shape[0]
-            # 假设所有数据中上涨的数据占比25%  当前策略可以最多涵盖其中5%的可能性
-            score = math.tanh(hits_r*200) * math.tanh(win_r-0.4) *10
-            # score = math.tanh(hits_r/0.015) + math.tanh(win_r-0.375) *10
-            # score = (win_r-0.5)*hits_r*100
+        hits_r = rs.shape[0] / self.dataset.shape[0]
+
+        def normalization(x,min,max):
+            return (x-min)/(max-min)
+
+        wr_min, wr_max = 0.5, 1.0
+        hr_min, hr_max = 0.001,0.01
+        normalized_hr = np.tanh(normalization(hits_r,hr_min, hr_max))*1.3
+        normalized_wr = np.tanh(normalization(win_r, wr_min, wr_max))*1.3
+
+        score = normalized_wr*3 + normalized_hr        
         return {
             "score": score,
             "profit": profit,
@@ -183,10 +189,10 @@ class Learner(object):
         kids['mut_strength'] = np.empty_like(kids['DNA'])
 
         for kv, ks in zip(kids['DNA'], kids['mut_strength']):
-            # crossover (roughly half p1 and half p2)        
+            # crossover (roughly half p1 and half p2)
             p1, p2 = np.random.choice(np.arange(self.pop_size), size=2, replace=False)
-            
-            cp = np.random.randint(0, 2, self.DNA_size, dtype=np.bool)  # crossover points                
+
+            cp = np.random.randint(0, 2, self.DNA_size, dtype=np.bool)  # crossover points
             kv[cp] = self.pop['DNA'][p1, cp]
             kv[~cp] = self.pop['DNA'][p2, ~cp]
             ks[cp] = self.pop['mut_strength'][p1, cp]
@@ -209,12 +215,12 @@ class Learner(object):
         good_idx = idx[fitness.argsort()][-self.pop_size:]   # selected by fitness ranking (not value)
 
         for key in ['DNA', 'mut_strength']:
-            self.pop[key] = self.pop[key][good_idx]  
-        return 
+            self.pop[key] = self.pop[key][good_idx]
+        return
 
 
     def evolve(self):
         kids = self.make_kid()
-        self.kill_bad(kids)   # keep some good parent for elitism    
+        self.kill_bad(kids)   # keep some good parent for elitism
 
         return self.pop["DNA"][-1]

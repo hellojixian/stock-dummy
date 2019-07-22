@@ -166,9 +166,9 @@ class Learner(object):
             return (x-min)/(max-min)
 
         # 设计数据期望
-        wr_min, wr_max = 0.5, 0.98
-        hr_min, hr_max = 0.0005,0.01
-        wr_weight, hr_weight = 10,1
+        wr_min, wr_max = 0.5, 0.9
+        hr_min, hr_max = 0.002,0.01
+        wr_weight, hr_weight = 5,1
 
         # 扔掉极端值
         if  hits_r>hr_min and\
@@ -181,8 +181,6 @@ class Learner(object):
             hr_weight /= sum_weight
 
             score = normalized_wr*wr_weight + normalized_hr*hr_weight
-            # 修正标准差过大
-            score -= abs(normalized_wr*wr_weight-normalized_hr*hr_weight)/2
 
         return {
             "score": score,

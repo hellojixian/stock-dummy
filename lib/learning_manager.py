@@ -76,12 +76,12 @@ class LearningManager(object):
                 }
                 self.save_result(sample_id, knowledge)
                 print("[ saved ]")
+                last_score = evaluation_val['score']
 
             if improving_stuck_count>=EARLY_STOPPING:
                 print("EARLY_STOPPING")
                 improving_stuck_count=0
                 break
-            last_score = evaluation_val['score']
         return
 
     def save_result(self, sample_id, knowledge):

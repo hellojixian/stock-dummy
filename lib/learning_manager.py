@@ -8,9 +8,11 @@ import time, datetime #用于性能监控 查看耗时
 from lib.learner.long_mp import Learner as LearnerL
 
 SAMPLE_CHANGE_PRECENT = 2.5
+MIN_CHANGE_EXPECTATION = 0.5
+
 EARLY_STOPPING = 10
 GA_POPSIZE = 100
-GA_N_KID = 200
+GA_N_KID = 350
 N_GENERATIONS = 200
 MIN_GENERATIONS = 50
 
@@ -32,7 +34,7 @@ class LearningManager(object):
 
         print("KnowledgeBase:\t{:d} records".format(self.knowledge_base.shape[0]))
         print("Train Set:\t{:d} records".format(self.train_set.shape[0]))
-        print("Validation Set:\t{:d} records".format(self.validation_set.shape[0]))        
+        print("Validation Set:\t{:d} records".format(self.validation_set.shape[0]))
         return
 
     def learn(self, sample_id, sample):
@@ -44,7 +46,7 @@ class LearningManager(object):
 
         ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID,
                       train_set=self.train_set, validation_set=self.validation_set,
-                      key_factor=self.key_factor, init_dna=init_dna)
+                      key_factor=self.key_factor, init_dna=init_dna, min_exp=0.75)
 
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()
@@ -55,7 +57,7 @@ class LearningManager(object):
             print("")
             best_dna = ga.evolve()
             evaluation_train = ga.evaluate_dna(best_dna, deep_eval=True, dataset="train")
-            evaluation_val   = ga.evaluate_dna(best_dna, deep_eval=True, dataset="validation")
+            evaluation_val   = ga.evaluate_dna(best_dna, deep_eval=True, dataset="validation", min_exp=0)
             durtion = int((time.time() - timestamp))
 
             print("Gen:",real_generation_id,"\tDuration:",str(durtion)+"s")

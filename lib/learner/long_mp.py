@@ -13,11 +13,12 @@ N_THREAD = mp.cpu_count()
 if mp.cpu_count()>=4:
     N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
 
-
 class Learner(object):
 
     def __init__(self, DNA_sample, train_set, pop_size,
-            n_kid, init_dna=None,validation_set=None, key_factor='fu_c1'):
+            n_kid, init_dna=None,validation_set=None,
+            key_factor='fu_c1', min_exp=0):
+        self.min_exp = min_exp
         self.key_factor = key_factor
         self.train_set = train_set.sort_values(by='date', ascending=True)
         self.factors = train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
@@ -26,6 +27,7 @@ class Learner(object):
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
+        self.hr_max_exp = self.train_set[self.train_set[self.key_factor]>self.min_exp].shape[0]/self.train_set.shape[0]*0.01
 
         if validation_set is None:
             self.validation_set = self.train_set
@@ -128,7 +130,8 @@ class Learner(object):
         filter += "True ]"
         return filter
 
-    def evaluate_dna(self, dna, deep_eval=False, dataset="train"):
+    def evaluate_dna(self, dna, deep_eval=False,
+                    dataset="train", min_exp=None):
         """
         Args
             deep_eval: 是否进行深度评估，包括风险评估等，消耗性能多一些，只在保存之前使用
@@ -141,12 +144,21 @@ class Learner(object):
             rs = self.train_set
         # 筛选 静态编译
         rs = eval(self._data_filter)
+
+        if min_exp is None:
+            min_exp = self.min_exp
+
+        # 设计数据期望
+        wr_min, wr_max = 0.3, 0.75
+        hr_min, hr_max = 0.0001, self.hr_max_exp
+        wr_weight, hr_weight = 1.5,1
+
         # 评估
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
         hits_r = 0
 
         hits = rs.shape[0]
-        wins = rs[self.key_factor][rs[self.key_factor]>=0]
+        wins = rs[self.key_factor][rs[self.key_factor]>=min_exp]
 
         if deep_eval==True:
             profit = np.prod(rs['_evaluate'])
@@ -163,11 +175,6 @@ class Learner(object):
 
         def normalization(x,min,max):
             return (x-min)/(max-min)
-
-        # 设计数据期望
-        wr_min, wr_max = 0.5, 0.9
-        hr_min, hr_max = 0.002,0.01
-        wr_weight, hr_weight = 5,1
 
         # 扔掉极端值
         if  hits_r>hr_min and\

@@ -90,6 +90,7 @@ class Learner(GACore):
 
         # 评估
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1
+        normalized_wr, normalized_hr = 0,0
         hits_r = 0
 
         hits = rs.shape[0]
@@ -128,8 +129,8 @@ class Learner(GACore):
             "profit": profit,
             "hits":  hits,
             "hits_r": hits_r,
-            "weighted_hr":normalized_wr*wr_weight,
-            "weighted_wr":normalized_hr*hr_weight,
+            "weighted_hr": normalized_wr*wr_weight,
+            "weighted_wr": normalized_hr*hr_weight,
             "win_r": win_r,
             "max_win": max_win,
             "mean_win": mean_win,

@@ -151,7 +151,7 @@ class Learner(object):
         # 设计数据期望
         wr_min, wr_max = 0.4, 0.75
         hr_min, hr_max = 0.0001, self.hr_max_exp
-        wr_weight, hr_weight = 1.8,1
+        wr_weight, hr_weight = 2.5,1
 
         # 评估
         profit,score,win_r,max_win,mean_win,max_risk,mean_risk = 1,0,0,-1,-1,-1,-1

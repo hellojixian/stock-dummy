@@ -64,7 +64,7 @@ class LearningManager(object):
             self._print_report(evaluation_train, name="Training Set")
             self._print_report(evaluation_val, name="Validation Set")
 
-            new_score = evaluation_val['score']
+            new_score = evaluation_train['score']
             if new_score <= last_score:
                 improving_stuck_count+=1
                 print("Not improving.  \tstuck_count: {:d} \tadjust_count: {:d}"
@@ -89,7 +89,7 @@ class LearningManager(object):
                 improving_stuck_count=0
                 adjust_count=0
                 break
-                
+
             if improving_stuck_count>=5:
                 ga.adjust_weight()
                 adjust_count+=1

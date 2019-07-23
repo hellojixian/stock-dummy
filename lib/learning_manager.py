@@ -87,6 +87,7 @@ class LearningManager(object):
                 ga.adjust_weight()
                 adjust_count+=1
                 last_score = 0
+                improving_stuck_count=0
 
             if adjust_count>=EARLY_STOPPING:
                 print("Not improving - Stopped training")

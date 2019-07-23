@@ -30,8 +30,9 @@ class LearningManager(object):
         if os.path.isfile(KB_FILENAME):
             self.knowledge_base = pd.read_hdf(KB_FILENAME, key=KB_KEY)
 
-        print("Train Set:\t",self.train_set.shape[0],'records')
-        print("Validation Set:\t",self.validation_set.shape[0],'records')
+        print("KnowledgeBase:\t{:d} records".format(self.knowledge_base.shape[0]))
+        print("Train Set:\t{:d} records".format(self.train_set.shape[0]))
+        print("Validation Set:\t{:d} records".format(self.validation_set.shape[0]))        
         return
 
     def learn(self, sample_id, sample):

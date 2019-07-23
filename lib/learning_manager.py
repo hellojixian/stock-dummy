@@ -64,7 +64,8 @@ class LearningManager(object):
             self._print_report(evaluation_train, name="Training Set")
             self._print_report(evaluation_val, name="Validation Set")
 
-            if evaluation_val['score'] <= last_score:
+            new_score = evaluation_val['score']
+            if new_score <= last_score:
                 improving_stuck_count+=1
                 print("Not improving.  \tstuck_count: {:d} \tadjust_count: {:d}"
                         .format(improving_stuck_count, adjust_count))
@@ -80,8 +81,8 @@ class LearningManager(object):
                     'key_factor': self.key_factor
                 }
                 self.save_result(sample_id, knowledge)
-                print("[ saved ]")
-                last_score = evaluation_val['score']
+                print("Score improved from {:.5f} to {:.5f} [ saved ]".format(last_score, new_score))
+                last_score = new_score
 
             if improving_stuck_count>=5:
                 ga.adjust_weight()

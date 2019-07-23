@@ -128,8 +128,8 @@ class Learner(GACore):
             "profit": profit,
             "hits":  hits,
             "hits_r": hits_r,
-            "normalized_hr":normalized_hr,
-            "normalized_wr":normalized_wr,
+            "weighted_hr":normalized_wr*wr_weight,
+            "weighted_wr":normalized_hr*hr_weight,
             "win_r": win_r,
             "max_win": max_win,
             "mean_win": mean_win,
@@ -142,10 +142,10 @@ class Learner(GACore):
         old_weight = self.wr_weight
         best_dna = self.pop["DNA"][-1]
         res = self.evaluate_dna(best_dna)
-        if res['normalized_wr'] < res['normalized_hr']:
+        if res['weighted_wr'] < res['weighted_hr']:
             self.wr_weight+=step
         else:
             self.wr_weight-=step
         print("WR weight adjusted from {:.2f} to {:.2f}\t\traw_wr:{:.4f}\traw_hr:{:.4f}\t"
-            .format(old_weight, self.wr_weight, res['normalized_wr'], res['normalized_hr']))
+            .format(old_weight, self.wr_weight, res['weighted_wr'], res['weighted_hr']))
         return

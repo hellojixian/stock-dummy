@@ -136,7 +136,7 @@ class Learner(GACore):
             "max_risk": max_risk,
             "mean_risk": mean_risk,
         }
-        
+
     def adjust_weight(self):
         step = 0.2
         old_weight = self.wr_weight
@@ -146,5 +146,6 @@ class Learner(GACore):
             self.wr_weight+=step
         else:
             self.wr_weight-=step
-        print("WR weight adjusted from {.2f} to {.2f}".format(old_weight, self.wr_weight))
+        print("WR weight adjusted from {:.2f} to {:.2f}\t\traw_wr:{:.4f}\traw_hr:{:.4f}\t"
+            .format(old_weight, self.wr_weight, res['normalized_wr'], res['normalized_hr']))
         return

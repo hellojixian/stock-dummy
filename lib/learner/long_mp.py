@@ -5,6 +5,7 @@ import pandas as pd
 import multiprocessing as mp
 import math
 import time
+import random
 
 from lib.learner.ga_core import GACore
 

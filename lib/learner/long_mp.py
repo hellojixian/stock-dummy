@@ -22,7 +22,8 @@ class Learner(GACore):
         self.min_exp = min_exp
         self.train_set = train_set.sort_values(by='date', ascending=True)
         self.DNA_sample = DNA_sample
-        self.hr_max_exp = self.train_set[self.train_set[self.key_factor]>self.min_exp].shape[0]/self.train_set.shape[0]*0.05
+        self.hr_max_exp = self.train_set[self.train_set[self.key_factor]>self.min_exp].shape[0]\
+                          /self.train_set.shape[0]*0.02
         self.wr_weight = 1.8
 
         if validation_set is None:

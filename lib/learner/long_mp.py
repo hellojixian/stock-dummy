@@ -139,14 +139,14 @@ class Learner(GACore):
         }
 
     def adjust_weight(self):
-        step = 0.5
+        step_bound = [0.2, 0.8]
         old_weight = self.wr_weight
         best_dna = self.pop["DNA"][-1]
         res = self.evaluate_dna(best_dna)
         if res['weighted_wr'] < res['weighted_hr']:
-            self.wr_weight+=step
+            self.wr_weight+=random.uniform(step_bound[0],step_bound[1])
         else:
-            self.wr_weight-=step
+            self.wr_weight-=random.uniform(step_bound[0],step_bound[1])
         print("WR weight adjusted from {:.2f} to {:.2f}\t\traw_wr:{:.4f}\traw_hr:{:.4f}\t"
             .format(old_weight, self.wr_weight, res['weighted_wr'], res['weighted_hr']))
         return

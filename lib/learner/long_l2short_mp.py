@@ -6,16 +6,11 @@ import multiprocessing as mp
 import math
 import time
 
-np.set_printoptions(edgeitems=20)
-np.core.arrayprint._line_width = 280
+from lib.learner.ga_core import GACore
 
-N_THREAD = mp.cpu_count()
-if mp.cpu_count()>=4:
-    N_THREAD = mp.cpu_count() -1  # 建议留一个CPU核心避免死机
+class Learner(GACore):
 
-class Learner(object):
-
-    def __init__(self, train_set, pop_size,
+    def __init__(self, train_set, pop_size, base_knowledge,
             n_kid, validation_set=None,
             key_factor='fu_c1', max_exp=0):
         self.max_exp = max_exp
@@ -26,6 +21,7 @@ class Learner(object):
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
+        self.base_knowledge = base_knowledge
         self.hr_max_exp = self.train_set[self.train_set[self.key_factor]<self.max_exp].shape[0]/self.train_set.shape[0]*0.01
 
         if validation_set is None:
@@ -44,19 +40,6 @@ class Learner(object):
         # 添加评估标准 用于连乘
         self.train_set['_evaluate'] = self.train_set[self.key_factor]/100 + 1
         self.validation_set['_evaluate'] = self.validation_set[self.key_factor]/100 + 1
-
-        # init factor
-        scalers = pd.DataFrame()
-        for factor in self.factors:
-            scaler_max = self.train_set[factor].quantile(0.99)
-            scaler_min = self.train_set[factor].quantile(0.01)
-            scaler_med = (scaler_max+scaler_min)/2
-            scaler = pd.Series([scaler_max,scaler_min,scaler_med],
-                index=['max','min','med'])
-            scaler.name = factor
-            scalers = scalers.append(scaler)
-        self.scalers = scalers
-
         return
 
     def translateDNA(self, dna):
@@ -112,17 +95,6 @@ class Learner(object):
 
         v = np.array(v[:])
         return v
-
-    # 只有在修改了特征的时候才需要手动运行一次
-    # 这是为了静态编译提升性能虽然不好看 但是性能提升了60倍
-    def _compile_filter(self):
-        factors = self.train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
-        filter = "rs["
-        for _ in range(len(factors)):
-            factor = factors[_]
-            filter += " (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & "
-        filter += "True ]"
-        return filter
 
     def evaluate_dna(self, dna, deep_eval=False,
                     dataset="train", min_exp=None):
@@ -193,46 +165,3 @@ class Learner(object):
             "max_risk": max_risk,
             "mean_risk": mean_risk,
         }
-
-
-    def make_kid(self):
-        # generate empty kid holder
-        kids = {'DNA': np.empty((self.n_kid, self.DNA_size))}
-        kids['mut_strength'] = np.empty_like(kids['DNA'])
-
-        for kv, ks in zip(kids['DNA'], kids['mut_strength']):
-            # crossover (roughly half p1 and half p2)
-            p1, p2 = np.random.choice(np.arange(self.pop_size), size=2, replace=False)
-
-            cp = np.random.randint(0, 2, self.DNA_size, dtype=np.bool)  # crossover points
-            kv[cp] = self.pop['DNA'][p1, cp]
-            kv[~cp] = self.pop['DNA'][p2, ~cp]
-            ks[cp] = self.pop['mut_strength'][p1, cp]
-            ks[~cp] = self.pop['mut_strength'][p2, ~cp]
-
-            # mutate (change DNA based on normal distribution)
-            ks[:] = np.maximum(ks + (np.random.randn(*ks.shape)-0.5), 0.)    # must > 0
-            kv += ks * np.random.randn(*kv.shape)
-            kv[:] = np.clip(kv, *self.DNA_bound)    # clip the mutated value
-        return kids
-
-
-    def kill_bad(self, kids):
-        # put pop and kids together
-        for key in ['DNA', 'mut_strength']:
-            self.pop[key] = np.vstack((self.pop[key], kids[key]))
-
-        fitness = self.get_fitness(self.pop['DNA'])            # calculate global fitness
-        idx = np.arange(self.pop['DNA'].shape[0])
-        good_idx = idx[fitness.argsort()][-self.pop_size:]   # selected by fitness ranking (not value)
-
-        for key in ['DNA', 'mut_strength']:
-            self.pop[key] = self.pop[key][good_idx]
-        return
-
-
-    def evolve(self):
-        kids = self.make_kid()
-        self.kill_bad(kids)   # keep some good parent for elitism
-
-        return self.pop["DNA"][-1]

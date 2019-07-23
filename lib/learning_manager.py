@@ -10,7 +10,7 @@ from lib.learner.long_mp import Learner as LearnerL
 SAMPLE_CHANGE_PRECENT = 2.5
 MIN_CHANGE_EXPECTATION = 0.5
 
-EARLY_STOPPING = 10
+EARLY_STOPPING = 6
 GA_POPSIZE = 100
 GA_N_KID = 200
 N_GENERATIONS = 200
@@ -39,7 +39,7 @@ class LearningManager(object):
 
     def learn(self, sample_id, sample):
         print("SampleID:\t",sample_id)
-        improving_stuck_count,last_score = 0,0
+        adjust_count,improving_stuck_count,last_score = 0,0,0
 
         # 尝试调取上次的学习记录 继续进化
         init_dna, init_generation = self.get_init_dna(sample_id)
@@ -66,6 +66,8 @@ class LearningManager(object):
 
             if evaluation_val['score'] <= last_score:
                 improving_stuck_count+=1
+                print("Not improving.  \tstuck_count: {:d} \tadjust_count: {:d}"
+                        .format(improving_stuck_count, adjust_count))
             else:
                 improving_stuck_count=0
                 # 有进步就去记录存盘
@@ -81,9 +83,15 @@ class LearningManager(object):
                 print("[ saved ]")
                 last_score = evaluation_val['score']
 
-            if improving_stuck_count>=EARLY_STOPPING:
-                print("EARLY_STOPPING")
+            if improving_stuck_count>=5:
+                ga.adjust_weight()
+                adjust_count+=1
+                last_score = 0
+
+            if adjust_count>=EARLY_STOPPING:
+                print("Not improving - Stopped training")
                 improving_stuck_count=0
+                adjust_count=0
                 break
         return
 

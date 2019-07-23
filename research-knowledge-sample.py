@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-This command line to will merge all knowledge base files into ./data/knowledge_base.h5
+This script will visualize the win/lose data distributions
 """
 import pandas as pd
 import numpy as np

@@ -46,7 +46,7 @@ class LearningManager(object):
 
         ga = LearnerL(DNA_sample=sample, pop_size=GA_POPSIZE, n_kid=GA_N_KID,
                       train_set=self.train_set, validation_set=self.validation_set,
-                      key_factor=self.key_factor, init_dna=init_dna, min_exp=0.75)
+                      key_factor=self.key_factor, init_dna=init_dna, min_exp=MIN_CHANGE_EXPECTATION)
 
         for generation_id in range(N_GENERATIONS):
             timestamp = time.time()

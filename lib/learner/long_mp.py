@@ -27,7 +27,7 @@ class Learner(object):
         self.DNA_bound = [0, 10]
         self.pop_size = pop_size
         self.n_kid = n_kid
-        self.hr_max_exp = self.train_set[self.train_set[self.key_factor]>self.min_exp].shape[0]/self.train_set.shape[0]*0.01
+        self.hr_max_exp = self.train_set[self.train_set[self.key_factor]>self.min_exp].shape[0]/self.train_set.shape[0]*0.05
 
         if validation_set is None:
             self.validation_set = self.train_set
@@ -38,7 +38,7 @@ class Learner(object):
         self._data_filter = self._compile_filter()
 
         if init_dna is None:
-            init_dna = 5* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
+            init_dna = np.mean(self.DNA_bound)* abs(np.random.randn(1, self.pop_size, self.DNA_size))[0]
         else:
             init_dna = np.array([init_dna]).repeat(self.pop_size, axis=0)
 

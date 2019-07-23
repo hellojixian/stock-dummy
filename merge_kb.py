@@ -22,7 +22,7 @@ from lib.learning_manager import LearningManager as Manager
 
 if len(sys.argv) < 2:
     print("Need to specify the folder to scan.")
-    print("Example: {} [path]", sys.argv[0])
+    print("   {} [path]\n".format(sys.argv[0]))
     sys.exit(1)
 scan_folder = sys.argv[1]
 

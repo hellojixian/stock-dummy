@@ -84,17 +84,17 @@ class LearningManager(object):
                 print("Score improved from {:.5f} to {:.5f} [ saved ]".format(last_score, new_score))
                 last_score = new_score
 
-            if improving_stuck_count>=5:
-                ga.adjust_weight()
-                adjust_count+=1
-                last_score = 0
-                improving_stuck_count=0
-
             if adjust_count>=EARLY_STOPPING:
                 print("Not improving - Stopped training")
                 improving_stuck_count=0
                 adjust_count=0
                 break
+                
+            if improving_stuck_count>=5:
+                ga.adjust_weight()
+                adjust_count+=1
+                last_score = 0
+                improving_stuck_count=0
         return
 
     def save_result(self, sample_id, knowledge):

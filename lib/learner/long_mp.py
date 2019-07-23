@@ -85,7 +85,7 @@ class Learner(GACore):
             min_exp = self.min_exp
 
         # 设计数据期望
-        wr_min, wr_max = 0.4, 0.75
+        wr_min, wr_max = 0.4, 0.95
         hr_min, hr_max = 0.0001, self.hr_max_exp
         wr_weight, hr_weight = self.wr_weight,1
 
@@ -115,7 +115,7 @@ class Learner(GACore):
 
         # 扔掉极端值
         if  hits_r>hr_min and\
-            win_r>wr_min and win_r<wr_max:
+            wr_min<win_r and win_r<wr_max:
             # 标准化数据表达
             normalized_hr = np.tanh(normalization(hits_r, hr_min, hr_max))*1.3
             normalized_wr = np.tanh(normalization(win_r , wr_min, wr_max))*1.3

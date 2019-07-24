@@ -11,8 +11,8 @@ from lib.learner.ga_core import GACore
 
 class Learner(GACore):
 
-    def __init__(self, DNA_sample, train_set, pop_size,
-            n_kid, init_dna=None,validation_set=None,
+    def __init__(self, DNA_sample, train_set, pop_size=50,
+            n_kid=50, init_dna=None,validation_set=None,
             key_factor='fu_c1', min_exp=0):
 
         factors = train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values

@@ -119,11 +119,21 @@ class LearningManager(object):
             return res[0],res[1]
         return None,0
 
+    def need_improve(self, sample_id):
+        # 如果样本命中率太低就继续学习 或者 胜率不足60% 就继续学习
+        k = self.knowledge_base.loc[sample_id]
+        # 测试一下评估结果
+        ga = LearnerL(DNA_sample=k['sample'], train_set=self.train_set, key_factor=self.key_factor)
+        eval = ga.evaluate_dna(k['dna'], deep_eval=True, dataset="train")
+        if eval["weighted_hr"]<0.3 or eval["weighted_wr"]<0.3:
+            return True
+        return False
+
     def need_learn(self, sample_id, sample):
         # 如果在已有的知识库里匹配了这个规则 那么返回False
         if sample_id in self.knowledge_base.index:
             k = self.knowledge_base.loc[sample_id]
-            if k['generation'] <= MIN_GENERATIONS:
+            if self.need_improve(sample_id):
                 return True  #如果知识库中虽然有 但是进化代数不够也要继续学习
             else:
                 return False
@@ -159,7 +169,8 @@ class LearningManager(object):
             rec = self.knowledge_base.sample(1)
             sample_id = rec.index[0]
             sample = rec['sample'][0]
-            self.learn(sample_id, sample)
+            if self.need_improve(sample_id):
+                self.learn(sample_id, sample)
         return
 
     # 随机挑选样本
@@ -171,7 +182,10 @@ class LearningManager(object):
             sample = rec.iloc[0]
             # 判断是否需要学习
             if self.need_learn(sample_id, sample):
+                print("Knowledge [ {} ] is need to get improved".format(sample_id))
                 self.learn(sample_id, sample)
+            else:
+                print("Knowledge [ {} ]{} is good enough for now".format(sample_id))
         return
 
     # 按时间顺序学习

@@ -4,6 +4,7 @@
 import pandas as pd
 import numpy as np
 import warnings,sys
+from config import *
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")

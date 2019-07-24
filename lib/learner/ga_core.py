@@ -82,7 +82,7 @@ class GACore(object):
         filter += "True ]"
         return filter
 
-    def value_scale(self, x, range_values):        
+    def value_scale(self, x, range_values):
         return (x - self.DNA_bound[0])/(self.DNA_bound[1]-self.DNA_bound[0]) * (range_values[1] - range_values[0]) + range_values[0]
 
     def make_kid(self):

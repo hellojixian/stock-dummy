@@ -19,12 +19,9 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-train_data_filename      = config.get('TRAIN_DATA_FILE')
-validation_data_filename = config.get('TEST_DATA_FILE')
-
 print('Loading dataset ...')
-train_df = pd.read_csv(train_data_filename, index_col=0)
-validation_df = pd.read_csv(validation_data_filename, index_col=0)
+train_df = pd.read_csv(config.get('TRAIN_DATA_FILE'), index_col=0)
+validation_df = pd.read_csv(config.get('VALIDATION_DATA_FILE'), index_col=0)
 
 if __name__ == '__main__':
     manager = Manager(train_set=train_df,

@@ -1,11 +1,11 @@
 # create a .env file in the root folder of the project
 # and copy below settings to the file
 
-NODE_NAME="office-imac"
+NODE_NAME = "office-imac"
 
-KB_URL=""
-KB_USERNAME=""
-KB_PASSWORD=""
+KB_URL = ""
+KB_USERNAME = ""
+KB_PASSWORD = ""
 
-TRAIN_DATA_FILE ="data/featured-v7.1-HS300-2006-2016.csv"
-TEST_DATA_FILE  ="data/featured-v7.1-HS300-2017-2018.csv"
+TRAIN_DATA_FILE       = "data/featured-v7.1-HS300-2006-2016.csv"
+VALIDATION_DATA_FILE  = "data/featured-v7.1-HS300-2017-2018.csv"

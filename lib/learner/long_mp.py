@@ -50,17 +50,14 @@ class Learner(GACore):
         return
 
     def translateDNA(self, dna):
-        def min_max_range(x, range_values):
-            return [round( ((xx - min(x)) / (1.0*(max(x) - min(x)))) * (range_values[1] - range_values[0]) + range_values[0], 2) for xx in x]
-
         decodedDNA = {}
         for i in range(len(self.factors)):
             factor = self.factors[i]
             dna_up_idx, dna_down_idx = i*2, i*2+1
             sample_value = self.DNA_sample[factor]
             factor_max, factor_min = self.scalers.loc[factor,['max','min']].values
-            dna_up_bias    = min_max_range([self.DNA_bound[0],dna[dna_up_idx],self.DNA_bound[1]], (sample_value,factor_max) )[1]
-            dna_down_bias  = min_max_range([self.DNA_bound[0],dna[dna_down_idx],self.DNA_bound[1]], (factor_min,sample_value))[1]
+            dna_up_bias    = self.value_scale(dna[dna_up_idx]  ,(sample_value,factor_max))
+            dna_down_bias  = self.value_scale(dna[dna_down_idx],(factor_min,sample_value))
             decodedDNA[factor+'_u'] = dna_up_bias
             decodedDNA[factor+'_d'] = dna_down_bias
         return decodedDNA

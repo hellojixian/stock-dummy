@@ -13,13 +13,6 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# 这部分代码是翻译反向DNA的 先暂时放在这里
-dna = np.random.rand(20) * 10
-t_dna = np.zeros(len(dna))
-for i in range(int(len(dna)/2)):
-    t_dna[i*2],t_dna[i*2+1]= np.sort([dna[i*2],dna[i*2+1]])
-
-
 train_data_filename      = 'data/featured-v7.1-HS300-2006-2016.csv'
 validation_data_filename = 'data/featured-v7.1-HS300-2017-2018.csv'
 

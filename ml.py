@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import warnings,sys
 
-from config import *
+from lib.config import config
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
@@ -19,9 +19,8 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-
-train_data_filename      = 'data/featured-v7.1-HS300-2006-2016.csv'
-validation_data_filename = 'data/featured-v7.1-HS300-2017-2018.csv'
+train_data_filename      = config.get('TRAIN_DATA_FILE')
+validation_data_filename = config.get('TEST_DATA_FILE')
 
 print('Loading dataset ...')
 train_df = pd.read_csv(train_data_filename, index_col=0)

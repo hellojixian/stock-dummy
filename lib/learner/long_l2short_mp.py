@@ -14,13 +14,19 @@ class Learner(GACore):
             pop_size=50, n_kid=50, validation_set=None,
             key_factor='fu_c1', max_exp=0):
         factors = train_set.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
-        super().__init__(pop_size=pop_size, n_kid=n_kid,
+
+        # init the dna as [0,10,0,10...]
+        init_dna = np.zeros(len(factors)*2)
+        for i in range(len(factors)):
+            init_dna[i*2+1]=10
+
+        super().__init__(pop_size=pop_size, n_kid=n_kid, init_dna=init_dna,
                         factors=factors, key_factor=key_factor)
 
         self.max_exp = max_exp
         self.train_set = train_set.sort_values(by='date', ascending=True)
         self.base_knowledge = base_knowledge
-        self.wr_weight = 1.8
+        self.wr_weight = 0.4
 
         if validation_set is None:
             self.validation_set = self.train_set
@@ -71,7 +77,7 @@ class Learner(GACore):
             max_exp = self.max_exp
 
         # 设计数据期望
-        wr_min, wr_max = 0.4, 0.95
+        wr_min, wr_max = 0.01, 0.99
         hr_min, hr_max = 0.0001, 0.1
         wr_weight, hr_weight = self.wr_weight,1
 
@@ -109,7 +115,7 @@ class Learner(GACore):
             hr_weight /= sum_weight
 
             score = normalized_wr*wr_weight + normalized_hr*hr_weight
-
+            # score = win_r
         return {
             "score": score,
             "hits":  hits,

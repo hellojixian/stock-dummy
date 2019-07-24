@@ -1,0 +1,7 @@
+# create a .env file in the root folder of the project
+# and copy below settings to the file
+
+NODE_NAME="office-imac"
+KB_URL=""
+KB_USERNAME=""
+KB_PASSWORD=""

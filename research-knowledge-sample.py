@@ -52,11 +52,11 @@ validation_set = pd.read_csv(data_source['validation'], index_col=0)
 def get_dist_report(knowledge, dataset, ranges):
     rs = dataset
     factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
-    rs = eval(_compile_filter(factors, knowledge))
+    df = eval(_compile_filter(factors, knowledge))
     dna = knowledge
 
-    total_count = rs.shape[0]
-    rs_wr = rs[rs.fu_c1>=0].shape[0]/total_count
+    total_count = df.shape[0]
+    rs_wr = df[df.fu_c1>=0].shape[0]/total_count
 
     scopes = np.linspace(0,rs.shape[0],slice+1,dtype='int')
     report = pd.DataFrame()

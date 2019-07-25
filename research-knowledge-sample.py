@@ -124,10 +124,11 @@ while True:
     ranges = get_factor_ranges(knowledge, train_set, slice)
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
     val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
-    # vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
+
     vmin,vmax=15,85
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
     # 可视化 WR 的标准化
+    v_min,v_max=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
     sns.heatmap(train_report,
                 ax=ax1, cmap='RdYlGn_r',
                 linewidths=0.05, annot=False,
@@ -135,7 +136,10 @@ while True:
                 cbar_ax=cbar_ax,
                 vmin=vmin, vmax=vmax)
     ax1.set_ylabel("features")
-    ax1.set_xlabel("slices")
+    ax1.set_xlabel("wr: {:.2f}%     {:.2f}%     {:.2f}%".format(
+                                    np.quantile(train_report.values,0.02),
+                                    np.quantile(train_report.values,0.5),
+                                    np.quantile(train_report.values,0.98)))
     ax1.set_title("Train   WR:{:.1f}%  Samples:{:.1f}K".format(train_wr*100,train_count/1000))
 
     sns.heatmap(val_report,
@@ -145,7 +149,10 @@ while True:
                 cbar_ax=cbar_ax,
                 vmin=vmin, vmax=vmax)
     ax2.set_ylabel("features")
-    ax2.set_xlabel("slices")
+    ax2.set_xlabel("wr: {:.2f}%     {:.2f}%     {:.2f}%".format(
+                                    np.quantile(val_report.values,0.02),
+                                    np.quantile(val_report.values,0.5),
+                                    np.quantile(val_report.values,0.98)))
     ax2.set_title("Validation   WR:{:.1f}%  Samples:{:.1f}K".format(val_wr*100,val_count/1000))
     fig.suptitle("K: {} Slices: {:d}".format(k.name, slice))
     print('Drawing: ',k.name)
@@ -153,4 +160,3 @@ while True:
     plt.pause(5)
 
 print("Done")
-plt.ioff()

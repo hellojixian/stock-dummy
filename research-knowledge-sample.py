@@ -7,6 +7,10 @@ import pandas as pd
 import numpy as np
 import warnings,sys,os
 import json, pprint
+import time
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.animation import FuncAnimation
 
 KB_FILENAME = 'data/knowledge_base.h5'
 KB_KEY = 'KnowledgeBase'
@@ -60,8 +64,9 @@ def get_dist_report(knowledge, df, ranges):
         filters = []
         filter = "rs[(rs.{}<={})]".format(factor,slices[0])
         filters.extend([filter])
+
         for i in range(len(slices)):
-            if i+1>len(slices): break
+            if i+1>=len(slices): break
             filter = "rs[(rs.{}>{}) & (rs.{}<={})]".format(factor,slices[i],factor,slices[i+1])
             filters.extend([filter])
         filter = "rs[(rs.{}>{})]".format(factor,slices[len(slices)-1])
@@ -87,7 +92,7 @@ def get_factor_ranges(dataset, slice):
     df = dataset
     factors = df.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
     ranges = pd.DataFrame()
-    slice -=2
+    slice -=1
     for factor in factors:
         record = pd.Series(np.zeros(slice))
         min = df[factor].quantile(0.05)
@@ -97,7 +102,7 @@ def get_factor_ranges(dataset, slice):
         ranges = ranges.append(record)
     return ranges
 
-kb = kb[kb.win_r>0.55]
+
 if knowledge_id is None:
     k = kb.sample(1).iloc[0]
 else:
@@ -108,23 +113,16 @@ knowledge = k['knowledge']
 ranges = get_factor_ranges(train_set, slice)
 train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
 val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
-
-
-print('train_report',np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99))
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-fig =plt.figure(figsize=(16,6))
-ax1 =fig.add_subplot(121)
-ax2 =fig.add_subplot(122)
-
 vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
 
 # 可视化 WR 的标准化
+fig =plt.figure(figsize=(16,6))
+ax1 =fig.add_subplot(121)
+ax2 =fig.add_subplot(122)
 sns.heatmap(train_report,
             ax=ax1, cmap='RdYlGn_r',
             linewidths=0.05, annot=False,
-            cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
+            cbar=False, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
             vmin=vmin, vmax=vmax)
 ax1.set_ylabel("features")
 ax1.set_xlabel("slices")
@@ -133,10 +131,11 @@ ax1.set_title("Train   WR:{:.1f}%  Samples:{:.1f}K".format(train_wr*100,train_co
 sns.heatmap(val_report,
             ax=ax2, cmap='RdYlGn_r',
             linewidths=0.05, annot=False,
-            cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
+            cbar=False, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
             vmin=vmin, vmax=vmax)
 ax2.set_ylabel("features")
 ax2.set_xlabel("slices")
 ax2.set_title("Validation   WR:{:.1f}%  Samples:{:.1f}K".format(val_wr*100,val_count/1000))
 fig.suptitle("K: {} Slices: {:d}".format(k.name, slice))
+
 plt.show()

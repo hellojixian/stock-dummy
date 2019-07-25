@@ -122,7 +122,7 @@ ax2 =fig.add_subplot(122)
 sns.heatmap(train_report,
             ax=ax1, cmap='RdYlGn_r',
             linewidths=0.05, annot=False,
-            cbar=False, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
+            cbar=True, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
             vmin=vmin, vmax=vmax)
 ax1.set_ylabel("features")
 ax1.set_xlabel("slices")
@@ -131,7 +131,7 @@ ax1.set_title("Train   WR:{:.1f}%  Samples:{:.1f}K".format(train_wr*100,train_co
 sns.heatmap(val_report,
             ax=ax2, cmap='RdYlGn_r',
             linewidths=0.05, annot=False,
-            cbar=False, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
+            cbar=True, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
             vmin=vmin, vmax=vmax)
 ax2.set_ylabel("features")
 ax2.set_xlabel("slices")

@@ -118,14 +118,14 @@ fig, (ax1,ax2) = plt.subplots(1, 2, figsize=(16,6))
 plt.ion()
 plt.show()
 
-for _ in range(10):
+while True:
     k = kb.sample(1).iloc[0]
     knowledge = k['knowledge']
     ranges = get_factor_ranges(knowledge, train_set, slice)
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
     val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
-    vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
-
+    # vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
+    vmin,vmax=15,85
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
     # 可视化 WR 的标准化
     sns.heatmap(train_report,
@@ -150,7 +150,7 @@ for _ in range(10):
     fig.suptitle("K: {} Slices: {:d}".format(k.name, slice))
     print('Drawing: ',k.name)
     plt.draw()
-    plt.pause(2)
+    plt.pause(5)
 
 print("Done")
 plt.ioff()

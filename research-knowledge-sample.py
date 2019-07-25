@@ -142,6 +142,7 @@ while True:
                                     np.quantile(train_report.values,0.98)))
     ax1.set_title("Train   WR:{:.1f}%  Samples:{:.1f}K".format(train_wr*100,train_count/1000))
 
+    vmin,vmax=np.quantile(val_report.values,0.01),np.quantile(val_report.values,0.99)
     sns.heatmap(val_report,
                 ax=ax2, cmap='RdYlGn_r',
                 linewidths=0.05, annot=False,

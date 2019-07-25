@@ -125,10 +125,10 @@ while True:
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
     val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
 
-    vmin,vmax=25,75
+    # vmin,vmax=35,85
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
     # 可视化 WR 的标准化
-    v_min,v_max=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
+    vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
     sns.heatmap(train_report,
                 ax=ax1, cmap='RdYlGn_r',
                 linewidths=0.05, annot=False,

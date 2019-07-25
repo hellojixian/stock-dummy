@@ -82,7 +82,7 @@ def get_dist_report(knowledge, dataset, ranges):
             if rs.shape[0]==0:
                 wr = 0.5
             else:
-                wr = rs[rs.fu_c1>0].shape[0]/rs.shape[0]
+                wr = rs[rs.fu_c1>=0].shape[0]/rs.shape[0]
             record['{:d}'.format(i+1)] = round(wr*100,2)
 
         record.name = factor
@@ -125,7 +125,7 @@ while True:
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
     val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
 
-    vmin,vmax=15,85
+    vmin,vmax=25,75
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
     # 可视化 WR 的标准化
     v_min,v_max=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)

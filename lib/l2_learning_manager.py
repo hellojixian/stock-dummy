@@ -11,8 +11,8 @@ from lib.learner.long_l2short_mp import Learner as LearnerL2S
 MAX_CHANGE_EXPECTATION = 0
 
 EARLY_STOPPING = 6
-GA_POPSIZE = 50
-GA_N_KID = 800
+GA_POPSIZE = 350
+GA_N_KID = 650
 N_GENERATIONS = 200
 MIN_GENERATIONS = 50
 

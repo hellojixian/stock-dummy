@@ -18,7 +18,9 @@ validation_df = pd.read_csv(os.path.join(parentdir,config.get('VALIDATION_DATA_F
 
 knowledge_base = pd.read_hdf(KB_FILENAME, key=KB_KEY)
 knowledge_base = knowledge_base.sort_values(by=['win_r'],ascending=False)
-k = knowledge_base.iloc[5]
+# k = knowledge_base.iloc[5]
+k = knowledge_base.sample(1).iloc[0]
+print(k)
 base_knowledge = k['knowledge']
 
 print("Base knowledge ID: {}".format(k.name))

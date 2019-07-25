@@ -83,7 +83,10 @@ def get_dist_report(knowledge, dataset, ranges):
                 wr = 0.5
             else:
                 wr = rs[rs.fu_c1>=0].shape[0]/rs.shape[0]
-            record['{:d}'.format(i+1)] = round(wr*100,2)
+
+            hr = rs.shape[0]/total_count
+            score = (wr)*hr
+            record['{:d}'.format(i+1)] = score*100
 
         record.name = factor
         report = report.append(record)
@@ -127,10 +130,11 @@ while True:
 
     # vmin,vmax=35,85
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
+    cmap = "OrRd"
     # 可视化 WR 的标准化
     vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
     sns.heatmap(train_report,
-                ax=ax1, cmap='RdYlGn_r',
+                ax=ax1, cmap=cmap,
                 linewidths=0.05, annot=False,
                 cbar=True, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
                 cbar_ax=cbar_ax,
@@ -144,7 +148,7 @@ while True:
 
     vmin,vmax=np.quantile(val_report.values,0.01),np.quantile(val_report.values,0.99)
     sns.heatmap(val_report,
-                ax=ax2, cmap='RdYlGn_r',
+                ax=ax2, cmap=cmap,
                 linewidths=0.05, annot=False,
                 cbar=True, cbar_kws=dict(ticks=np.linspace(vmin,vmax,10)),
                 cbar_ax=cbar_ax,

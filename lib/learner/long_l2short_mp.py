@@ -26,7 +26,7 @@ class Learner(GACore):
         self.max_exp = max_exp
         self.train_set = train_set.sort_values(by='date', ascending=True)
         self.base_knowledge = base_knowledge
-        self.wr_weight = 0.4
+        self.wr_weight = 3.8
 
         if validation_set is None:
             self.validation_set = self.train_set
@@ -77,8 +77,8 @@ class Learner(GACore):
             max_exp = self.max_exp
 
         # 设计数据期望
-        wr_min, wr_max = 0.01, 0.99
-        hr_min, hr_max = 0.0001, 0.1
+        wr_min, wr_max = 0.01, 0.9
+        hr_min, hr_max = 0.005, 0.03
         wr_weight, hr_weight = self.wr_weight,1
 
         # 评估
@@ -105,7 +105,7 @@ class Learner(GACore):
             return (x-min)/(max-min)
 
         # 扔掉极端值
-        if  hits_r>hr_min and\
+        if  hr_min<hits_r and hits_r<hr_max and\
             wr_min<win_r and win_r<wr_max:
             # 标准化数据表达
             normalized_hr = np.tanh(normalization(hits_r, hr_min, hr_max))*1.3

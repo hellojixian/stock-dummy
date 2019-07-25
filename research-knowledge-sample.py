@@ -31,11 +31,12 @@ except: slice=20
 try: knowledge_id = sys.argv[2]
 except: knowledge_id = None
 
-def _compile_filter(factors):
+def _compile_filter(factors, knowledge):
     filter = "rs["
     for _ in range(len(factors)):
         factor = factors[_]
-        filter += " (rs."+factor+" < dna['"+factor+"_u']) & (rs."+factor+" > dna['"+factor+"_d']) & "
+        filter += " (rs.{:s} < {}) & (rs.{:s} > {}) & ".format(factor,knowledge[factor+"_u"],
+                                                            factor,knowledge[factor+"_d"])
     filter += "True ]"
     return filter
 
@@ -48,8 +49,10 @@ print('Loading dataset ...')
 train_set = pd.read_csv(data_source['train'], index_col=0)
 validation_set = pd.read_csv(data_source['validation'], index_col=0)
 
-def get_dist_report(knowledge, df, ranges):
-    rs = df
+def get_dist_report(knowledge, dataset, ranges):
+    rs = dataset
+    factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+    df = eval(_compile_filter(factors, knowledge))
     dna = knowledge
 
     total_count = rs.shape[0]
@@ -88,9 +91,10 @@ def get_dist_report(knowledge, df, ranges):
     report = report[np.sort(report.columns.astype('i').to_list()).astype(str)]
     return report,rs_wr,total_count
 
-def get_factor_ranges(dataset, slice):
-    df = dataset
-    factors = df.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+def get_factor_ranges(knowledge, dataset, slice):
+    rs = dataset
+    factors = dataset.columns.drop(['security','date','fu_c1','fu_c2', 'fu_c3', 'fu_c4']).values
+    df = eval(_compile_filter(factors, knowledge))
     ranges = pd.DataFrame()
     slice -=1
     for factor in factors:
@@ -102,7 +106,6 @@ def get_factor_ranges(dataset, slice):
         ranges = ranges.append(record)
     return ranges
 
-
 if knowledge_id is None:
     k = kb.sample(1).iloc[0]
 else:
@@ -110,7 +113,7 @@ else:
 
 print(k.name)
 knowledge = k['knowledge']
-ranges = get_factor_ranges(train_set, slice)
+ranges = get_factor_ranges(knowledge, train_set, slice)
 train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
 val_report,val_wr,val_count = get_dist_report(knowledge, validation_set, ranges)
 vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)

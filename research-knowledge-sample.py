@@ -80,7 +80,7 @@ def get_dist_report(knowledge, dataset, ranges):
             rs = df
             rs = eval(filter)
             if rs.shape[0]==0:
-                wr = 0
+                wr = 0.5
             else:
                 wr = rs[rs.fu_c1>0].shape[0]/rs.shape[0]
             record['{:d}'.format(i+1)] = round(wr*100,2)

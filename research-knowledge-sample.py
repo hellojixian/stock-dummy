@@ -82,10 +82,10 @@ def get_dist_report(knowledge, dataset, ranges):
             if rs.shape[0]==0:
                 wr = 0.5
             else:
-                wr = rs[rs.fu_c1>=0].shape[0]/rs.shape[0]
+                wr = rs[rs.fu_c1>0].shape[0]/rs.shape[0]
 
             hr = rs.shape[0]/total_count
-            score = (wr)*hr
+            score = (wr)
             record['{:d}'.format(i+1)] = score*100
 
         record.name = factor
@@ -122,7 +122,8 @@ plt.ion()
 plt.show()
 
 while True:
-    k = kb.sample(1).iloc[0]
+    # k = kb.sample(1).iloc[0]
+    k = kb.iloc[15]
     knowledge = k['knowledge']
     ranges = get_factor_ranges(knowledge, train_set, slice)
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)

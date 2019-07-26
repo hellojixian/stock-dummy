@@ -79,14 +79,19 @@ def get_dist_report(knowledge, dataset, ranges):
             filter = filters[i]
             rs = df
             rs = eval(filter)
+            # if rs.shape[0]==0:
+            #     wr = 0.5
+            # else:
+            #     wr = rs[rs.fu_c1>0].shape[0]/rs.shape[0]
+
             if rs.shape[0]==0:
-                wr = 0.5
+                wr = 0
             else:
-                wr = rs[rs.fu_c1>0].shape[0]/rs.shape[0]
+                wr = rs['fu_c1'].sum()
 
             hr = rs.shape[0]/total_count
             score = (wr)
-            record['{:d}'.format(i+1)] = score*100
+            record['{:d}'.format(i+1)] = score
 
         record.name = factor
         report = report.append(record)
@@ -122,8 +127,8 @@ plt.ion()
 plt.show()
 
 while True:
-    # k = kb.sample(1).iloc[0]
-    k = kb.iloc[15]
+    k = kb.sample(1).iloc[0]
+    # k = kb.iloc[15]
     knowledge = k['knowledge']
     ranges = get_factor_ranges(knowledge, train_set, slice)
     train_report,train_wr,train_count = get_dist_report(knowledge, train_set, ranges)
@@ -131,7 +136,7 @@ while True:
 
     # vmin,vmax=35,85
     cbar_ax = fig.add_axes([0.92,0.2,0.01,0.6])
-    cmap = "OrRd"
+    cmap = "RdYlGn_r"
     # 可视化 WR 的标准化
     vmin,vmax=np.quantile(train_report.values,0.01),np.quantile(train_report.values,0.99)
     sns.heatmap(train_report,

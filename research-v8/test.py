@@ -16,9 +16,9 @@ jq.auth('18611850602','jixian')
 security = '600822.XSHG'
 start_date = datetime.date(2016,1,1)
 end_date = datetime.date(2017,12,20)
-frequency = '5m'
+frequency = 'daily'
 # end_date = datetime.date(2016,11,1)
-raw_filename = 'data/raw-{}-{}-{}-{}.csv'.format(security, start_date, end_date, frequency)
+raw_filename = 'data/cache/raw-{}-{}-{}-{}.csv'.format(security, start_date, end_date, frequency)
 
 # laod dataset
 if os.path.isfile(raw_filename):

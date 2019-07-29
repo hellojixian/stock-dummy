@@ -3,4 +3,4 @@ pandas>=0.25
 numpy>=1.13
 tables
 python-dotenv>0.10
-#pip install -U git+https://github.com/JoinQuant/jqdatasdk.git -i https://mirrors.aliyun.com/pypi/simple/
+jqdatasdk>=1.7

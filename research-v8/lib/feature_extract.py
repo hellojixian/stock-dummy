@@ -9,13 +9,8 @@ import sys,os,datetime
 def min_max_scale(v, min, max):
     return np.clip((v-min)/(max-min),0,1)
 
-def to_bin(v,bits):
-    def _b(v, ):
-        format = "{:0"+int(bits)+"b}"
-        if not np.isnan(v):
-            return [int(i) for i in format.format(int(v))]
-        return v
-    return np.round(v*100/(2**bits-1),0).apply(func=_b)
+def to_categorial(v, categories):
+    return np.round(v/(1/categories),0)
 
 def merge_features(v):
     m = np.array([np.array(x) for x in v.values])
@@ -23,26 +18,85 @@ def merge_features(v):
     m = np.array2string(m,separator='')[1:-1]
     return m
 
-def encode_daily_prev_changes(scopes, dataset):
-    prefix = 'prev_c'
-    res = pd.DataFrame()
+def daily_changes(scopes, dataset):
+    prefix = 'prev'
     skip = max(scopes)+1
+    df = pd.DataFrame()
     for scope in scopes:
-        df = pd.DataFrame()
         change  = (dataset['close'].shift(periods=scope) - dataset['close'].shift(periods=1+scope)) / dataset['close'].shift(periods=1+scope)
         open_c  = (dataset['open'].shift(periods=scope) - dataset['close'].shift(periods=1+scope)) / dataset['close'].shift(periods=1+scope)
         bar     = (dataset['close'].shift(periods=scope) - dataset['open'].shift(periods=scope)) / dataset['open'].shift(periods=scope)
         up_line     = (dataset['high'].shift(periods=scope) - dataset['close'].shift(periods=scope)) / dataset['close'].shift(periods=scope)
         down_line   = -(dataset['low'].shift(periods=scope) - dataset['close'].shift(periods=scope)) / dataset['close'].shift(periods=scope)
 
-        df['change'] = to_bin(min_max_scale(change, -0.1, 0.1), 4)[skip:]
-        df['bar']    = to_bin(min_max_scale(bar, -0.1, 0.1), 4)[skip:]
-        df['open_c'] = to_bin(min_max_scale(open_c, -0.1, 0.1), 3)[skip:]
-        df['up_line']= to_bin(min_max_scale(up_line, 0, 0.1), 3)[skip:]
-        df['down_line']= to_bin(min_max_scale(down_line, 0, 0.1), 3)[skip:]
+        df[prefix+str(scope)+'_change'] = to_categorial(min_max_scale(change, -0.1, 0.1), 16)[skip:]
+        df[prefix+str(scope)+'_bar']    = to_categorial(min_max_scale(bar, -0.1, 0.1), 16)[skip:]
+        df[prefix+str(scope)+'_open_c'] = to_categorial(min_max_scale(open_c, -0.1, 0.1), 10)[skip:]
+        df[prefix+str(scope)+'_up_line']= to_categorial(min_max_scale(up_line, 0, 0.1), 5)[skip:]
+        df[prefix+str(scope)+'_down_line']= to_categorial(min_max_scale(down_line, 0, 0.1), 5)[skip:]
+    return df
 
-        df['code'] = df.apply(func=merge_features, axis=1)
-        res[prefix+str(scope)] = df['code']
+def get_env(ranges, dataset):
+    res = pd.DataFrame()
+    def _get_trend(v):
+        min, max = np.min(v), np.max(v)
+        min_pos, max_pos = v.tolist().index(min), v.tolist().index(max)
+        amp = (v[-1]-min) / (max-min)
+        trend = 1.
+        if min_pos >= max_pos:
+            trend=0. #下跌
+        if min_pos < max_pos:
+            trend=2.  #上涨
+        if amp <=0.1: trend=1. #横盘整理
+        return trend
+
+    for scope in ranges:
+        df = dataset
+        min, max = df['low'].rolling(window=scope).min(), df['high'].rolling(window=scope).max()
+        res['pos_'+str(scope)] = to_categorial(min_max_scale((df['close']-min) / (max-min),0,1),5)
+        res['amp_'+str(scope)] = to_categorial(min_max_scale((max-min)/min,0,0.5),4)
+        res['trend_'+str(scope)] = df['close'].rolling(window=scope).apply(func=_get_trend, raw=True)
+    return res
+
+
+def risk_index(ranges, dataset):
+    res = pd.DataFrame()
+    def _get_risk_index(v):
+        return len(np.where(v<=0)[0])/v.shape[0]
+
+    for scope in ranges:
+        df = dataset
+        change = (dataset['close'].shift(periods=scope) - dataset['close'].shift(periods=1+scope)) / dataset['close'].shift(periods=1+scope)
+        res['risk_'+str(scope)] = to_categorial(change.rolling(window=scope).apply(func=_get_risk_index, raw=True),7)
+    return res
+
+def future_value(dataset):
+    res = pd.DataFrame()
+
+    dataset = dataset.copy()
+    def _profit_eval(v):
+        close = v[0]
+        max = np.max(v)
+        return (max - close) / close
+
+    cols = []
+    for i in range(6):
+        cols.extend(['f'+str(i)])
+        dataset['f'+str(i)] = dataset['close'].shift(periods=-i)
+    res['future_profit'] = np.round(dataset[cols].apply(func=_profit_eval, raw=True, axis=1),4)
+
+    def _risk_eval(v):
+        close = v[0]
+        max_idx = 0
+        if not np.isnan(np.max(v)):
+            max_idx = v.tolist().index(np.max(v))
+        if max_idx>1:
+            v = v[0:max_idx]
+        return (np.min(v) - close) / close
+
+    for i in range(6):
+        dataset['f'+str(i)] = dataset['low'].shift(periods=-i)
+    res['future_risk'] = np.round(dataset[cols].apply(func=_risk_eval, raw=True, axis=1),4)
     return res
 
 
@@ -70,21 +124,3 @@ def _get_support_presure(latest_price, ranges, dataset):
         res['support'] += (1-support) * weights[i]
     res['support'] /= np.sum(weights)
     return res
-
-def _get_env_long(latest_price, ranges, dataset):
-    for scope in ranges:
-        df = dataset[-(scope):]
-        slice = 4
-        min, max = df[['low']].min()[0], df[['high']].max()[0]
-        min_pos, max_pos = df[df.low==min].index, df[df.high==max].index
-        pos = np.round((latest_price-min) / (max-min) / (1/slice)).astype('i')
-        amp = np.round((max-min)/min*10,0).astype('i')
-        trend = 1
-        if min_pos >= max_pos:
-            trend=0 #下跌
-        if min_pos < max_pos:
-            trend=2  #上涨
-        if amp <=1: trend=1 #横盘整理
-        # bin(63)[2:].zfill(10)
-        # np.array([int(b) for b in str(bin(63))[2:]])
-        print(scope, trend, pos, amp)

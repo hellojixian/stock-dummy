@@ -4,6 +4,7 @@
 import numpy as np
 import pandas as pd
 import sys,os,datetime,time
+import gc
 from scipy import stats
 
 # set output
@@ -12,13 +13,25 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 print('Loading knowledge base ...\t',end="")
-kb = pd.read_csv("data/knowledge_base-min.csv")
+kb = pd.read_csv("data/knowledge_base_1800.csv")
 print('{} records'.format(kb.shape[0]))
 
 print('Loading test set .........\t',end="")
 test_set = pd.read_csv("data/test_set-min.csv")
 print('{} records'.format(test_set.shape[0]))
 
+
+# 强制转换成整数 为了加速搜索 至少减少内存消耗了
+def optimize_df(df):
+    int_cols = df.columns[:-2]
+    float_cols = ['future_profit','future_risk']
+    df_float = df[float_cols].copy()
+    df = df.astype('b')
+    df[float_cols] = df_float
+    return df
+kb = optimize_df(kb)
+test_set = optimize_df(test_set)
+gc.collect()
 
 future = ['future_profit','future_risk']
 
@@ -59,14 +72,14 @@ def predict(sample):
     filter_limit=2
     filter_offest=1
     while filter_offest<filter_limit:
-        _filter = "kb["
+        _filter = ""
         for f in factors:
             offest = np.clip([-filter_offest, filter_offest], filters[f][0], filters[f][1])
-            _filter += "(kb.{}>={}) & (kb.{}<={}) &".format(
+            _filter += "({}>={}) & ({}<={}) &".format(
                 f,int(sample[f]+offest[0]),
                 f,int(sample[f]+offest[1]))
-        _filter += " True]"
-        rs = eval(_filter).copy()
+        _filter += " True"
+        rs = kb[kb.eval(_filter)].copy()
         if len(rs)<=10:
             filter_offest +=1
         else:

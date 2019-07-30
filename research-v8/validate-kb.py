@@ -26,6 +26,19 @@ future = ['future_profit','future_risk']
 
 for _ in range(20):
     sample = test_set.sample(1).iloc[0]
+    pred = predict(sample)
+    pred.name = 'predict'
+    actual = sample[future]
+    actual.name = 'actual'
+    measure = pd.DataFrame([pred,actual])
+    print(measure)
+    print(rs.shape[0])
+    print("-"*100)
+
+def predict(sample):
+    def _check_similarity_loss(v, sample):
+        return np.abs(v.values-sample.values).sum()
+        
     filters_setting = {
         'prev0_change'  :[ 0, 0],
         'prev1_change'  :[ 0, 0],
@@ -53,39 +66,24 @@ for _ in range(20):
     filters = filters_setting.copy()
     filter_limit = 0
     factors = list(filters.keys())
-    is_finished = False
     filter_limit=4
     filter_offest=0
     while filter_offest<filter_limit:
-        for i in range(len(factors)):
-            factor_i = len(factors) - i -1
-            _filter = "kb["
-            for f in factors:
-                if factors.index(f) >= factor_i:
-                    offest = np.clip([-filter_offest, filter_offest], filters[f][0], filters[f][1])
-                else:
-                    offest = np.clip([-(filter_offest-1), (filter_offest-1)], filters[f][0], filters[f][1])
-                _filter += "(kb.{}>={}) & (kb.{}<={}) &".format(
-                    f,int(sample[f]+offest[0]),
-                    f,int(sample[f]+offest[1]))
-            _filter += " True]"
-            rs = eval(_filter)
-            print('\rPredicting: {:2.1f}%'.format( 100*(i/(len(factors)-1)*(1/filter_limit)+(filter_offest)/(filter_limit)) ),end="")
-            if len(rs)<=10:
-                if factor_i==0 or filter_offest==0:
-                    filter_offest +=1
-            else:
-                is_finished = True
-                print("\t[DONE]",end="")
-                break
-        if is_finished == True: break
-    print("\n",end="")
-    rs = rs.sort_values(by=['future_profit','future_risk'])
+        _filter = "kb["
+        for f in factors:
+            offest = np.clip([-filter_offest, filter_offest], filters[f][0], filters[f][1])
+            _filter += "(kb.{}>={}) & (kb.{}<={}) &".format(
+                f,int(sample[f]+offest[0]),
+                f,int(sample[f]+offest[1]))
+        _filter += " True]"
+        rs = eval(_filter)
+        if len(rs)<=10:
+            filter_offest +=1
+        else:
+            break
+
+    rs['similarity_loss'] = rs.apply(func=_check_similarity_loss, args=[sample])
+    rs = rs.sort_values(by=['similarity_loss'],ascending=True)
+    rs = rs[:10]
     pred = rs[future][2:-2].median()
-    pred.name = 'predict'
-    actual = sample[future]
-    actual.name = 'actual'
-    measure = pd.DataFrame([pred,actual])
-    print(measure)
-    print(rs.shape[0])
-    print("-"*100)
+    return pred

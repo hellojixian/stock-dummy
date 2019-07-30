@@ -81,7 +81,7 @@ for _ in range(20):
         if is_finished == True: break
     print("\n",end="")
     rs = rs.sort_values(by=['future_profit','future_risk'])
-    pred = rs[future][2:-2].mean()
+    pred = rs[future][2:-2].median()
     pred.name = 'predict'
     actual = sample[future]
     actual.name = 'actual'

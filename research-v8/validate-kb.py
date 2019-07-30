@@ -3,7 +3,8 @@
 
 import numpy as np
 import pandas as pd
-import sys,os,datetime
+import sys,os,datetime,time
+from scipy import stats
 
 # set output
 pd.set_option('display.max_rows', 500)
@@ -11,34 +12,22 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 print('Loading knowledge base ...\t',end="")
-kb = pd.read_csv("data/knowledge_base.csv",index_col=0)
+kb = pd.read_csv("data/knowledge_base-min.csv")
 print('{} records'.format(kb.shape[0]))
 
 print('Loading test set .........\t',end="")
-test_set = pd.read_csv("data/test_set.csv",index_col=0)
+test_set = pd.read_csv("data/test_set-min.csv")
 print('{} records'.format(test_set.shape[0]))
+
 
 future = ['future_profit','future_risk']
 
-# kb = kb.sort_values(by=['future_profit','future_risk'])
-# print(kb[future.extend('security')].head(50))
-# sys.exit()
-
-for _ in range(20):
-    sample = test_set.sample(1).iloc[0]
-    pred = predict(sample)
-    pred.name = 'predict'
-    actual = sample[future]
-    actual.name = 'actual'
-    measure = pd.DataFrame([pred,actual])
-    print(measure)
-    print(rs.shape[0])
-    print("-"*100)
-
 def predict(sample):
+    start_timestamp = time.time()
+
     def _check_similarity_loss(v, sample):
         return np.abs(v.values-sample.values).sum()
-        
+
     filters_setting = {
         'prev0_change'  :[ 0, 0],
         'prev1_change'  :[ 0, 0],
@@ -54,13 +43,14 @@ def predict(sample):
            'trend_120'  :[-1, 1],
              'pos_120'  :[-1, 1],
                'amp_5'  :[-2, 2],
-              'amp_10'  :[-2, 2],
              'risk_10'  :[-1, 1],
              'risk_20'  :[-2, 2],
               'amp_30'  :[-3, 3],
         'prev0_open_c'  :[-2, 2],
         'prev1_open_c'  :[-2, 2],
            'prev1_bar'  :[-2, 2],
+       'prev0_up_line'  :[-2, 2],
+     'prev0_down_line'  :[-2, 2],
     }
 
     filters = filters_setting.copy()
@@ -76,14 +66,60 @@ def predict(sample):
                 f,int(sample[f]+offest[0]),
                 f,int(sample[f]+offest[1]))
         _filter += " True]"
-        rs = eval(_filter)
+        rs = eval(_filter).copy()
         if len(rs)<=10:
             filter_offest +=1
         else:
             break
 
-    rs['similarity_loss'] = rs.apply(func=_check_similarity_loss, args=[sample])
-    rs = rs.sort_values(by=['similarity_loss'],ascending=True)
-    rs = rs[:10]
-    pred = rs[future][2:-2].median()
+    pred = pd.Series()
+    kb_sample_count = rs.shape[0]
+    reduced_sample_count = 0
+    if kb_sample_count >10:
+        pred['result'] = True
+        rs['similarity_loss'] = rs.apply(func=_check_similarity_loss, args=[sample], raw=True, axis=1)
+        rs = rs.sort_values(by=['similarity_loss'],ascending=True)
+        rs = rs[rs.similarity_loss<=15]
+        rs = rs[:20]
+        reduced_sample_count = rs.shape[0]
+        if reduced_sample_count<=2:
+            pred['result'] = False
+        for f in future:
+            pred['{}_mean'.format(f)] = rs[f].mean()
+            settings = {'med':0.5}
+            for k in settings:
+                v = settings[k]
+                pred['{}_{}'.format(f,k)] = rs[f].quantile(v)
+        pred['similarity_loss'] = rs['similarity_loss'].max()
+    else:
+        pred['result'] = False
+        pred['similarity_loss'] = float('nan')
+    pred['samples_count'] = int(kb_sample_count)
+    pred['reduced_count'] = int(reduced_sample_count)
+    pred['durtion'] = int((time.time() - start_timestamp))
     return pred
+
+
+for _ in range(20):
+    sample = test_set.sample(1).iloc[0]
+    pred = predict(sample)
+    if pred['result']==False:
+        print("No enough samples - Skip")
+        print("samples: {:d}=>{:d} \tdurtion: {:d}s ".format(
+            int(pred['samples_count']),int(pred['reduced_count']),int(pred['durtion'])))
+    else:
+        measure = {"future_profit":{},"future_risk":{}}
+        for f in future:
+            measure[f]["actual"] = sample[f]
+            measure[f]["predict_med"] = pred[f+"_med"]
+            measure[f]["predict_mean"] = pred[f+"_mean"]
+            # measure[f]["correct"] = (sample[f] >= pred[f+"_d"]) & (sample[f] <= pred[f+"_u"])
+        measure = pd.DataFrame(measure)
+        measure = measure.T
+        cols = ['actual','predict_med','predict_mean']
+        print(measure[cols])
+
+        print("samples: {:d}=>{:d} \tdurtion: {:d}s \t loss: {:.2f}".format(
+            int(pred['samples_count']),int(pred['reduced_count']),int(pred['durtion']),pred['similarity_loss']))
+
+    print("-"*100)

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import sys,os,datetime
 
+
 def min_max_scale(v, min, max):
     return np.clip((v-min)/(max-min),0,1)
 
@@ -96,27 +97,39 @@ def future_value(dataset):
     res['future_risk'] = np.round(dataset[cols].apply(func=_risk_eval, raw=True, axis=1)*100,2)
     return res
 
-def _get_support_presure(latest_price, ranges, dataset):
-    res = {}
-    res['support'] = 0
-    ranges = [5,10,20]
-    weights = [0.5, 1, 2]
-    for i in range(len(ranges)):
-        scope = ranges[i]
-        df = dataset[-(scope):]
-        p_df = pd.Series(df[['open','close']].values.reshape(df.shape[0]*2))
-        step = latest_price *0.04
-        p_df = np.ceil(np.ceil(p_df/step) * step*100)/100
+def reduce_kb(df):
+    if len(df)==0: return df
+    cols =['open', 'close', 'high', 'low', 'volume', 'money']
+    df = df.drop(columns=cols)
 
-        p_df = pd.DataFrame(p_df.value_counts(),columns=['count'])
-        p_df.loc[:,'weight'] = np.round(p_df['count']/scope,2)
-        p_presure = p_df[p_df.index>latest_price].sort_values(by=['count'],ascending=False)
-        p_support = p_df[p_df.index<=latest_price].sort_values(by=['count'],ascending=False)
+    df = df.reset_index()
+    cols = [
+    'index',
+    'security',
+    'risk_60',
+    'risk_30',
+    'amp_10',
+    'amp_120',
+    'prev4_down_line',
+    'prev4_up_line',
+    'prev4_open_c',
+    'prev4_bar',
+    'prev3_down_line',
+    'prev3_up_line',
+    'prev3_open_c',
+    'prev4_bar',
+    'prev2_down_line',
+    'prev2_up_line',
+    'prev2_open_c',
+    'prev2_bar',
+    'prev1_down_line',
+    'prev1_up_line',
+    ]
 
-        support, presure = 0, 0
-        if p_support.shape[0]>1: support = 5*(-(np.mean(p_support.index[0])-latest_price) / latest_price)
-        if p_presure.shape[0]>1: presure = (np.mean(p_presure.index[0])-latest_price) / latest_price
-        res['support_{}'.format(scope)] = 1-support
-        res['support'] += (1-support) * weights[i]
-    res['support'] /= np.sum(weights)
-    return res
+    df = df.drop(columns=cols)
+    int_cols = df.columns[:-2]
+    float_cols = ['future_profit','future_risk']
+    df_float = df[float_cols].copy()
+    df = df.astype('i')
+    df[float_cols] = df_float
+    return df

@@ -26,7 +26,7 @@ def predict(sample):
     start_timestamp = time.time()
 
     def _check_similarity_loss(v, sample):
-        return np.abs(v.values-sample.values).sum()
+        return np.abs(v-sample).sum()
 
     filters_setting = {
         'prev0_change'  :[ 0, 0],
@@ -56,8 +56,8 @@ def predict(sample):
     filters = filters_setting.copy()
     filter_limit = 0
     factors = list(filters.keys())
-    filter_limit=4
-    filter_offest=0
+    filter_limit=2
+    filter_offest=1
     while filter_offest<filter_limit:
         _filter = "kb["
         for f in factors:
@@ -96,7 +96,7 @@ def predict(sample):
         pred['similarity_loss'] = float('nan')
     pred['samples_count'] = int(kb_sample_count)
     pred['reduced_count'] = int(reduced_sample_count)
-    pred['durtion'] = int((time.time() - start_timestamp))
+    pred['durtion'] = np.round((time.time() - start_timestamp),2)
     return pred
 
 
@@ -119,7 +119,7 @@ for _ in range(20):
         cols = ['actual','predict_med','predict_mean']
         print(measure[cols])
 
-        print("samples: {:d}=>{:d} \tdurtion: {:d}s \t loss: {:.2f}".format(
-            int(pred['samples_count']),int(pred['reduced_count']),int(pred['durtion']),pred['similarity_loss']))
+        print("samples: {:d}=>{:d} \tdurtion: {:2.2f}s \t loss: {:.2f}".format(
+            int(pred['samples_count']),int(pred['reduced_count']),pred['durtion'],pred['similarity_loss']))
 
     print("-"*100)

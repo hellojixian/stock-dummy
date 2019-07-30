@@ -79,12 +79,6 @@ def future_value(dataset):
         max = np.max(v)
         return (max - close) / close
 
-    cols = []
-    for i in range(6):
-        cols.extend(['f'+str(i)])
-        dataset['f'+str(i)] = dataset['close'].shift(periods=-i)
-    res['future_profit'] = np.round(dataset[cols].apply(func=_profit_eval, raw=True, axis=1),4)
-
     def _risk_eval(v):
         close = v[0]
         max_idx = 0
@@ -94,11 +88,13 @@ def future_value(dataset):
             v = v[0:max_idx]
         return (np.min(v) - close) / close
 
-    for i in range(6):
-        dataset['f'+str(i)] = dataset['low'].shift(periods=-i)
-    res['future_risk'] = np.round(dataset[cols].apply(func=_risk_eval, raw=True, axis=1),4)
+    cols = []
+    for i in range(8):
+        cols.extend(['f'+str(i)])
+        dataset['f'+str(i)] = dataset['close'].shift(periods=-i)
+    res['future_profit'] = np.round(dataset[cols].apply(func=_profit_eval, raw=True, axis=1)*100,2)
+    res['future_risk'] = np.round(dataset[cols].apply(func=_risk_eval, raw=True, axis=1)*100,2)
     return res
-
 
 def _get_support_presure(latest_price, ranges, dataset):
     res = {}

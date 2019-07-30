@@ -78,7 +78,7 @@ def predict(sample):
             _filter += "({}>={}) & ({}<={}) &".format(
                 f,int(sample[f]+offest[0]),
                 f,int(sample[f]+offest[1]))
-        _filter += " True"
+        _filter = _filter[:-1] 
         rs = kb[kb.eval(_filter)].copy()
         if len(rs)<=10:
             filter_offest +=1

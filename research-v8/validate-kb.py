@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import sys,os,datetime,time
 import gc
-from lib.prediction import *
+import lib.prediction as pred
 
 # set output
 pd.set_option('display.max_rows', 500)
@@ -22,15 +22,15 @@ print('{} records'.format(test_set.shape[0]))
 
 
 
-kb = optimize_df(kb)
-test_set = optimize_df(test_set)
+kb = pred.optimize_df(kb)
+test_set = pred.optimize_df(test_set)
 gc.collect()
 
 
 for _ in range(60):
     future = ['future_profit','future_risk']
     sample = test_set.sample(1).iloc[0]
-    pred = predict(sample)
+    pred = pred.predict(sample)
     if pred['result']==False:
         print("No enough samples - Skip")
         print("samples: {:d}=>{:d} \tdurtion: {:d}s ".format(

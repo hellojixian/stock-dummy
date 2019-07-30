@@ -36,7 +36,7 @@ for _ in range(60):
         print("samples: {:d}=>{:d} \tdurtion: {:d}s ".format(
             int(pred['samples_count']),int(pred['reduced_count']),int(pred['durtion'])))
     else:
-        measure = {"future_profit":{},"future_risk":{}}
+        measure = {"profit":{},"risk":{}}
         for f in future:
             measure[f[7:]]["actual"] = sample[f]
             measure[f[7:]]["predict_med"] = pred[f+"_med"]

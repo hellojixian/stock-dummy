@@ -40,11 +40,11 @@ for _ in range(20):
         'prev4_change'  :[-1, 1],
            'trend_120'  :[-1, 1],
              'pos_120'  :[-1, 1],
-               'amp_5'  :[-1, 1],
-              'amp_10'  :[-1, 1],
+               'amp_5'  :[-2, 2],
+              'amp_10'  :[-2, 2],
              'risk_10'  :[-1, 1],
              'risk_20'  :[-2, 2],
-              'amp_30'  :[-2, 2],
+              'amp_30'  :[-3, 3],
         'prev0_open_c'  :[-2, 2],
         'prev1_open_c'  :[-2, 2],
            'prev1_bar'  :[-2, 2],
@@ -54,9 +54,9 @@ for _ in range(20):
     filter_limit = 0
     factors = list(filters.keys())
     is_finished = False
-    filter_limit=3
+    filter_limit=4
     filter_offest=0
-    while filter_offest<=filter_limit:
+    while filter_offest<filter_limit:
         for i in range(len(factors)):
             factor_i = len(factors) - i -1
             _filter = "kb["
@@ -70,16 +70,18 @@ for _ in range(20):
                     f,int(sample[f]+offest[1]))
             _filter += " True]"
             rs = eval(_filter)
-            print('\rPredicting: {:2.1f}%'.format( 100*(i/(len(factors)-1)*(filter_offest+1)/(filter_limit+1)) ),end="")
+            print('\rPredicting: {:2.1f}%'.format( 100*(i/(len(factors)-1)*(1/filter_limit)+(filter_offest)/(filter_limit)) ),end="")
             if len(rs)<=10:
                 if factor_i==0 or filter_offest==0:
                     filter_offest +=1
             else:
                 is_finished = True
+                print("\t[DONE]",end="")
                 break
         if is_finished == True: break
     print("\n",end="")
-    pred = rs[future].mean()
+    rs = rs.sort_values(by=['future_profit','future_risk'])
+    pred = rs[future][2:-2].mean()
     pred.name = 'predict'
     actual = sample[future]
     actual.name = 'actual'

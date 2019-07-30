@@ -15,7 +15,7 @@ def optimize_df(df):
     df[float_cols] = df_float
     return df
 
-def predict(sample):
+def predict(sample, kb):
     start_timestamp = time.time()
     future = ['future_profit','future_risk']
 

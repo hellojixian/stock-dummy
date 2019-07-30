@@ -30,7 +30,7 @@ gc.collect()
 for _ in range(60):
     future = ['future_profit','future_risk']
     sample = test_set.sample(1).iloc[0]
-    pred = pred.predict(sample)
+    pred = pred.predict(sample,kb)
     if pred['result']==False:
         print("No enough samples - Skip")
         print("samples: {:d}=>{:d} \tdurtion: {:d}s ".format(

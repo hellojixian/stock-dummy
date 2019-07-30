@@ -38,11 +38,11 @@ for _ in range(60):
     else:
         measure = {"future_profit":{},"future_risk":{}}
         for f in future:
-            measure[f]["actual"] = sample[f]
-            measure[f]["predict_med"] = pred[f+"_med"]
+            measure[f[7:]]["actual"] = sample[f]
+            measure[f[7:]]["predict_med"] = pred[f+"_med"]
         measure = pd.DataFrame(measure)
         measure = measure.T
-        cols = ['actual','predict_med','predict_mean']
+        cols = ['actual','predict_med']
         print(measure[cols])
 
         print("samples: {:d}=>{:d} \tdurtion: {:2.2f}s \t loss: {:.2f}".format(

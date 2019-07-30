@@ -26,12 +26,13 @@ future = ['future_profit','future_risk']
 
 for _ in range(20):
     sample = test_set.sample(1).iloc[0]
-    filters = {
+    filters_setting = {
         'prev0_change'  :[ 0, 0],
         'prev1_change'  :[ 0, 0],
         'prev2_change'  :[ 0, 0],
              'trend_5'  :[ 0, 0],
             'trend_10'  :[ 0, 0],
+           'prev0_bar'  :[-1, 1],
             'trend_30'  :[-1, 1],
                'pos_5'  :[-1, 1],
               'pos_10'  :[-1, 1],
@@ -44,19 +45,42 @@ for _ in range(20):
              'risk_10'  :[-1, 1],
              'risk_20'  :[-2, 2],
               'amp_30'  :[-2, 2],
+        'prev0_open_c'  :[-2, 2],
+        'prev1_open_c'  :[-2, 2],
+           'prev1_bar'  :[-2, 2],
     }
 
-    _filter = "kb["
-    for f in filters.keys():
-        _filter += "(kb.{}>={}) & (kb.{}<={}) &".format(
-            f,int(sample[f]+filters[f][0]),
-            f,int(sample[f]+filters[f][1]))
-    _filter += " True]"
-
-    rs = eval(_filter)
+    filters = filters_setting.copy()
+    filter_limit = 0
+    factors = list(filters.keys())
+    is_finished = False
+    filter_limit=3
+    filter_offest=0
+    while filter_offest<=filter_limit:
+        for i in range(len(factors)):
+            factor_i = len(factors) - i -1
+            _filter = "kb["
+            for f in factors:
+                if factors.index(f) >= factor_i:
+                    offest = np.clip([-filter_offest, filter_offest], filters[f][0], filters[f][1])
+                else:
+                    offest = np.clip([-(filter_offest-1), (filter_offest-1)], filters[f][0], filters[f][1])
+                _filter += "(kb.{}>={}) & (kb.{}<={}) &".format(
+                    f,int(sample[f]+offest[0]),
+                    f,int(sample[f]+offest[1]))
+            _filter += " True]"
+            rs = eval(_filter)
+            print('\rPredicting: {:2.1f}%'.format( 100*(i/(len(factors)-1)*(filter_offest+1)/(filter_limit+1)) ),end="")
+            if len(rs)<=10:
+                if factor_i==0 or filter_offest==0:
+                    filter_offest +=1
+            else:
+                is_finished = True
+                break
+        if is_finished == True: break
+    print("\n",end="")
     pred = rs[future].mean()
     pred.name = 'predict'
-
     actual = sample[future]
     actual.name = 'actual'
     measure = pd.DataFrame([pred,actual])

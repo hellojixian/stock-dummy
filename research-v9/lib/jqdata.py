@@ -10,7 +10,7 @@ SLICE_CACHE_FILE = 'data/cache/{}-full.cache'
 MEM_CACHE_KEY = '{}'
 MEM_CACHE = {}
 
-def get_price(security, end_date, count, skip_paused=True):
+def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
     mem_cache_key = MEM_CACHE_KEY.format(security)
     if mem_cache_key in MEM_CACHE:
         dataset = MEM_CACHE[mem_cache_key]
@@ -24,15 +24,34 @@ def get_price(security, end_date, count, skip_paused=True):
             dataset.to_csv(slice_cache_file)
         MEM_CACHE[mem_cache_key] = dataset.copy()
 
+    start_iloc = None
+    if start_date is not None:
+        try:
+            start_date = str(start_date)
+            start_iloc = dataset.index.get_loc(start_date)
+        except:
+            dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
+            dataset = dataset.sort_index()
+            end_date = np.datetime64(end_date)
+            dataset = dataset[dataset.index>=start_date]
+            dataset.index = dataset.index.strftime("%Y-%m-%d")
+
     try:
         end_date = str(end_date)
-        idx = dataset.index.get_loc(end_date)+1
-        dataset = dataset[idx-count:idx]
+        end_iloc = dataset.index.get_loc(end_date)+1
+        if start_iloc is not None:
+            dataset = dataset[start_iloc:end_iloc]
+        else:
+            if start_date is not None:
+                dataset = dataset[:end_iloc]
+            else:
+                dataset = dataset[end_iloc-count:end_iloc]
     except:
         dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
         dataset = dataset.sort_index()
         end_date = np.datetime64(end_date)
         dataset = dataset[dataset.index<=end_date]
-        dataset = dataset[-count:]
+        if start_date is None:
+            dataset = dataset[-count:]
         dataset.index = dataset.index.strftime("%Y-%m-%d")
     return dataset

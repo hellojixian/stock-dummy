@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
+import pandas as pd
+import datetime,time
+
 from lib.jqdata import *
 from lib.feature_extract import *
+from lib.backtest import *
 
 # set output
 pd.set_option('display.max_rows', 500)
@@ -9,23 +13,23 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 security='000919.XSHE'
-# end_date=datetime.date(2015,7,30)
-end_date=datetime.date(2015,3,14)
-test_days = 100
-dates = get_price(security, end_date, count=test_days).index
-assert(len(dates)==test_days)
+start_date=datetime.date(2014,3,16)
+end_date=datetime.date(2015,7,30)
+
+backtest = get_price(security=security, start_date=start_date, end_date=end_date)
+
 print("Back test: {} Days\nSince: {}\nUntil: {}"
-    .format(test_days,str(dates[0]),str(dates[-1])))
+    .format(len(backtest),str(backtest.index[0]),str(backtest.index[-1])))
 
-
-cols = ['short','median','long','close']
+timestamp = time.time()
 features = []
-
-for trade_date in dates:
+for trade_date in backtest.index:
     feature = extract_features(security,trade_date,get_price)
     features.append(feature)
 
-cols.extend(['date'])
-df = pd.DataFrame(features, columns=cols)
-df = df.set_index(keys=['date'])
-print(df)
+print(generate_report(features))
+print("-"*50)
+baseline_profits = calc_baseline_profit(backtest)
+time_durtion = time.time() - timestamp
+print("Baseline Profit: {:.2f}%".format(baseline_profits))
+print("Test Durtion: {:.2f} sec".format(time_durtion))

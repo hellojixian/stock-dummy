@@ -13,7 +13,7 @@ def to_categorial(v, categories):
     return int(np.round(val+1))
 
 def extract_features(security,trade_date,get_price):
-    close = get_price(security, end_date=trade_date, count=1)['close'][0]
+    close = get_price(security=security, end_date=trade_date, count=1)['close'][0]
     days_scopes=[3,5,10,20,30,60,120]
     n_steps = 7
 

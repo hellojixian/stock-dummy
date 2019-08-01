@@ -101,6 +101,7 @@ def visualize_report(dataset,backtest):
         anno1.set_position((pos,price))
         plt.draw()
 
+    zoom_level = None
     def onPress(event):
         global zoom_level
         data = axvline1.get_data()

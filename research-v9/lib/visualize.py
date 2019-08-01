@@ -17,6 +17,7 @@ def generate_report(dataset):
     cols.extend(['date'])
     df = pd.DataFrame(dataset, columns=cols)
     df = df.set_index(keys=['date'])
+    df['change'] = (df['close'] - df['close'].shift(periods=1)) /  df['close'].shift(periods=1)
     return df
 
 def calc_baseline_profit(baseline):
@@ -78,9 +79,12 @@ def visualize_report(dataset,backtest):
     axvline1 = ax1.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
     axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
     price = dataset['close'].loc[n_date]
+    change = dataset['change'].loc[n_date]
     anno1 = ax1.annotate(price, (init_pos, price), rotation=45)
 
-    price_label = fig.text(0.08, 0.92, "Price: {}".format(price))
+
+    date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
+    price_label = fig.text(0.07, 0.895, "Price: {}  ({:5.2f}%)".format(price, change*100))
 
     def onClick(event):
         if not event.xdata: return
@@ -96,7 +100,9 @@ def visualize_report(dataset,backtest):
         axvline2.set_data([pos,pos], [0, 1])
 
         price = dataset['close'].loc[date]
-        price_label.set_text("Price: {}".format(price))
+        change = dataset['change'].loc[date]
+        date_label.set_text("Date: {:.10}".format(str(date)))
+        price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         anno1.set_text(price)
         anno1.set_position((pos,price))
         plt.draw()
@@ -146,7 +152,9 @@ def visualize_report(dataset,backtest):
             ax2.set_xlim(pos-zoom_level,pos+zoom_level)
 
         price = dataset['close'].loc[date]
-        price_label.set_text("Price: {}".format(price))
+        change = dataset['change'].loc[date]
+        price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
+        date_label.set_text("Date: {:.10}".format(str(date)))
         anno1.set_text(price)
         anno1.set_position((pos,price))
 

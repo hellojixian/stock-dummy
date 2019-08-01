@@ -6,6 +6,7 @@ import datetime,time
 from lib.jqdata import *
 from lib.feature_extract import *
 from lib.backtest import *
+from lib.visualize import *
 from lib.strategy import Strategy
 
 # set output

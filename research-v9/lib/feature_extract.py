@@ -28,10 +28,10 @@ def extract_features(security,trade_date,get_price,close=None):
         pos = to_categorial((close-min) / (max-min), n_steps)
         f_key = 'pos_{}'.format(days)
         feature[f_key]= pos
-    
+
     feature['short']  = np.round(np.mean([feature['pos_3'],feature['pos_5'],feature['pos_10']]),1)
-    feature['median'] = np.round(np.mean([feature['pos_20'],feature['pos_30']]),1)
-    feature['long']   = np.round(np.mean([feature['pos_60'],feature['pos_120']]),1)
+    feature['median'] = np.round(np.mean([feature['pos_20'],feature['pos_30'],feature['pos_10']]),1)
+    feature['long']   = np.round(np.mean([feature['pos_60'],feature['pos_120'],feature['pos_30']]),1)
     feature['close'] = close
     feature['date'] = trade_date
     return feature

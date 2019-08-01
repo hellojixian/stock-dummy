@@ -77,6 +77,10 @@ def visualize_report(dataset,backtest):
 
     axvline1 = ax1.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
     axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
+    price = dataset['close'].loc[n_date]
+    anno1 = ax1.annotate(price, (init_pos, price), rotation=45)
+
+    price_label = fig.text(0.08, 0.92, "Price: {}".format(price))
 
     def onClick(event):
         if not event.xdata: return
@@ -85,11 +89,16 @@ def visualize_report(dataset,backtest):
         if date not in dataset.index:
             date = datetime.datetime.strptime(date, DATE_FORMAT)
             ns = dataset[dataset.index<date]
-            n_date = dataset[dataset.index<date].iloc[-1].name
-            pos = mdates.date2num(n_date)
+            date = dataset[dataset.index<date].iloc[-1].name
+            pos = mdates.date2num(date)
 
         axvline1.set_data([pos,pos], [0, 1])
         axvline2.set_data([pos,pos], [0, 1])
+
+        price = dataset['close'].loc[date]
+        price_label.set_text("Price: {}".format(price))
+        anno1.set_text(price)
+        anno1.set_position((pos,price))
         plt.draw()
 
     def onPress(event):
@@ -106,22 +115,24 @@ def visualize_report(dataset,backtest):
         except:
             zoom_level = None
         if event.key=='A' or event.key=='a' or event.key=='left':
-            n_date = dataset[date_idx-1:date_idx].index[0]
-            pos = mdates.date2num(n_date)
+            date = dataset[date_idx-1:date_idx].index[0]
+            pos = mdates.date2num(date)
         elif event.key=='D' or event.key=='d' or event.key=='right':
-            n_date = dataset[date_idx+1:date_idx+2].index[0]
-            pos = mdates.date2num(n_date)
+            date = dataset[date_idx+1:date_idx+2].index[0]
+            pos = mdates.date2num(date)
         elif event.key=='Q':
             zoom_level = 30
         elif event.key=='W' or event.key=='w' or event.key=='up':
             zoom_level = 20
         elif event.key=='E' or event.key=='e':
             zoom_level = 10
-        elif event.key=='S' or event.key=='escape' or event.key=='down':
+        elif event.key=='S' or event.key=='escape' \
+            or event.key=='down' or event.key=='s':
             zoom_level = None
 
         axvline1.set_data([pos,pos], [0, 1])
         axvline2.set_data([pos,pos], [0, 1])
+
 
         if zoom_level is None:
             ax1.set_ylim(dataset['close'].min()*0.95,dataset['close'].max()*1.05)
@@ -132,6 +143,12 @@ def visualize_report(dataset,backtest):
             ax1.set_ylim(slice['close'].min()*0.95,slice['close'].max()*1.05)
             ax1.set_xlim(pos-zoom_level,pos+zoom_level)
             ax2.set_xlim(pos-zoom_level,pos+zoom_level)
+
+        price = dataset['close'].loc[date]
+        price_label.set_text("Price: {}".format(price))
+        anno1.set_text(price)
+        anno1.set_position((pos,price))
+
         plt.draw()
 
     fig.canvas.mpl_connect('button_press_event', onClick)

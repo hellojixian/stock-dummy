@@ -22,16 +22,17 @@ def get_price(security, end_date, count, skip_paused=True):
             dataset = pd.read_csv(DATABASE_FILE, index_col=0, low_memory=False)
             dataset = dataset[dataset.security==security]
             dataset.to_csv(slice_cache_file)
-            MEM_CACHE[mem_cache_key] = dataset.copy()
-            gc.collect()
+        MEM_CACHE[mem_cache_key] = dataset.copy()
 
-    dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
-    dataset = dataset.sort_index()
-    end_date = np.datetime64(end_date)
     try:
-        idx = dataset.index.get_loc(end_date)+1        
+        end_date = str(end_date)
+        idx = dataset.index.get_loc(end_date)+1
         dataset = dataset[idx-count:idx]
     except:
+        dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
+        dataset = dataset.sort_index()
+        end_date = np.datetime64(end_date)
         dataset = dataset[dataset.index<=end_date]
         dataset = dataset[-count:]
+        dataset.index = dataset.index.strftime("%Y-%m-%d")
     return dataset

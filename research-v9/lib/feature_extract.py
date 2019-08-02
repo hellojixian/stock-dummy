@@ -29,7 +29,7 @@ def extract_features(security,trade_date,get_price,close=None):
         f_key = 'pos_{}'.format(days)
         feature[f_key]= pos
 
-    feature['short']  = np.round(np.mean([feature['pos_3'],feature['pos_5'],feature['pos_10']]),1)
+    feature['short']  = np.round(np.mean([feature['pos_5'],feature['pos_10']]),1)
     feature['median'] = np.round(np.mean([feature['pos_20'],feature['pos_30']]),1)
     feature['long']   = np.round(np.mean([feature['pos_60'],feature['pos_120']]),1)
     feature['close'] = close

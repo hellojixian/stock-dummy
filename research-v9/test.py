@@ -16,7 +16,7 @@ pd.set_option('display.width', 1000)
 
 security='000919.XSHE'
 start_date=datetime.date(2014,7,30)
-end_date=datetime.date(2015,7,30)
+end_date=datetime.date(2015,12,30)
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
 

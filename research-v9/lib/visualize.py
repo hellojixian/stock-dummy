@@ -35,7 +35,7 @@ def visualize_report(dataset,backtest):
 
     mpl.rcParams['toolbar'] = 'None'
     gs = gridspec.GridSpec(3, 3)
-    fig =plt.figure(figsize=(14,8))
+    fig =plt.figure(figsize=(15,8))
     ax1 =plt.subplot(gs[:2,:])
     ax1.plot(x, dataset['close'],label='Price', alpha=0.5, color='r')
     ax1.legend(loc='upper right')

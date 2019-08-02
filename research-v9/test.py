@@ -14,10 +14,15 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-security='000919.XSHE'
-start_date=datetime.date(2014,7,30)
-# start_date=datetime.date(2015,5,12)
-end_date=datetime.date(2015,12,30)
+# security='000919.XSHE'
+# start_date=datetime.date(2006,7,30)
+# # start_date=datetime.date(2015,5,12)
+# end_date=datetime.date(2016,12,30)
+
+# security='600822.XSHG'
+security='600001.XSHG'
+start_date=datetime.date(2005,7,30)
+end_date=datetime.date(2016,12,30)
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
 init_fund = 100000

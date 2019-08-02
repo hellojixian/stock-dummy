@@ -20,14 +20,16 @@ def extract_features(security,trade_date,get_price,close=None):
     if close is None:
         close = history.iloc[-1]['close']
     prev_close = history.iloc[-2]['close']
-    
-    history = history.iloc[:-1]
 
+    history = history.iloc[:-1]
     feature = {}
     for days in days_scopes:
         history = history[-days:]
         min, max = history['low'].min(), history['high'].max()
-        pos = to_categorial((close-min) / (max-min), n_steps)
+        if min==max:
+            pos = np.round(n_steps/2)
+        else:
+            pos = to_categorial((close-min) / (max-min), n_steps)
         f_key = 'pos_{}'.format(days)
         feature[f_key]= pos
 

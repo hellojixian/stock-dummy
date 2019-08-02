@@ -6,18 +6,15 @@ import numpy as np
 BUY_CONDS = [
     ["feature['pos_3']<1"],
 
-    ["self.prev is not None",
-     "self.prev['pos_3']==7",
+    ["self.prev['pos_3']==7",
      "feature['change']<=-0.03",
      "feature['pos_3']<=2"],
 
-    ["self.prev is not None",
-     "feature['pos_3']<self.prev['pos_3']",
+    ["feature['pos_3']<self.prev['pos_3']",
      "feature['change']>0",
      "feature['pos_3']<=2"],
 
-    ["self.prev2 is not None",
-     "self.prev2['pos_3']==7",
+    ["self.prev2['pos_3']==7",
      "feature['pos_3']<=2"],
 ]
 
@@ -78,7 +75,6 @@ class Strategy(object):
 
     def handle_data(self, feature):
         action = ""
-            # return action
 
         if self.position == 'full':
             if self.lowest_price_until_today is not None:
@@ -134,6 +130,8 @@ class Strategy(object):
 
     def should_buy(self, feature):
         decision = False
+        if self.prev is None or self.prev2 is None:return decision
+        
         for i in range(len(self.buy_conds)):
             settings = self.buy_conds[i]
             test = ""

@@ -54,4 +54,5 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
         if start_date is None:
             dataset = dataset[-count:]
         dataset.index = dataset.index.strftime("%Y-%m-%d")
+    dataset = dataset.dropna()
     return dataset

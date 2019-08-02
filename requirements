@@ -4,3 +4,5 @@ numpy>=1.13
 tables
 python-dotenv>0.10
 jqdatasdk>=1.7
+mpl_finance>=0.10
+matplotlib

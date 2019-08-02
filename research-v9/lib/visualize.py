@@ -7,6 +7,8 @@ import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 import matplotlib as mpl
 import matplotlib.ticker as ticker
+from mpl_finance import candlestick_ohlc
+
 import datetime,time
 
 from pandas.plotting import register_matplotlib_converters
@@ -34,22 +36,40 @@ def visualize_report(dataset,backtest):
     x = pd.to_datetime(dataset.index).tolist()
     register_matplotlib_converters()
 
+    max_width = min(len(x), 100)
+
+    dataset['ma5'] = dataset['close'].rolling(window=5).mean()
+    dataset['ma10'] = dataset['close'].rolling(window=10).mean()
+    dataset['ma30'] = dataset['close'].rolling(window=30).mean()
+    dataset['ma60'] = dataset['close'].rolling(window=60).mean()
+
     mpl.rcParams['toolbar'] = 'None'
     gs = gridspec.GridSpec(3, 3)
     fig =plt.figure(figsize=(15,8))
     ax1 =plt.subplot(gs[:2,:])
-    ax1.plot(x, dataset['close'],label='Price', alpha=0.5, color='r')
+    ax1.plot(x, dataset['close'],label='Price', alpha=0.5)
+    ax1.plot(x, dataset['ma5'],label='MA5', alpha=0.5)
+    ax1.plot(x, dataset['ma10'],label='MA10', alpha=0.5)
+    ax1.plot(x, dataset['ma30'],label='MA30', alpha=0.5)
+    ax1.plot(x, dataset['ma60'],label='MA60', alpha=0.5)
     ax1.legend(loc='upper right')
     ax1.set_xticks(x)
     ax1.xaxis.set_major_locator(mdates.DayLocator(interval=10))
     ax1.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
-    ax1.set_xlim(x[0],x[-1])
+    ax1.set_xlim(x[-max_width],x[-1])
     ax1.set_xticklabels([])
     ax1.grid(color='gray',which='major',linestyle='dashed',alpha=0.3)
     ax1.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
     ax1.set_title("Baseline Profit: {:.2f}%".format(baseline_profits))
     ax1.set_ylabel('close price')
     ax1.set_ylim(dataset['close'].min()*0.95,dataset['close'].max()*1.05)
+
+    candlestick_ohlc(ax1, zip(
+        mdates.date2num(dataset.index.to_pydatetime()),
+        backtest['open'], backtest['high'],
+        backtest['low'], backtest['close']
+    ), width=0.4, colordown='#77d879', colorup='#db3f3f')
+
 
     ax2 =plt.subplot(gs[2,:])
     ax2.plot(x, dataset['short'],label='short_pos', marker=".", alpha=0.4, color='r')
@@ -66,7 +86,7 @@ def visualize_report(dataset,backtest):
     ax2.set_yticks(np.round(np.linspace(0,7, 8),2))
     ax2.yaxis.set_minor_locator(ticker.MultipleLocator(0.5))
     ax2.set_ylim(0,7)
-    ax2.set_xlim(x[0],x[-1])
+    ax2.set_xlim(x[-max_width],x[-1])
     ax2.set_title("Features")
     ax2.grid(color='gray',which='major',linestyle='dashed',alpha=0.35)
     ax2.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
@@ -119,24 +139,39 @@ def visualize_report(dataset,backtest):
             date = dataset[dataset.index<date].iloc[-1].name
         date_idx = dataset.index.get_loc(date)
 
+        step = 20
         try:
             zoom_level
         except:
             zoom_level = None
-        if event.key=='A' or event.key=='a' or event.key=='left':
-            date = dataset[date_idx-1:date_idx].index[0]
-            pos = mdates.date2num(date)
-        elif event.key=='D' or event.key=='d' or event.key=='right':
-            date = dataset[date_idx+1:date_idx+2].index[0]
-            pos = mdates.date2num(date)
+        if event.key.lower()=='a' or event.key=='left':
+            if len(dataset[date_idx-1:date_idx])>0:
+                date = dataset[date_idx-1:date_idx].index[0]
+                pos = mdates.date2num(date)
+                date_idx = dataset.index.get_loc(date)
+        elif event.key.lower()=='d' or event.key=='right':
+            if len(dataset[date_idx+1:date_idx+2])>0:
+                date = dataset[date_idx+1:date_idx+2].index[0]
+                pos = mdates.date2num(date)
+                date_idx = dataset.index.get_loc(date)
+        elif event.key.lower()=='z':
+            if len(dataset[date_idx-step:date_idx])>0:
+                date = dataset[date_idx-step:date_idx].index[0]
+                pos = mdates.date2num(date)
+                date_idx = dataset.index.get_loc(date)
+        elif event.key.lower()=='c':
+            if len(dataset[date_idx+step:date_idx+step+1])>0:
+                date = dataset[date_idx+step:date_idx+step+1].index[0]
+                pos = mdates.date2num(date)
+                date_idx = dataset.index.get_loc(date)
         elif event.key=='Q':
             zoom_level = 30
-        elif event.key=='W' or event.key=='w' or event.key=='up':
+        elif event.key.lower()=='w' or event.key=='up':
             zoom_level = 20
-        elif event.key=='E' or event.key=='e':
+        elif event.key.lower()=='e':
             zoom_level = 10
-        elif event.key=='S' or event.key=='escape' \
-            or event.key=='down' or event.key=='s':
+        elif event.key=='escape' \
+            or event.key=='down' or event.key.lower()=='s':
             zoom_level = None
 
         axvline1.set_data([pos,pos], [0, 1])
@@ -144,12 +179,16 @@ def visualize_report(dataset,backtest):
 
 
         if zoom_level is None:
-            ax1.set_ylim(dataset['close'].min()*0.95,dataset['close'].max()*1.05)
-            ax1.set_xlim(x[0],x[-1])
-            ax2.set_xlim(x[0],x[-1])
+            zoom_level = 64
+            slice = dataset[date_idx-zoom_level:date_idx+zoom_level]
+            if len(slice)>0:
+                ax1.set_ylim(slice['close'].min()*0.95,slice['close'].max()*1.05)
+            ax1.set_xlim(max(pos-zoom_level,0),pos+zoom_level)
+            ax2.set_xlim(max(pos-zoom_level,0),pos+zoom_level)
         else:
             slice = dataset[date_idx-zoom_level:date_idx+zoom_level]
-            ax1.set_ylim(slice['close'].min()*0.95,slice['close'].max()*1.05)
+            if len(slice)>0:
+                ax1.set_ylim(slice['close'].min()*0.95,slice['close'].max()*1.05)
             ax1.set_xlim(pos-zoom_level,pos+zoom_level)
             ax2.set_xlim(pos-zoom_level,pos+zoom_level)
 

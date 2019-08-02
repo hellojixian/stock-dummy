@@ -16,18 +16,17 @@ from pandas.plotting import register_matplotlib_converters
 DATE_FORMAT = "%Y-%m-%d"
 
 def generate_report(dataset):
-    cols = ['short','median','long','close']
-    cols.extend(['date'])
-    df = pd.DataFrame(dataset, columns=cols)
+    # cols = ['short','median','long','close','pos_5','pos_3','pos_10']
+    # cols.extend(['date'])
+    df = pd.DataFrame(dataset)
     df = df.set_index(keys=['date'])
-    df['change'] = (df['close'] - df['close'].shift(periods=1)) /  df['close'].shift(periods=1)
     return df
 
 def calc_baseline_profit(baseline):
     return np.round((baseline['close'].iloc[-1] - baseline['close'].iloc[0])
                     / baseline['close'].iloc[0] * 100,2)
 
-def visualize_report(dataset,backtest):
+def visualize_report(dataset,backtest,strategy):
     dataset = dataset.copy()
     dataset.index = pd.to_datetime(dataset.index, format=DATE_FORMAT)
     baseline_profits = calc_baseline_profit(backtest)
@@ -42,6 +41,7 @@ def visualize_report(dataset,backtest):
     dataset['ma10'] = dataset['close'].rolling(window=10).mean()
     dataset['ma30'] = dataset['close'].rolling(window=30).mean()
     dataset['ma60'] = dataset['close'].rolling(window=60).mean()
+    dataset['num_date'] = mdates.date2num(dataset.index.to_pydatetime())
 
     mpl.rcParams['toolbar'] = 'None'
     gs = gridspec.GridSpec(3, 3)
@@ -60,21 +60,30 @@ def visualize_report(dataset,backtest):
     ax1.set_xticklabels([])
     ax1.grid(color='gray',which='major',linestyle='dashed',alpha=0.3)
     ax1.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
-    ax1.set_title("Baseline Profit: {:.2f}%".format(baseline_profits))
     ax1.set_ylabel('close price')
     ax1.set_ylim(dataset['close'].min()*0.95,dataset['close'].max()*1.05)
 
+    title = "Baseline: {:.2f}%   Strategy: {:.2f}% ".format(
+        baseline_profits,strategy.get_profit(backtest['close'].iloc[-1]))
+    subtitle = "From {:.10}    to {:.10}    Duration: {} days".format(str(dataset.index[0]), str(dataset.index[-1]), len(dataset))
+    fig.text(0.05, 0.96, title, fontsize=10, weight='bold')
+    fig.text(0.97, 0.96, subtitle, ha='right', fontsize=10)
+
     candlestick_ohlc(ax1, zip(
-        mdates.date2num(dataset.index.to_pydatetime()),
+        dataset['num_date'],
         backtest['open'], backtest['high'],
         backtest['low'], backtest['close']
     ), width=0.4, colordown='#77d879', colorup='#db3f3f')
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['short'],label='short_pos', marker=".", alpha=0.4, color='r')
-    ax2.plot(x, dataset['median'],label='median_pos', alpha=0.3, color='g')
-    ax2.plot(x, dataset['long'],label='long_pos', alpha=0.2, color='b')
+    ax2.plot(x, dataset['short'],label='short_pos', marker=".", alpha=0.6)
+    ax2.plot(x, dataset['median'],label='median_pos', alpha=0.3)
+    ax2.plot(x, dataset['long'],label='long_pos', alpha=0.3)
+    ax2.plot(x, dataset['pos_3'],label='pos_3', alpha=0.7)
+    ax2.plot(x, dataset['pos_5'],label='pos_5', alpha=0.4)
+    ax2.plot(x, dataset['pos_10'],label='pos_10', alpha=0.4)
+    ax2.plot(x, dataset['pos_20'],label='pos_20', alpha=0.4)
 
     ax2.set_ylabel('score')
     ax2.legend(loc='upper right')
@@ -93,8 +102,44 @@ def visualize_report(dataset,backtest):
     ax2.axhspan(2, 5, facecolor='blue', alpha=0.05)
 
     # 标记获利还是亏损
-    # ax2.axvspan(x[3], x[4], facecolor='g', alpha=0.15)
-    # ax1.axvspan(x[3], x[4], facecolor='g', alpha=0.15)
+
+    idx = 0
+    while idx <= len(dataset)-1:
+        row = dataset.iloc[idx]
+        if row['action']=='buy':
+            start_date_n =row['num_date']
+            start_date = row.name
+            bought_price = row['close']
+            while idx <= len(dataset)-1:
+                row = dataset.iloc[idx]
+
+                if row['action']=='sell':
+                    end_date_n = row['num_date']
+                    end_date = row.name
+                    sell_price = row['close']
+                    color = '#177508'
+                    annon_y_pos  = sell_price*0.95
+                    sell_marker = "v"
+                    profit = (sell_price - bought_price) / bought_price
+                    if profit>0:
+                        color = '#960e0e'
+                        annon_y_pos = sell_price*1.05
+                        sell_marker = "^"
+                    ax2.axvspan(start_date, end_date, facecolor=color, alpha=0.15)
+                    ax1.axvspan(start_date, end_date, facecolor=color, alpha=0.15)
+                    ax1.plot(start_date, bought_price, marker=6, color='k')
+                    ax1.plot(end_date, sell_price, marker="_", color="k")
+                    ax1.plot(end_date, annon_y_pos, marker=sell_marker, color=color)
+                    ax1.annotate("  {:.1f}%".format(profit*100),(end_date, annon_y_pos),
+                        weight='bold',ha='left', va='center', color=color, rotation=0)
+                    break
+                idx+=1
+        else:
+            idx+=1
+
+
+
+
     n_date = dataset.index[-30]
     init_pos = mdates.date2num(n_date)
 
@@ -102,11 +147,15 @@ def visualize_report(dataset,backtest):
     axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=0.5, alpha=0.9)
     price = dataset['close'].loc[n_date]
     change = dataset['change'].loc[n_date]
-    anno1 = ax1.annotate(price, (init_pos, price), rotation=45)
 
 
     date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
     price_label = fig.text(0.07, 0.895, "Price: {}  ({:5.2f}%)".format(price, change*100))
+
+    pos5_label = fig.text(0.07, 0.34,  "POS_5: {}".format( dataset['pos_5'].loc[n_date] ))
+    pos10_label = fig.text(0.07, 0.315, "POS_10: {}".format( dataset['pos_10'].loc[n_date] ))
+    pos20_label = fig.text(0.07, 0.315-0.025, "POS_20: {}".format( dataset['pos_20'].loc[n_date] ))
+    pos30_label = fig.text(0.07, 0.315-0.05, "POS_30: {}".format( dataset['pos_30'].loc[n_date] ))
 
     def onClick(event):
         if not event.xdata: return
@@ -125,8 +174,13 @@ def visualize_report(dataset,backtest):
         change = dataset['change'].loc[date]
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
-        anno1.set_text(price)
-        anno1.set_position((pos,price))
+
+        pos5_label.set_text("POS_5: {}".format( dataset['pos_5'].loc[date] ))
+        pos10_label.set_text("POS_10: {}".format( dataset['pos_10'].loc[date] ))
+        pos20_label.set_text("POS_20: {}".format( dataset['pos_20'].loc[date] ))
+        pos30_label.set_text("POS_30: {}".format( dataset['pos_30'].loc[date] ))
+
+
         plt.draw()
 
     zoom_level = None
@@ -164,12 +218,10 @@ def visualize_report(dataset,backtest):
                 date = dataset[date_idx+step:date_idx+step+1].index[0]
                 pos = mdates.date2num(date)
                 date_idx = dataset.index.get_loc(date)
-        elif event.key=='Q':
-            zoom_level = 30
         elif event.key.lower()=='w' or event.key=='up':
-            zoom_level = 20
+            zoom_level = 30
         elif event.key.lower()=='e':
-            zoom_level = 10
+            zoom_level = 20
         elif event.key=='escape' \
             or event.key=='down' or event.key.lower()=='s':
             zoom_level = None
@@ -196,17 +248,17 @@ def visualize_report(dataset,backtest):
         change = dataset['change'].loc[date]
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         date_label.set_text("Date: {:.10}".format(str(date)))
-        anno1.set_text(price)
-        anno1.set_position((pos,price))
+
+        pos5_label.set_text("POS_5: {}".format( dataset['pos_5'].loc[date] ))
+        pos10_label.set_text("POS_10: {}".format( dataset['pos_10'].loc[date] ))
+        pos20_label.set_text("POS_20: {}".format( dataset['pos_20'].loc[date] ))
+        pos30_label.set_text("POS_30: {}".format( dataset['pos_30'].loc[date] ))
 
         plt.draw()
 
     fig.canvas.mpl_connect('button_press_event', onClick)
     fig.canvas.mpl_connect('key_press_event', onPress)
 
-    # def updateData(i):
-    #     yield 1
-    # ani = animation.FuncAnimation(fig,  func=updateData, interval=100)
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     plt.show()
     return

@@ -19,6 +19,8 @@ def extract_features(security,trade_date,get_price,close=None):
     history = get_price(security=security, end_date=trade_date, count=days_scopes[0]+1)
     if close is None:
         close = history.iloc[-1]['close']
+    prev_close = history.iloc[-2]['close']
+    
     history = history.iloc[:-1]
 
     feature = {}
@@ -33,5 +35,6 @@ def extract_features(security,trade_date,get_price,close=None):
     feature['median'] = np.round(np.mean([feature['pos_20'],feature['pos_30']]),1)
     feature['long']   = np.round(np.mean([feature['pos_60'],feature['pos_120']]),1)
     feature['close'] = close
+    feature['change'] = (close - prev_close)/prev_close
     feature['date'] = trade_date
     return feature

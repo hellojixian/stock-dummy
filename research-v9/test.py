@@ -16,23 +16,31 @@ pd.set_option('display.width', 1000)
 
 security='000919.XSHE'
 start_date=datetime.date(2014,7,30)
+# start_date=datetime.date(2015,5,12)
 end_date=datetime.date(2015,12,30)
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
+init_fund = 100000
 
 print("Back test: {} Days\nSince: {}\nUntil: {}"
     .format(len(backtest),str(backtest.index[0]),str(backtest.index[-1])))
 
 timestamp = time.time()
 features = []
+strategy = Strategy(cash=init_fund)
 for trade_date in backtest.index:
     feature = extract_features(security,trade_date,get_price)
+    action = strategy.handle_data(feature)
+    feature['action'] = action
+    # print(trade_date, action)
     features.append(feature)
 
 
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)
+strategy_profits = strategy.get_profit(backtest['close'].iloc[-1])
 time_durtion = time.time() - timestamp
 print("Baseline Profit: {:.2f}%".format(baseline_profits))
+print("Strategy Profit: {:.2f}%".format(strategy_profits))
 print("Test Durtion: {:.2f} sec".format(time_durtion))
-visualize_report(generate_report(features),backtest)
+visualize_report(generate_report(features),backtest,strategy)

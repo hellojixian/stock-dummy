@@ -6,6 +6,7 @@ import matplotlib.dates as mdates
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 import matplotlib as mpl
+import matplotlib.ticker as ticker
 import datetime,time
 
 from pandas.plotting import register_matplotlib_converters
@@ -63,11 +64,12 @@ def visualize_report(dataset,backtest):
     ax2.xaxis.set_major_formatter(mdates.DateFormatter(DATE_FORMAT))
     ax2.set_xticklabels(xlabel,rotation=45, rotation_mode="default",alpha=0.5)
     ax2.set_yticks(np.round(np.linspace(0,7, 8),2))
+    # ax2.yaxis.set_minor_locator(ticker.MultipleLocator(0.5))
     ax2.set_ylim(0,7)
     ax2.set_xlim(x[0],x[-1])
     ax2.set_title("Features")
-    ax2.grid(color='gray',which='major',linestyle='dashed',alpha=0.3)
-    ax2.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
+    ax2.grid(color='gray',which='major',linestyle='dashed',alpha=0.35)
+    ax2.grid(color='gray',which='minor',linestyle='dashed',alpha=0.2)
     ax2.axhspan(2, 5, facecolor='blue', alpha=0.05)
 
     # 标记获利还是亏损

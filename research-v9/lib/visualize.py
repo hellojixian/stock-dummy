@@ -76,8 +76,8 @@ def visualize_report(dataset,backtest):
     n_date = dataset.index[-30]
     init_pos = mdates.date2num(n_date)
 
-    axvline1 = ax1.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
-    axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=0.8, alpha=0.9)
+    axvline1 = ax1.axvline(x=init_pos, color="k", linewidth=1, alpha=0.9)
+    axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=1, alpha=0.9)
     price = dataset['close'].loc[n_date]
     change = dataset['change'].loc[n_date]
     anno1 = ax1.annotate(price, (init_pos, price), rotation=45)

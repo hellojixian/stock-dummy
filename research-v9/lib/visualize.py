@@ -53,7 +53,7 @@ def visualize_report(dataset,backtest):
     ax2 =plt.subplot(gs[2,:])
     ax2.plot(x, dataset['short'],label='short_pos', marker=".", alpha=0.4, color='r')
     ax2.plot(x, dataset['median'],label='median_pos', alpha=0.3, color='g')
-    ax2.plot(x, dataset['long'],label='long_pos', alpha=0.15, color='b')
+    ax2.plot(x, dataset['long'],label='long_pos', alpha=0.2, color='b')
 
     ax2.set_ylabel('score')
     ax2.legend(loc='upper right')

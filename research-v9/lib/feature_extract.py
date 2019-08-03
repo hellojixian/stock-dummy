@@ -45,15 +45,15 @@ def extract_features(security,trade_date,get_price,close=None):
             amp = min_max_scale((max-min)/min, param[0], param[1])
             cdi = min_max_scale(history['high'].tolist().index(max),0,days)
 
-        feature['{}d_pos'.format(days)]= to_categorial(pos, n_steps)
-        feature['{}d_amp'.format(days)]= to_categorial(amp, n_steps)
-        feature['{}d_cdi'.format(days)]= to_categorial(cdi, n_steps)
+        feature['f{}d_pos'.format(days)]= to_categorial(pos, n_steps)
+        feature['f{}d_amp'.format(days)]= to_categorial(amp, n_steps)
+        feature['f{}d_cdi'.format(days)]= to_categorial(cdi, n_steps)
 
     d1_chg = to_categorial(min_max_scale((close - prev_close)/prev_close,-0.09,0.09), n_steps)
     d2_chg = to_categorial(min_max_scale((close - prev2_close)/prev2_close,-0.18,0.18), n_steps)
 
-    feature['1d_chg'] = d1_chg
-    feature['2d_chg'] = d2_chg
+    feature['f1d_chg'] = d1_chg
+    feature['f2d_chg'] = d2_chg
     feature['close'] = close
     feature['date'] = trade_date
 
@@ -72,50 +72,34 @@ def extract_all_features(security,dataset,get_price):
         for trade_date in dataset.index:
             features.append(extract_features(security,trade_date,get_price))
         df = pd.DataFrame(features)
+        df = mark_ideal_buypoint(security,df)
+        df = mark_ideal_sellpoint(security,df)
         df.to_csv(cache_name_file, index=False)
     return df
 
 
-def search_ideal_buypoint(security,dataset):
-    cache_name_file = "data/cache/{:.6}-buypoints-{:.10}-{:.10}.cache".format(security,str(dataset.index[0]),str(dataset.index[-1]))
-    if os.path.isfile(cache_name_file):
-        samples = pd.read_csv(cache_name_file)
-    else:
-        samples = pd.DataFrame()
-        close = dataset['close']
-        for i in range(len(dataset)):
-            if i<=2: continue
-            if i+2>= len(dataset): break
-            if close.iloc[i-1] > close.iloc[i]   and \
-               close.iloc[i+1] > close.iloc[i]   and \
-               close.iloc[i+2] > close.iloc[i]   and \
-               (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.02:
-               samples = samples.append(dataset.iloc[i])
-        samples.to_csv(cache_name_file, index=False)
-    cols = samples.columns.tolist()
-    cols.remove('close')
-    cols.remove('date')
-    samples[cols] = samples[cols].astype('i')
-    return samples
+def mark_ideal_buypoint(security,dataset):
+    close = dataset['close']
+    dataset['buy'] = 0
+    for i in range(len(dataset)):
+        if i<=2: continue
+        if i+2>= len(dataset): break
+        if close.iloc[i-1] > close.iloc[i]   and \
+           close.iloc[i+1] > close.iloc[i]   and \
+           close.iloc[i+2] > close.iloc[i]   and \
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.02:
+           dataset.loc['buy',dataset.iloc[i].index] = 1
+    return dataset
 
-def search_ideal_sellpoint(security,dataset):
-    cache_name_file = "data/cache/{:.6}-sellpoints-{:.10}-{:.10}.cache".format(security,str(dataset.index[0]),str(dataset.index[-1]))
-    if os.path.isfile(cache_name_file):
-        samples = pd.read_csv(cache_name_file)
-    else:
-        samples = pd.DataFrame()
-        close = dataset['close']
-        for i in range(len(dataset)):
-            if i<=2: continue
-            if i+2>= len(dataset): break
-            if close.iloc[i-1] < close.iloc[i]   and \
-               close.iloc[i+1] < close.iloc[i]   and \
-               (close.iloc[i+1] - close.iloc[i])/close.iloc[i]<-0.02 and\
-               (close.iloc[i+2] - close.iloc[i])/close.iloc[i]<-0.02:
-               samples = samples.append(dataset.iloc[i])
-        samples.to_csv(cache_name_file, index=False)
-    cols = samples.columns.tolist()
-    cols.remove('close')
-    cols.remove('date')
-    samples[cols] = samples[cols].astype('i')
-    return samples
+def mark_ideal_sellpoint(security,dataset):
+    close = dataset['close']
+    dataset['sell'] = 0
+    for i in range(len(dataset)):
+        if i<=2: continue
+        if i+2>= len(dataset): break
+        if close.iloc[i-1] < close.iloc[i]   and \
+           close.iloc[i+1] < close.iloc[i]   and \
+           (close.iloc[i+1] - close.iloc[i])/close.iloc[i]<-0.02 and\
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]<-0.02:
+           dataset.loc['sell',dataset.iloc[i].index] = 1
+    return dataset

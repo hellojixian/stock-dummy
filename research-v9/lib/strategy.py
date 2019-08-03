@@ -4,58 +4,56 @@ import pandas as pd
 import numpy as np
 
 BUY_CONDS = [
-    ["feature['pos_3']<1"],
-
-    ["self.prev['pos_3']==7",
-     "feature['change']<=-0.03",
-     "feature['pos_3']<=2"],
-
-    ["feature['pos_3']<self.prev['pos_3']",
-     "feature['change']>0",
-     "feature['pos_3']<=2"],
-
-    ["self.prev2['pos_3']==7",
-     "feature['pos_3']<=2"],
+    # ["feature['pos_3']<1"],
+    #
+    # ["self.prev['pos_3']==7",
+    #  "feature['change']<=-0.03",
+    #  "feature['pos_3']<=2"],
+    #
+    # ["feature['pos_3']<self.prev['pos_3']",
+    #  "feature['change']>0",
+    #  "feature['pos_3']<=2"],
+    #
+    # ["self.prev2['pos_3']==7",
+    #  "feature['pos_3']<=2"],
 ]
 
 SELL_CONDS = [
-
-
-    ["feature['pos_3']<self.prev['pos_3']",
-     "self.prev['pos_3']>5",
-     "ideal_profit>0.02"],
-
-    ["feature['pos_3']==self.prev['pos_3']",
-     "feature['pos_3']>2",
-     "feature['pos_3']<=4",
-     "ideal_profit<0.02"],
-
-    ['self.lowest_price_until_today==2',
-     'feature["change"]<0.09',
-     'ideal_profit>0.12'],
-
-    ['self.prev["change"]<-0.09',
-     'ideal_profit<0.02'],
-
-    ['self.prev["long"]<=3',
-     'self.prev["long"]>0.5',
-     'self.prev["change"]<-0.09',
-     'ideal_profit>0.065'],
-
-    ['feature["pos_20"]==3',
-     'ideal_profit>0.12'],
-
-    ['self.prev_ideal_profit>0.03',
-     'ideal_profit==0'],
-
-    ['actual_profit<=-0.02'],
+    # ["feature['pos_3']<self.prev['pos_3']",
+    #  "self.prev['pos_3']>5",
+    #  "ideal_profit>0.02"],
+    #
+    # ["feature['pos_3']==self.prev['pos_3']",
+    #  "feature['pos_3']>2",
+    #  "feature['pos_3']<=4",
+    #  "ideal_profit<0.02"],
+    #
+    # ['self.lowest_price_until_today==2',
+    #  'feature["change"]<0.09',
+    #  'ideal_profit>0.12'],
+    #
+    # ['self.prev["change"]<-0.09',
+    #  'ideal_profit<0.02'],
+    #
+    # ['self.prev["long"]<=3',
+    #  'self.prev["long"]>0.5',
+    #  'self.prev["change"]<-0.09',
+    #  'ideal_profit>0.065'],
+    #
+    # ['feature["pos_20"]==3',
+    #  'ideal_profit>0.12'],
+    #
+    # ['self.prev_ideal_profit>0.03',
+    #  'ideal_profit==0'],
+    #
+    # ['actual_profit<=-0.02'],
 ]
 
 MAX_ALLOWED_CONTINUOUS_FAILED = 2
 
 
 class Strategy(object):
-    def __init__(self, cash=100000, init_settings=None):
+    def __init__(self, cash=100000, kb=None):
         self.position = 'empty'
         self.prev = None
         self.prev2 = None
@@ -75,14 +73,14 @@ class Strategy(object):
 
     def handle_data(self, feature):
         action = ""
-
         if self.position == 'full':
             if self.lowest_price_until_today is not None:
                 self.lowest_price_until_today += 1
             if feature['close']<self.lowest_price_since_bough:
                 self.lowest_price_since_bough = feature['close']
                 self.lowest_price_until_today = 0
-            if self.should_sell(feature):
+            if self.should_sell(feature) \
+                and not self.should_buy(feature):
                 action = "sell"
             self.ideal_profit = (feature['close'] - self.lowest_price_since_bough)/self.lowest_price_since_bough
             self.actual_profit = (feature['close'] - self.bought_price)/self.bought_price
@@ -131,7 +129,7 @@ class Strategy(object):
     def should_buy(self, feature):
         decision = False
         if self.prev is None or self.prev2 is None:return decision
-        
+
         for i in range(len(self.buy_conds)):
             settings = self.buy_conds[i]
             test = ""
@@ -157,11 +155,8 @@ class Strategy(object):
             test = test[:-4]
             if eval(test):
                 decision = True
-                # print("{} should sell, cond Id:{} ideal_profit: {:.2f}%".format(
-                #     feature['date'],i,ideal_profit*100))
                 break
-        # print("{} ideal_profit: {:.2f}%".format(
-            # feature['date'],ideal_profit*100))
+
 
         return decision
 

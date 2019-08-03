@@ -36,6 +36,8 @@ def visualize_report(dataset,backtest,strategy):
     register_matplotlib_converters()
 
     max_width = min(len(x), 100)
+    if 'action' not in dataset.columns:
+        dataset['action']=""
 
     dataset['ma5'] = dataset['close'].rolling(window=5).mean()
     dataset['ma10'] = dataset['close'].rolling(window=10).mean()
@@ -62,7 +64,7 @@ def visualize_report(dataset,backtest,strategy):
     ax1.grid(color='gray',which='major',linestyle='dashed',alpha=0.3)
     ax1.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
     ax1.set_ylabel('close price')
-    ax1.set_ylim(dataset['close'].min()*0.95,dataset['close'].max()*1.05)
+    ax1.set_ylim(dataset['close'][-max_width:].min()*0.95,dataset['close'][-max_width:].max()*1.05)
 
     title = "Baseline: {:.2f}%   Strategy: {:.2f}% ".format(
         baseline_profits,strategy.get_profit(backtest['close'].iloc[-1]))
@@ -78,13 +80,12 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['3d_pos'],  label='3d_pos',  alpha=0.7, marker=".")
-    ax2.plot(x, dataset['5d_pos'],  label='5d_pos',  alpha=0.4)
-    ax2.plot(x, dataset['10d_pos'], label='10d_pos', alpha=0.4)
-    ax2.plot(x, dataset['20d_pos'], label='20d_pos', alpha=0.4)
-    ax2.plot(x, dataset['30d_pos'], label='30d_pos', alpha=0.4)
-    ax2.plot(x, dataset['60d_pos'], label='60d_pos', alpha=0.4)
-    ax2.plot(x, dataset['120d_pos'],label='120d_pos',alpha=0.4)
+    ax2.plot(x, dataset['f3d_pos'],  label='3d_pos',  alpha=0.7, marker=".")
+    ax2.plot(x, dataset['f5d_pos'],  label='5d_pos',  alpha=0.4)
+    ax2.plot(x, dataset['f10d_pos'], label='10d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f30d_pos'], label='30d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f60d_pos'], label='60d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f120d_pos'],label='120d_pos',alpha=0.4)
 
     ax2.set_ylabel('score')
     ax2.legend(loc='upper right')
@@ -147,16 +148,16 @@ def visualize_report(dataset,backtest,strategy):
     axvline1 = ax1.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
     axvline2 = ax2.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
     price = dataset['close'].loc[n_date]
-    change = dataset['change'].loc[n_date]
+    change = dataset['1d_chg'].loc[n_date]
 
 
     date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
     price_label = fig.text(0.07, 0.895, "Price: {}  ({:5.2f}%)".format(price, change*100))
 
-    pos5_label = fig.text(0.07, 0.34,  "05D_POS: {}".format( dataset['5d_pos'].loc[n_date] ))
-    pos10_label = fig.text(0.07, 0.315, "10D_POS: {}".format( dataset['10d_pos'].loc[n_date] ))
-    pos20_label = fig.text(0.07, 0.315-0.025, "20D_POS: {}".format( dataset['20d_pos'].loc[n_date] ))
-    pos30_label = fig.text(0.07, 0.315-0.05, "30D_POS: {}".format( dataset['30d_pos'].loc[n_date] ))
+    pos5_label = fig.text(0.07, 0.34,  "05D_POS: {}".format( dataset['f5d_pos'].loc[n_date] ))
+    pos10_label = fig.text(0.07, 0.315, "10D_POS: {}".format( dataset['f10d_pos'].loc[n_date] ))
+    pos30_label = fig.text(0.07, 0.315-0.025, "30D_POS: {}".format( dataset['f30d_pos'].loc[n_date] ))
+    pos60_label = fig.text(0.07, 0.315-0.05, "60D_POS: {}".format( dataset['f60d_pos'].loc[n_date] ))
 
     def onClick(event):
         if not event.xdata: return
@@ -172,14 +173,14 @@ def visualize_report(dataset,backtest,strategy):
         axvline2.set_data([pos,pos], [0, 1])
 
         price = dataset['close'].loc[date]
-        change = dataset['change'].loc[date]
+        change = dataset['1d_chg'].loc[date]
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
 
-        pos5_label.set_text("05D_POS: {}".format( dataset['5d_pos'].loc[date] ))
-        pos10_label.set_text("10D_POS: {}".format( dataset['10d_pos'].loc[date] ))
-        pos20_label.set_text("20D_POS: {}".format( dataset['20d_pos'].loc[date] ))
-        pos30_label.set_text("30D_POS: {}".format( dataset['30d_pos'].loc[date] ))
+        pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
+        pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
+        pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
+        pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
 
 
         plt.draw()
@@ -246,14 +247,14 @@ def visualize_report(dataset,backtest,strategy):
             ax2.set_xlim(pos-zoom_level,pos+zoom_level)
 
         price = dataset['close'].loc[date]
-        change = dataset['change'].loc[date]
+        change = dataset['1d_chg'].loc[date]
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         date_label.set_text("Date: {:.10}".format(str(date)))
 
-        pos5_label.set_text("05D_POS: {}".format( dataset['5d_pos'].loc[date] ))
-        pos10_label.set_text("10D_POS: {}".format( dataset['10d_pos'].loc[date] ))
-        pos20_label.set_text("20D_POS: {}".format( dataset['20d_pos'].loc[date] ))
-        pos30_label.set_text("30D_POS: {}".format( dataset['30d_pos'].loc[date] ))
+        pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
+        pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
+        pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
+        pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
 
         plt.draw()
 

@@ -59,3 +59,14 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
         dataset.index = dataset.index.strftime("%Y-%m-%d")
     dataset = dataset.dropna()
     return dataset
+
+def get_all_securites():
+    cache_file = "data/cache/security_list.csv"
+    if os.path.isfile(cache_file):
+        securities = pd.read_csv(cache_file)
+    else:
+        dataset = pd.read_csv(DATABASE_FILE, index_col=0, low_memory=False)
+        securities = dataset['security'].value_counts().index.tolist()
+        securities = pd.DataFrame(securities, columns=["security"])
+        securities.to_csv(cache_file, index=False)
+    return securities

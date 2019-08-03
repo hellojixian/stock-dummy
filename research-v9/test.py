@@ -44,8 +44,7 @@ for trade_date in backtest.index:
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)
 strategy_profits = strategy.get_profit(backtest['close'].iloc[-1])
-time_durtion = time.time() - timestamp
 print("Baseline Profit: {:.2f}%".format(baseline_profits))
 print("Strategy Profit: {:.2f}%".format(strategy_profits))
-print("Test Durtion: {:.2f} sec".format(time_durtion))
+print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
 visualize_report(generate_report(features),backtest,strategy)

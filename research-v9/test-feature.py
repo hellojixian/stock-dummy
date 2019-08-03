@@ -21,8 +21,8 @@ pd.set_option('display.width', 1000)
 
 # security='600822.XSHG'
 security='600001.XSHG'
-start_date=datetime.date(2008,7,30)
-end_date=datetime.date(2009,12,30)
+start_date=datetime.date(2005,7,30)
+end_date=datetime.date(2017,12,30)
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
 init_fund = 100000
@@ -32,11 +32,10 @@ print("Back test: {} Days\nSince: {}\nUntil: {}"
     .format(len(backtest),str(backtest.index[0]),str(backtest.index[-1])))
 
 timestamp = time.time()
-features = []
+features = extract_all_features(security, backtest, get_price)
 strategy = Strategy(cash=init_fund)
-for trade_date in backtest.index:
-    feature = extract_features(security,trade_date,get_price)
-    # action = strategy.handle_data(feature)
-    features.append(feature)
 
-print(pd.DataFrame(features))
+print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
+df = pd.DataFrame(features)
+print(df.columns.tolist())
+print(df[:10].values)

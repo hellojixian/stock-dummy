@@ -28,14 +28,14 @@ def extract_features(security,trade_date,get_price,close=None):
         min, max = history['low'].min(), history['high'].max()
         if min==max:
             pos = np.round(n_steps/2)
+            amp = 0
         else:
             pos = to_categorial((close-min) / (max-min), n_steps)
-        f_key = 'pos_{}'.format(days)
-        feature[f_key]= pos
+            amp = (max-min)/min
 
-    feature['short']  = np.round(np.mean([feature['pos_5'],feature['pos_10']]),1)
-    feature['median'] = np.round(np.mean([feature['pos_20'],feature['pos_30']]),1)
-    feature['long']   = np.round(np.mean([feature['pos_60'],feature['pos_120']]),1)
+        feature['{}d_pos'.format(days)]= pos
+        feature['{}d_amp'.format(days)]= amp
+
     feature['close'] = close
     feature['change'] = (close - prev_close)/prev_close
     feature['date'] = trade_date

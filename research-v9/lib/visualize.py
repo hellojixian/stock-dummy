@@ -43,6 +43,7 @@ def visualize_report(dataset,backtest,strategy):
     dataset['ma60'] = dataset['close'].rolling(window=60).mean()
     dataset['num_date'] = mdates.date2num(dataset.index.to_pydatetime())
 
+    mpl.style.use('dark_background')
     mpl.rcParams['toolbar'] = 'None'
     gs = gridspec.GridSpec(3, 3)
     fig =plt.figure(figsize=(15,8))
@@ -77,13 +78,13 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['short'],label='short_pos', marker=".", alpha=0.6)
-    ax2.plot(x, dataset['median'],label='median_pos', alpha=0.3)
-    ax2.plot(x, dataset['long'],label='long_pos', alpha=0.3)
-    ax2.plot(x, dataset['pos_3'],label='pos_3', alpha=0.7)
-    ax2.plot(x, dataset['pos_5'],label='pos_5', alpha=0.4)
-    ax2.plot(x, dataset['pos_10'],label='pos_10', alpha=0.4)
-    ax2.plot(x, dataset['pos_20'],label='pos_20', alpha=0.4)
+    ax2.plot(x, dataset['3d_pos'],  label='3d_pos',  alpha=0.7, marker=".")
+    ax2.plot(x, dataset['5d_pos'],  label='5d_pos',  alpha=0.4)
+    ax2.plot(x, dataset['10d_pos'], label='10d_pos', alpha=0.4)
+    ax2.plot(x, dataset['20d_pos'], label='20d_pos', alpha=0.4)
+    ax2.plot(x, dataset['30d_pos'], label='30d_pos', alpha=0.4)
+    ax2.plot(x, dataset['60d_pos'], label='60d_pos', alpha=0.4)
+    ax2.plot(x, dataset['120d_pos'],label='120d_pos',alpha=0.4)
 
     ax2.set_ylabel('score')
     ax2.legend(loc='upper right')
@@ -127,8 +128,8 @@ def visualize_report(dataset,backtest,strategy):
                         sell_marker = "^"
                     ax2.axvspan(start_date, end_date, facecolor=color, alpha=0.15)
                     ax1.axvspan(start_date, end_date, facecolor=color, alpha=0.15)
-                    ax1.plot(start_date, bought_price, marker=6, color='k')
-                    ax1.plot(end_date, sell_price, marker="_", color="k")
+                    ax1.plot(start_date, bought_price, marker=6, color='w')
+                    ax1.plot(end_date, sell_price, marker="_", color="w")
                     ax1.plot(end_date, annon_y_pos, marker=sell_marker, color=color)
                     ax1.annotate("  {:.1f}%".format(profit*100),(end_date, annon_y_pos),
                         weight='bold',ha='left', va='center', color=color, rotation=0)
@@ -143,8 +144,8 @@ def visualize_report(dataset,backtest,strategy):
     n_date = dataset.index[-30]
     init_pos = mdates.date2num(n_date)
 
-    axvline1 = ax1.axvline(x=init_pos, color="k", linewidth=0.5, alpha=0.9)
-    axvline2 = ax2.axvline(x=init_pos, color="k", linewidth=0.5, alpha=0.9)
+    axvline1 = ax1.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
+    axvline2 = ax2.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
     price = dataset['close'].loc[n_date]
     change = dataset['change'].loc[n_date]
 
@@ -152,10 +153,10 @@ def visualize_report(dataset,backtest,strategy):
     date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
     price_label = fig.text(0.07, 0.895, "Price: {}  ({:5.2f}%)".format(price, change*100))
 
-    pos5_label = fig.text(0.07, 0.34,  "POS_5: {}".format( dataset['pos_5'].loc[n_date] ))
-    pos10_label = fig.text(0.07, 0.315, "POS_10: {}".format( dataset['pos_10'].loc[n_date] ))
-    pos20_label = fig.text(0.07, 0.315-0.025, "POS_20: {}".format( dataset['pos_20'].loc[n_date] ))
-    pos30_label = fig.text(0.07, 0.315-0.05, "POS_30: {}".format( dataset['pos_30'].loc[n_date] ))
+    pos5_label = fig.text(0.07, 0.34,  "05D_POS: {}".format( dataset['5d_pos'].loc[n_date] ))
+    pos10_label = fig.text(0.07, 0.315, "10D_POS: {}".format( dataset['10d_pos'].loc[n_date] ))
+    pos20_label = fig.text(0.07, 0.315-0.025, "20D_POS: {}".format( dataset['20d_pos'].loc[n_date] ))
+    pos30_label = fig.text(0.07, 0.315-0.05, "30D_POS: {}".format( dataset['30d_pos'].loc[n_date] ))
 
     def onClick(event):
         if not event.xdata: return
@@ -175,10 +176,10 @@ def visualize_report(dataset,backtest,strategy):
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
 
-        pos5_label.set_text("POS_5: {}".format( dataset['pos_5'].loc[date] ))
-        pos10_label.set_text("POS_10: {}".format( dataset['pos_10'].loc[date] ))
-        pos20_label.set_text("POS_20: {}".format( dataset['pos_20'].loc[date] ))
-        pos30_label.set_text("POS_30: {}".format( dataset['pos_30'].loc[date] ))
+        pos5_label.set_text("05D_POS: {}".format( dataset['5d_pos'].loc[date] ))
+        pos10_label.set_text("10D_POS: {}".format( dataset['10d_pos'].loc[date] ))
+        pos20_label.set_text("20D_POS: {}".format( dataset['20d_pos'].loc[date] ))
+        pos30_label.set_text("30D_POS: {}".format( dataset['30d_pos'].loc[date] ))
 
 
         plt.draw()
@@ -249,10 +250,10 @@ def visualize_report(dataset,backtest,strategy):
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         date_label.set_text("Date: {:.10}".format(str(date)))
 
-        pos5_label.set_text("POS_5: {}".format( dataset['pos_5'].loc[date] ))
-        pos10_label.set_text("POS_10: {}".format( dataset['pos_10'].loc[date] ))
-        pos20_label.set_text("POS_20: {}".format( dataset['pos_20'].loc[date] ))
-        pos30_label.set_text("POS_30: {}".format( dataset['pos_30'].loc[date] ))
+        pos5_label.set_text("05D_POS: {}".format( dataset['5d_pos'].loc[date] ))
+        pos10_label.set_text("10D_POS: {}".format( dataset['10d_pos'].loc[date] ))
+        pos20_label.set_text("20D_POS: {}".format( dataset['20d_pos'].loc[date] ))
+        pos30_label.set_text("30D_POS: {}".format( dataset['30d_pos'].loc[date] ))
 
         plt.draw()
 

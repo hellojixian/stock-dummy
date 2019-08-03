@@ -32,20 +32,10 @@ print("Back test: {} Days\nSince: {}\nUntil: {}"
 
 timestamp = time.time()
 features = []
-action = ""
 strategy = Strategy(cash=init_fund)
 for trade_date in backtest.index:
     feature = extract_features(security,trade_date,get_price)
-    # action = strategy.handle_data(feature)
-    feature['action'] = action
+    # action = strategy.handle_data(feature)    
     features.append(feature)
 
-
-print("-"*50)
-baseline_profits = calc_baseline_profit(backtest)
-strategy_profits = strategy.get_profit(backtest['close'].iloc[-1])
-time_durtion = time.time() - timestamp
-print("Baseline Profit: {:.2f}%".format(baseline_profits))
-print("Strategy Profit: {:.2f}%".format(strategy_profits))
-print("Test Durtion: {:.2f} sec".format(time_durtion))
-visualize_report(generate_report(features),backtest,strategy)
+print(feature)

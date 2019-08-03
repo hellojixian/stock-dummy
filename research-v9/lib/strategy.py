@@ -123,13 +123,13 @@ class Strategy(object):
             self.prev_ideal_profit = self.ideal_profit
         if self.actual_profit is not None:
             self.prev_actual_profit = self.actual_profit
-
+        
         return action
 
     def should_buy(self, feature):
+        if feature['buy']==1: return True
         decision = False
         if self.prev is None or self.prev2 is None:return decision
-
         for i in range(len(self.buy_conds)):
             settings = self.buy_conds[i]
             test = ""
@@ -142,6 +142,7 @@ class Strategy(object):
         return decision
 
     def should_sell(self, feature):
+        if feature['sell']==1: return True
         decision = False
         actual_profit = (feature['close'] - self.bought_price)/self.bought_price
         ideal_profit = (feature['close'] - self.lowest_price_since_bough)/self.lowest_price_since_bough

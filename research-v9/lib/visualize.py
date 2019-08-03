@@ -66,7 +66,7 @@ def visualize_report(dataset,backtest,strategy):
     ax1.set_ylabel('close price')
     ax1.set_ylim(dataset['close'][-max_width:].min()*0.95,dataset['close'][-max_width:].max()*1.05)
 
-    title = "Baseline: {:.2f}%   Strategy: {:.2f}% ".format(
+    title = "Baseline: {:.2f}%   Strategy: {:g}% ".format(
         baseline_profits,strategy.get_profit(backtest['close'].iloc[-1]))
     subtitle = "From {:.10}    to {:.10}    Duration: {} days".format(str(dataset.index[0]), str(dataset.index[-1]), len(dataset))
     fig.text(0.05, 0.96, title, fontsize=10, weight='bold')
@@ -148,7 +148,7 @@ def visualize_report(dataset,backtest,strategy):
     axvline1 = ax1.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
     axvline2 = ax2.axvline(x=init_pos, color="w", linewidth=0.5, alpha=0.9)
     price = dataset['close'].loc[n_date]
-    change = dataset['1d_chg'].loc[n_date]
+    change = dataset['change'].loc[n_date]
 
 
     date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
@@ -173,7 +173,7 @@ def visualize_report(dataset,backtest,strategy):
         axvline2.set_data([pos,pos], [0, 1])
 
         price = dataset['close'].loc[date]
-        change = dataset['1d_chg'].loc[date]
+        change = dataset['change'].loc[date]
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
 
@@ -181,7 +181,6 @@ def visualize_report(dataset,backtest,strategy):
         pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
         pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
         pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
-
 
         plt.draw()
 
@@ -247,7 +246,7 @@ def visualize_report(dataset,backtest,strategy):
             ax2.set_xlim(pos-zoom_level,pos+zoom_level)
 
         price = dataset['close'].loc[date]
-        change = dataset['1d_chg'].loc[date]
+        change = dataset['change'].loc[date]
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         date_label.set_text("Date: {:.10}".format(str(date)))
 

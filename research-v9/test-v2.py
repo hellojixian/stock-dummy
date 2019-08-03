@@ -31,19 +31,17 @@ features = []
 action = ""
 
 features = extract_all_features(security, backtest, get_price)
-buy_samples  = features[features.buy==1]
-sell_samples = features[features.sell==1]
 
-kb = {'buy':buy_samples,
-      'sell':sell_samples}
-strategy = Strategy(cash=init_fund, kb=kb)
-for feature in features.iterrows():
-    strategy.handle_data(feature)
+strategy = Strategy(cash=init_fund, kb={})
+features['action'] = ""
+for i,feature in features.iterrows():
+    action = strategy.handle_data(feature)
+    features.loc[i,'action'] = action
 
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)
 strategy_profits = strategy.get_profit(backtest['close'].iloc[-1])
 print("Baseline Profit: {:.2f}%".format(baseline_profits))
-print("Strategy Profit: {:.2f}%".format(strategy_profits))
+print("Strategy Profit: {:.2g}%".format(strategy_profits))
 print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
 visualize_report(generate_report(features),backtest,strategy)

@@ -14,18 +14,12 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# security='000919.XSHE'
-# start_date=datetime.date(2006,7,30)
-# # start_date=datetime.date(2015,5,12)
-# end_date=datetime.date(2016,12,30)
-
 # security='600822.XSHG'
 security='600001.XSHG'
 start_date=datetime.date(2005,7,30)
 end_date=datetime.date(2017,12,30)
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
-init_fund = 100000
 assert(backtest.shape[0]>0)
 
 print("Back test: {} Days\nSince: {}\nUntil: {}"
@@ -33,9 +27,10 @@ print("Back test: {} Days\nSince: {}\nUntil: {}"
 
 timestamp = time.time()
 features = extract_all_features(security, backtest, get_price)
-strategy = Strategy(cash=init_fund)
+buy_samples  = search_ideal_buypoint( security, features)
+sell_samples = search_ideal_sellpoint(security, features)
 
+print("Buy : {} samples".format(buy_samples.shape[0]))
+print("Sell: {} samples".format(sell_samples.shape[0]))
 print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
-df = pd.DataFrame(features)
-print(df.columns.tolist())
-print(df[:10].values)
+# print(sell_samples[:10].values)

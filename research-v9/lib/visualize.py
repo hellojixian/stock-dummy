@@ -66,7 +66,7 @@ def visualize_report(dataset,backtest,strategy):
     ax1.set_ylabel('close price')
     ax1.set_ylim(dataset['close'][-max_width:].min()*0.95,dataset['close'][-max_width:].max()*1.05)
 
-    title = "Baseline: {:.2f}%   Strategy: {:g}% ".format(
+    title = "Baseline: {:.2f}%   Strategy: {:.2g}% ".format(
         baseline_profits,strategy.get_profit(backtest['close'].iloc[-1]))
     subtitle = "From {:.10}    to {:.10}    Duration: {} days".format(str(dataset.index[0]), str(dataset.index[-1]), len(dataset))
     fig.text(0.05, 0.96, title, fontsize=10, weight='bold')

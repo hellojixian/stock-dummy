@@ -76,7 +76,7 @@ def extract_all_features(security,dataset,get_price):
         df = pd.DataFrame(features)
         df = mark_ideal_buypoint(security,df)
         df = mark_ideal_sellpoint(security,df)
-        # df.to_csv(cache_name_file, index=False)
+        df.to_csv(cache_name_file, index=False)
     return df
 
 
@@ -85,11 +85,12 @@ def mark_ideal_buypoint(security,dataset):
     dataset['buy'] = 0
     for i in range(len(dataset)):
         if i<=2: continue
-        if i+2>= len(dataset): break
+        if i+3>= len(dataset): break
         if close.iloc[i-1] >= close.iloc[i]   and \
            close.iloc[i+1] > close.iloc[i]   and \
-           close.iloc[i+2] > close.iloc[i]   and \
-           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.02:
+           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.015 or \
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.015 or \
+           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.015 ):
            dataset.loc[dataset.iloc[i].name,'buy'] = 1
     return dataset
 
@@ -98,10 +99,11 @@ def mark_ideal_sellpoint(security,dataset):
     dataset['sell'] = 0
     for i in range(len(dataset)):
         if i<=2: continue
-        if i+2>= len(dataset): break
+        if i+3>= len(dataset): break
         if close.iloc[i-1] <= close.iloc[i]   and \
            close.iloc[i+1] < close.iloc[i]   and \
-           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]<-0.02 or \
-           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]<-0.02):
+           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]<-0.015 or \
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]<-0.015 or \
+           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]<-0.015 ):
            dataset.loc[dataset.iloc[i].name,'sell'] = 1
     return dataset

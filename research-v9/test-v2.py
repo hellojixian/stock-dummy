@@ -14,7 +14,9 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-security='000919.XSHE'
+# security='000919.XSHE'
+# security='600822.XSHG'
+security='600001.XSHG'
 start_date=datetime.date(2006,7,30)
 # start_date=datetime.date(2015,5,12)
 end_date=datetime.date(2016,12,30)
@@ -37,6 +39,12 @@ features['action'] = ""
 for i,feature in features.iterrows():
     action = strategy.handle_data(feature)
     features.loc[i,'action'] = action
+
+buy_samples  = features[features.buy==1]
+sell_samples = features[features.sell==1]
+print("Buy : {} samples".format(buy_samples.shape[0]))
+print("Sell: {} samples".format(sell_samples.shape[0]))
+
 
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)

@@ -36,6 +36,7 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
             dataset = dataset[dataset.index>=start_date]
             dataset.index = dataset.index.strftime("%Y-%m-%d")
 
+
     try:
         end_date = str(end_date)
         end_iloc = dataset.index.get_loc(end_date)+1
@@ -51,6 +52,8 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
         dataset = dataset.sort_index()
         end_date = np.datetime64(end_date)
         dataset = dataset[dataset.index<=end_date]
+        if start_date is not None:
+            dataset = dataset[dataset.index>=start_date]
         if start_date is None:
             dataset = dataset[-count:]
         dataset.index = dataset.index.strftime("%Y-%m-%d")

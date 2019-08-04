@@ -17,4 +17,4 @@ print(scipy.stats.variation(t2))
 t3 = [7,1,7,7,7,7,7,7]
 print(scipy.stats.variation(t3))
 
-print("{:.3e}".format(100.111))
+print("{:.3e}".format(100000000000))

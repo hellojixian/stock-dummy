@@ -23,6 +23,7 @@ def extract_features(security,trade_date,get_price,close=None):
     {  3:[0. ,0.3,]}]
 
     history = get_price(security=security, end_date=trade_date, count=max_days)
+    if history.shape[0]!=max_days: return None
     if close is None:
         close = history.iloc[-1]['close']
 
@@ -72,10 +73,12 @@ def extract_all_features(security,dataset,get_price):
     else:
         features = []
         for trade_date in dataset.index:
-            features.append(extract_features(security,trade_date,get_price))
+            f = extract_features(security,trade_date,get_price)
+            if f is not None: features.append(f)
         df = pd.DataFrame(features)
         df = mark_ideal_buypoint(security,df)
         df = mark_ideal_sellpoint(security,df)
+        df = mark_holding_days(security,df)
         df.to_csv(cache_name_file, index=False)
     return df
 
@@ -106,4 +109,17 @@ def mark_ideal_sellpoint(security,dataset):
            (close.iloc[i+2] - close.iloc[i])/close.iloc[i]<-0.015 or \
            (close.iloc[i+3] - close.iloc[i])/close.iloc[i]<-0.015 ):
            dataset.loc[dataset.iloc[i].name,'sell'] = 1
+    return dataset
+
+def mark_holding_days(security,dataset):
+    close = dataset['close']
+    dataset['hold'] = 0
+    hold_status=0
+    for i in range(len(dataset)):
+        dataset.loc[dataset.iloc[i].name,'hold'] = hold_status
+        if dataset['buy'].iloc[i]==1:
+            hold_status=1
+        elif dataset['sell'].iloc[i]==1:
+            hold_status=0
+            dataset.loc[dataset.iloc[i].name,'hold'] = hold_status
     return dataset

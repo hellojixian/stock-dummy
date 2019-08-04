@@ -14,9 +14,9 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-# security='000919.XSHE'
+security='000919.XSHE'
 # security='600822.XSHG'
-security='600001.XSHG'
+# security='600001.XSHG'
 start_date=datetime.date(2006,7,30)
 # start_date=datetime.date(2015,5,12)
 end_date=datetime.date(2016,12,30)

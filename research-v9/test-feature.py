@@ -2,14 +2,13 @@
 
 import pandas as pd
 import datetime,time
-import scipy.stats
 
 from lib.jqdata import *
 from lib.feature_extract import *
 from lib.backtest import *
 from lib.visualize import *
 from lib.strategy import Strategy
-
+from lib.kb import KnowledgeBase
 
 # set output
 pd.set_option('display.max_rows', 500)
@@ -28,6 +27,7 @@ print("Back test: {} Days\nSince: {}\nUntil: {}"
     .format(len(backtest),str(backtest.index[0]),str(backtest.index[-1])))
 
 train_df = get_train_set(300, start_date, end_date)
+kb = KnowledgeBase(train_df=train_df)
 print(train_df.shape)
 
 timestamp = time.time()
@@ -42,47 +42,26 @@ print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
 # features=features[features.eval("f3d_pos==1")]
 cols = ["nobs","minmax","mean","variance","skewness","kurtosis"]
 
-dataset = train_df
+
+# sys.setrecursionlimit(50000)
 timestamp = time.time()
-wr_cond = "(buy==1|hold==0)& sell==0"
+
+i=0
 for _, sample in buy_samples.iterrows():
-    if _ <=2: continue
-    print(sample)
-    report = pd.DataFrame()
-    fixed_params = ['f3d_pos']
-    filter=""
-    for f in fixed_params:
-        if f[:1]=='f':
-            filter += "({}=={})&".format(f,sample[f])
-    filter=filter[:-1]
-    fixed_filter = filter
-    subset = dataset[dataset.eval(filter)]
-    for col in features.columns:
-        if col[:1]=='f':
-            e = scipy.stats.describe(dataset[col])
-            r = pd.Series(e,name=col)
-            report = report.append(r)
-    report.columns = cols
-    report = report.sort_values(by=['variance'])
-    wr = 0
-    if subset.shape[0]>0:
-        wr = subset[subset.eval(wr_cond)].shape[0]/subset.shape[0]*100
-    print("Acc: {:.2f}% of {} Samples".format(wr, subset.shape[0]))
+    i+=1
+    if i<=3: continue
+    if kb.need_learn(sample,'buy'):
+        kb.learn(sample,'buy')
 
+    print("\r progress: {:.2f}%  {}/{}".format(i/len(buy_samples)*100,i,len(buy_samples)), end="")
+print("\r")
 
-    for i in range(report.shape[0]-1):
-        filter = fixed_filter+" &"
-        for f in report.index[:i]:
-            if f[:1]=='f':
-                filter += " ({}>={}) & ({}<={}) &".format(f,sample[f]-1,f, sample[f]+1)
-        filter=filter[:-1]
-        if len(filter)==0: continue
-        subset = dataset[dataset.eval(filter)]
-        wr = 0
-        if subset.shape[0]>0:
-            wr = subset[subset.eval(wr_cond)].shape[0]/subset.shape[0]*100
-        print("{} Acc: {:.2f}% of {} Samples".format(i,wr, subset.shape[0]))
-
-    break
+# i=0
+# for _, sample in sell_samples.iterrows():
+#     i+=1
+#     if kb.need_learn(sample,'sell'):
+#         kb.learn(sample,'sell')
+#     print("\r progress: {:.2f}%  {}/{}".format(i/len(sell_samples)*100,i,len(sell_samples)), end="")
+# print("\r")
 
 print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))

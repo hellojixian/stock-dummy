@@ -1,20 +1,36 @@
-import numpy as np
-import scipy.stats
-t1=np.random.normal(0,7,1000)
-t2=np.random.normal(0,3,1000)
-t1=np.round(t1,2)
-t2=np.round(t2,2)
+#!/usr/bin/env python3
+
+import pandas as pd
+import datetime,time
+
+from lib.jqdata import *
+from lib.feature_extract import *
+from lib.backtest import *
+from lib.visualize import *
+from lib.strategy import Strategy
+from lib.kb import KnowledgeBase
+
+# set output
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+# security='600822.XSHG'
+security='600001.XSHG'
+start_date=datetime.date(2005,7,30)
+end_date=datetime.date(2017,12,30)
 
 
-# print(t1)
-t1 = [0,1,2,3,4,5,6,7]
+train_df = get_train_set(300, start_date, end_date)
 
-print(scipy.stats.variation(t1))
+print(train_df.shape)
 
-t2 = [0,1,7,3,7,5,7,7]
-print(scipy.stats.variation(t2))
-
-t3 = [7,1,7,7,7,7,7,7]
-print(scipy.stats.variation(t3))
-
-print("{:.3e}".format(100000000000))
+report = {}
+for f in train_df.columns:
+    if f[:1]!='f': continue
+    res = np.corrcoef(train_df[f],train_df['buy'])
+    report[f]={'cor':res[0][1]}
+report = pd.DataFrame(report)
+report = report.T
+report['cor'] = np.abs(report['cor'])
+print(report.sort_values(by=["cor"],ascending=False))

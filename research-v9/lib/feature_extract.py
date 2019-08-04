@@ -18,12 +18,12 @@ def extract_features(security,trade_date,get_price,close=None):
     max_days = 120
     params = [
     # days, min, max
-    {120:[0.2,2. ,]},
-    { 60:[0. ,1. ,]},
-    { 30:[0. ,0.7,]},
-    { 10:[0. ,0.5,]},
-    {  5:[0. ,0.4,]},
-    {  3:[0. ,0.3,]}]
+    { 8:[0,1]},
+    {  5:[0,0.6]},
+    {  3:[0,0.4]},
+    {  2:[0,0.3]},
+    {  1:[0,0.15]},
+    ]
 
     history = get_price(security=security, end_date=trade_date, count=max_days)
     if history.shape[0]!=max_days: return None
@@ -42,23 +42,19 @@ def extract_features(security,trade_date,get_price,close=None):
         min, max = history['low'].min(), history['high'].max()
         if min==max:
             pos = np.round(n_steps/2)
-            amp = 0
-            cdi = min_max_scale((days-1),0,days)
+            down = 0
+            up = 0
         else:
             pos = (close-min)/(max-min)
-            amp = min_max_scale((max-min)/min, param[0], param[1])
-            cdi = min_max_scale(history['high'].tolist().index(max),0,days)
+            down = min_max_scale((close - max) / max, -param[1],param[0])
+            up = min_max_scale((close - min) / min, param[0],param[1])
 
         feature['f{}d_pos'.format(days)]= to_categorial(pos, n_steps)
-        feature['f{}d_amp'.format(days)]= to_categorial(amp, n_steps)
-        feature['f{}d_cdi'.format(days)]= to_categorial(cdi, n_steps)
+        feature['f{}d_down'.format(days)]= to_categorial(down, n_steps)
+        feature['f{}d_up'.format(days)]= to_categorial(up, n_steps)
 
     change = (close - prev_close)/prev_close
-    d1_chg = to_categorial(min_max_scale(change,-0.09,0.09), n_steps)
-    d2_chg = to_categorial(min_max_scale((close - prev2_close)/prev2_close,-0.18,0.18), n_steps)
 
-    feature['f1d_chg'] = d1_chg
-    feature['f2d_chg'] = d2_chg
     feature['close'] = close
     feature['change'] = np.round(change,3)
     feature['date'] = trade_date

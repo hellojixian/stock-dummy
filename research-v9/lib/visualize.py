@@ -80,12 +80,14 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['f3d_pos'],  label='3d_pos',  alpha=0.7, marker=".")
-    ax2.plot(x, dataset['f5d_pos'],  label='5d_pos',  alpha=0.4)
-    ax2.plot(x, dataset['f10d_pos'], label='10d_pos', alpha=0.4)
-    ax2.plot(x, dataset['f30d_pos'], label='30d_pos', alpha=0.4)
-    ax2.plot(x, dataset['f60d_pos'], label='60d_pos', alpha=0.4)
-    ax2.plot(x, dataset['f120d_pos'],label='120d_pos',alpha=0.4)
+    ax2.plot(x, dataset['f1d_pos'],  label='f1d_pos',  alpha=0.7, marker=".")
+    ax2.plot(x, dataset['f1d_down'],  label='f1d_down',  alpha=0.4)
+    ax2.plot(x, dataset['f2d_pos'],  label='f2d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f2d_down'], label='f2d_down', alpha=0.4)
+    ax2.plot(x, dataset['f3d_pos'], label='f3d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f3d_down'],label='f3d_down',alpha=0.4)
+    ax2.plot(x, dataset['f5d_pos'], label='f5d_pos', alpha=0.4)
+    ax2.plot(x, dataset['f8d_pos'], label='f8d_pos', alpha=0.4)
 
     ax2.set_ylabel('score')
     ax2.legend(loc='upper right')
@@ -154,10 +156,10 @@ def visualize_report(dataset,backtest,strategy):
     date_label = fig.text(0.07, 0.92, "Date: {:.10}".format(str(n_date)))
     price_label = fig.text(0.07, 0.895, "Price: {}  ({:5.2f}%)".format(price, change*100))
 
-    pos5_label = fig.text(0.07, 0.34,  "05D_POS: {}".format( dataset['f5d_pos'].loc[n_date] ))
-    pos10_label = fig.text(0.07, 0.315, "10D_POS: {}".format( dataset['f10d_pos'].loc[n_date] ))
-    pos30_label = fig.text(0.07, 0.315-0.025, "30D_POS: {}".format( dataset['f30d_pos'].loc[n_date] ))
-    pos60_label = fig.text(0.07, 0.315-0.05, "60D_POS: {}".format( dataset['f60d_pos'].loc[n_date] ))
+    # pos5_label = fig.text(0.07, 0.34,  "05D_POS: {}".format( dataset['f5d_pos'].loc[n_date] ))
+    # pos10_label = fig.text(0.07, 0.315, "10D_POS: {}".format( dataset['f10d_pos'].loc[n_date] ))
+    # pos30_label = fig.text(0.07, 0.315-0.025, "30D_POS: {}".format( dataset['f30d_pos'].loc[n_date] ))
+    # pos60_label = fig.text(0.07, 0.315-0.05, "60D_POS: {}".format( dataset['f60d_pos'].loc[n_date] ))
 
     def onClick(event):
         if not event.xdata: return
@@ -177,10 +179,10 @@ def visualize_report(dataset,backtest,strategy):
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
 
-        pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
-        pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
-        pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
-        pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
+        # pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
+        # pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
+        # pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
+        # pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
 
         plt.draw()
 
@@ -264,10 +266,10 @@ def visualize_report(dataset,backtest,strategy):
         price_label.set_text("Price: {}  ({:5.2f}%)".format(price, change*100))
         date_label.set_text("Date: {:.10}".format(str(date)))
 
-        pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
-        pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
-        pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
-        pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
+        # pos5_label.set_text("05D_POS: {}".format( dataset['f5d_pos'].loc[date] ))
+        # pos10_label.set_text("10D_POS: {}".format( dataset['f10d_pos'].loc[date] ))
+        # pos30_label.set_text("30D_POS: {}".format( dataset['f30d_pos'].loc[date] ))
+        # pos60_label.set_text("60D_POS: {}".format( dataset['f60d_pos'].loc[date] ))
 
         plt.draw()
 

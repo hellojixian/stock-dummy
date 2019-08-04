@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
+import multiprocessing as mp
 import os
+
+from lib.jqdata import *
 
 def min_max_scale(v, min, max):
     return np.clip((v-min)/(max-min),0,1)
@@ -62,6 +65,47 @@ def extract_features(security,trade_date,get_price,close=None):
 
     return feature
 
+def get_train_set(sample_set, start_date, end_date):
+    securities = get_all_securites()['security']
+    securities = securities.sample(sample_set)
+
+    train_cache = 'data/train_set.csv'
+    if os.path.isfile(train_cache):
+        train_df = pd.read_csv(train_cache)
+    else:
+        # generate header
+        i,df = 0, pd.DataFrame()
+        while len(df)==0:
+            i+=1
+            backtest = get_price(security=securities.values[i], start_date=start_date, end_date=end_date)
+            backtest = backtest[:5]
+            df = extract_all_features(securities.values[i], backtest, get_price)
+            df = df[:1]
+        df.to_csv(train_cache, index=False, header=True)
+
+        N_THREAD = mp.cpu_count()
+        threads = []
+        splited = np.array_split(securities.values,N_THREAD)
+        def runner(securities):
+            for i in range(len(securities)):
+                security = securities[i]
+                print("Generating val set {}/{}: {}".format(i+1,len(securities),security))
+                backtest = get_price(security=security, start_date=start_date, end_date=end_date)
+                if len(backtest)==0: continue
+                df = extract_all_features(security, backtest, get_price)
+                train_cache_tmp = train_cache+"_"+security
+                df.to_csv(train_cache_tmp, index=False, header=False)
+                os.system("cat {} >> {}".format(train_cache_tmp,train_cache))
+                os.remove(train_cache_tmp)
+        for i in range(len(splited)):
+            t = mp.Process(target=runner, args=([splited[i]]))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
+        train_df = pd.read_csv(train_cache)
+    return train_df
+
 def extract_all_features(security,dataset,get_price):
     cache_name_file = "data/cache/{:.6}-features-{:.10}-{:.10}.cache".format(security,str(dataset.index[0]),str(dataset.index[-1]))
     if os.path.isfile(cache_name_file):
@@ -71,6 +115,7 @@ def extract_all_features(security,dataset,get_price):
         cols.remove('date')
         df[cols] = df[cols].astype('i')
     else:
+        if len(dataset)==0: return pd.DataFrame()
         features = []
         for trade_date in dataset.index:
             f = extract_features(security,trade_date,get_price)
@@ -84,6 +129,7 @@ def extract_all_features(security,dataset,get_price):
 
 
 def mark_ideal_buypoint(security,dataset):
+    if len(dataset)==0: return dataset
     close = dataset['close']
     dataset['buy'] = 0
     for i in range(len(dataset)):
@@ -98,6 +144,7 @@ def mark_ideal_buypoint(security,dataset):
     return dataset
 
 def mark_ideal_sellpoint(security,dataset):
+    if len(dataset)==0: return dataset
     close = dataset['close']
     dataset['sell'] = 0
     for i in range(len(dataset)):
@@ -112,6 +159,7 @@ def mark_ideal_sellpoint(security,dataset):
     return dataset
 
 def mark_holding_days(security,dataset):
+    if len(dataset)==0: return dataset
     close = dataset['close']
     dataset['hold'] = 0
     hold_status=0

@@ -10,6 +10,7 @@ from lib.backtest import *
 from lib.visualize import *
 from lib.strategy import Strategy
 
+
 # set output
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
@@ -26,27 +27,7 @@ assert(backtest.shape[0]>0)
 print("Back test: {} Days\nSince: {}\nUntil: {}"
     .format(len(backtest),str(backtest.index[0]),str(backtest.index[-1])))
 
-TRAIN_SAMPLE_SET=300
-securities = get_all_securites()['security']
-securities = securities.sample(TRAIN_SAMPLE_SET)
-
-train_cache = 'data/cache/train_set.cache'
-if os.path.isfile(train_cache):
-    train_df = pd.read_csv(train_cache)
-else:
-    train_df = pd.DataFrame()
-    for i in range(len(securities.values)):
-        security = securities.values[i]
-        print("Generating val set {}/{}: {}".format(i+1,TRAIN_SAMPLE_SET,security))
-        backtest = get_price(security=security, start_date=start_date, end_date=end_date)
-        df = extract_all_features(security, backtest, get_price)
-        train_cache_tmp = train_cache+"_"+security
-        output_header=False
-        if i==0: output_header=True
-        df.to_csv(train_cache_tmp, index=False, header=output_header)
-
-        os.system("cat {} >> {}".format(train_cache_tmp,train_cache))
-        os.remove(train_cache_tmp)
+train_df = get_train_set(300, start_date, end_date)
 print(train_df.shape)
 
 timestamp = time.time()
@@ -61,7 +42,7 @@ print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
 # features=features[features.eval("f3d_pos==1")]
 cols = ["nobs","minmax","mean","variance","skewness","kurtosis"]
 
-dataset = val_df
+dataset = train_df
 timestamp = time.time()
 wr_cond = "(buy==1|hold==0)& sell==0"
 for _, sample in buy_samples.iterrows():

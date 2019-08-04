@@ -203,11 +203,25 @@ def visualize_report(dataset,backtest,strategy):
             if len(dataset[date_idx-1:date_idx])>0:
                 date = dataset[date_idx-1:date_idx].index[0]
                 pos = mdates.date2num(date)
+
+                date = mdates.num2date(pos).strftime(DATE_FORMAT)
+                if date not in dataset.index:
+                    date = datetime.datetime.strptime(date, DATE_FORMAT)
+                    ns = dataset[dataset.index<date]
+                    date = dataset[dataset.index<date].iloc[-1].name
+                    pos = mdates.date2num(date)
                 date_idx = dataset.index.get_loc(date)
         elif event.key.lower()=='d' or event.key=='right':
             if len(dataset[date_idx+1:date_idx+2])>0:
                 date = dataset[date_idx+1:date_idx+2].index[0]
                 pos = mdates.date2num(date)
+
+                date = mdates.num2date(pos).strftime(DATE_FORMAT)
+                if date not in dataset.index:
+                    date = datetime.datetime.strptime(date, DATE_FORMAT)
+                    ns = dataset[dataset.index>date]
+                    date = dataset[dataset.index>date].iloc[-1].name
+                    pos = mdates.date2num(date)
                 date_idx = dataset.index.get_loc(date)
         elif event.key.lower()=='z':
             if len(dataset[date_idx-step:date_idx])>0:

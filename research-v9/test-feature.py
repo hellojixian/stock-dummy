@@ -41,7 +41,9 @@ else:
         backtest = get_price(security=security, start_date=start_date, end_date=end_date)
         df = extract_all_features(security, backtest, get_price)
         train_cache_tmp = train_cache+"_"+security
-        df.to_csv(train_cache_tmp, index=False)
+        output_header=False
+        if i==0: output_header=True
+        df.to_csv(train_cache_tmp, index=False, header=output_header)
 
         os.system("cat {} >> {}".format(train_cache_tmp,train_cache))
         os.remove(train_cache_tmp)

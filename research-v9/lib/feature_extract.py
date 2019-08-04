@@ -116,7 +116,8 @@ def mark_holding_days(security,dataset):
     dataset['hold'] = 0
     hold_status=0
     for i in range(len(dataset)):
-        dataset.loc[dataset.iloc[i].name,'hold'] = hold_status
+        if hold_status==1 and dataset['buy'].iloc[i]==0:
+            dataset.loc[dataset.iloc[i].name,'hold'] = hold_status
         if dataset['buy'].iloc[i]==1:
             hold_status=1
         elif dataset['sell'].iloc[i]==1:

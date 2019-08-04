@@ -47,7 +47,7 @@ else:
 
         os.system("cat {} >> {}".format(train_cache_tmp,train_cache))
         os.remove(train_cache_tmp)
-print(val_df.shape)
+print(train_df.shape)
 
 timestamp = time.time()
 features = extract_all_features(security, backtest, get_price)

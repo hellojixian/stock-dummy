@@ -78,9 +78,9 @@ y_test = y[split_ratio:]
 
 # construct the autoencoder model
 model = Sequential()
-model.add(Dense(60, activation='relu',input_shape=(x_train.shape[1],)))
-model.add(Dropout(0.4))
-model.add(Dense(10, activation='relu'))
+model.add(Dense(50, activation='relu',input_shape=(x_train.shape[1],)))
+model.add(Dropout(0.3))
+# model.add(Dense(10, activation='relu'))
 model.add(Dense(1, activation='sigmoid' ))
 # load weight
 if os.path.exists(model_saved):

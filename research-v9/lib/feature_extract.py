@@ -39,7 +39,7 @@ def extract_features(security,trade_date,get_price,close=None):
 
     kdj = talib_KDJ(history[-20:],9,4,2)
     feature['f_k'] = to_categorial(min_max_scale(kdj['k'][-1],30,80),n_steps)
-    feature['f_d'] = to_categorial(min_max_scale(kdj['d'][-1],30,80),n_steps)
+    # feature['f_d'] = to_categorial(min_max_scale(kdj['d'][-1],30,80),n_steps)
     # feature['f_j'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
 
 
@@ -73,8 +73,12 @@ def extract_features(security,trade_date,get_price,close=None):
             up = 0
         else:
             pos = (close-min)/(max-min)
-            down = min_max_scale((close - max) / max, -param[1],param[0])
-            up = min_max_scale((close - min) / min, param[0],param[1])
+            if close > open:
+                down = min_max_scale((high - max) / max, -param[1],param[0])
+                up = min_max_scale((high - min) / min, param[0],param[1])
+            else:
+                down = min_max_scale((low - max) / max, -param[1],param[0])
+                up = min_max_scale((low - min) / min, param[0],param[1])
 
         feature['f{}d_pos'.format(days)]= to_categorial(pos, n_steps)
         feature['f{}d_down'.format(days)]= to_categorial(down, n_steps)

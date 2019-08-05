@@ -49,8 +49,12 @@ def transform_data_buy(df):
     report = report.T
     report = report.sort_values(by=["cor"],ascending=False)
     ncols=[]
+    i = 0
     for col,rec in report.iterrows():
-        if rec['cor']>0.02: ncols.append(col)
+        # if rec['cor']>0.02:
+        ncols.append(col)
+        i+=1
+        if i>22: break
 
     print(report)
     df = df[ncols].copy()

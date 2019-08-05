@@ -39,8 +39,8 @@ def extract_features(security,trade_date,get_price,close=None):
 
     kdj = talib_KDJ(history[-20:],9,4,2)
     feature['f_k'] = to_categorial(min_max_scale(kdj['k'][-1],30,80),n_steps)
-    # feature['f_d'] = to_categorial(min_max_scale(kdj['d'][-1],30,80),n_steps)
-    # feature['f_j'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
+    feature['f_d'] = to_categorial(min_max_scale(kdj['d'][-1],30,80),n_steps)
+    feature['f_j'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
 
 
     feature['f1d_jc'] = min_max_scale((kdj['j'][-1] - kdj['j'][-2]),-25,25)

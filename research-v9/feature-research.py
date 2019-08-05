@@ -26,7 +26,7 @@ security='600822.XSHG'
 start_date=datetime.date(2006,7,30)
 end_date=datetime.date(2011,12,30)
 
-train_df = get_train_set(300, start_date, end_date)
+# train_df = get_train_set(300, start_date, end_date)
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
 train_df = extract_all_features(security, backtest, get_price)
 
@@ -46,8 +46,6 @@ for f in train_df.columns:
     }
 report = pd.DataFrame(report)
 report = report.T
-report['cor'] = report['cor']
-report['cov'] = report['cov']
 report = report.sort_values(by=["cor"],ascending=True)
 print(report)
 print('-'*100)

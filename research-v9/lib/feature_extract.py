@@ -12,7 +12,8 @@ def min_max_scale(v, min, max):
     return np.clip((v-min)/(max-min),0,1)
 
 def to_categorial(v, categories):
-    return np.round(np.quantile([0,v*(categories-1),(categories-1)],0.5)).astype('i')
+    return v*categories
+    # return np.round(np.quantile([0,v*(categories-1),(categories-1)],0.5)).astype('i')
 
 def extract_features(security,trade_date,get_price,close=None):
     n_steps = 10
@@ -36,8 +37,15 @@ def extract_features(security,trade_date,get_price,close=None):
 
     feature = {}
 
-    kdj = talib_KDJ(history[-15:],9,4,2)
-    feature['f_kdj'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
+    kdj = talib_KDJ(history[-20:],9,4,2)
+    # feature['f_k'] = to_categorial(min_max_scale(kdj['k'][-1],30,80),n_steps)
+    # feature['f_d'] = to_categorial(min_max_scale(kdj['d'][-1],30,80),n_steps)
+    # feature['f_j'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
+
+
+    feature['f1d_jc'] = min_max_scale((kdj['j'][-1] - kdj['j'][-2]),-25,25)
+    feature['f2d_jc'] = min_max_scale((kdj['j'][-1] - kdj['j'][-3]),-40,40)
+    feature['f3d_jc'] = min_max_scale((kdj['j'][-1] - kdj['j'][-4]),-60,60)
 
     low = history['low'].iloc[-1]
     open = history['open'].iloc[-1]
@@ -95,7 +103,7 @@ def get_train_set(sample_set, start_date, end_date):
             i+=1
             backtest = get_price(security=securities.values[i], start_date=start_date, end_date=end_date)
             if len(backtest)>20:
-                backtest = backtest[:20]            
+                backtest = backtest[:20]
                 df = extract_all_features(securities.values[i], backtest, get_price)
                 df = df[:1]
         df.to_csv(train_cache, index=False, header=True)

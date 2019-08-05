@@ -62,14 +62,14 @@ y_test = y[split_ratio:]
 # os._exit(0)
 
 def visualize(encoder,x,y):
-	# plotting	
+	# plotting
 	# limit = 2000
 	# x=x[0:limit]
 	# y=y[0:limit]
 	encoded_data = encoder.predict(x)
-	plt.clf()	
-	plt.scatter(encoded_data[:, 0], 
-				encoded_data[:, 1], 
+	plt.clf()
+	plt.scatter(encoded_data[:, 0],
+				encoded_data[:, 1],
 				s=2,
 				alpha=0.75,
 				cmap=cm.rainbow,
@@ -77,7 +77,7 @@ def visualize(encoder,x,y):
 	# plt.xlim(-1.3, 0.8)
 	# plt.ylim(0, 2.5)
 	plt.colorbar()
-	plt.pause(0.01)	
+	plt.pause(0.01)
 	return
 
 
@@ -94,8 +94,8 @@ if os.path.exists(model_saved):
 optimizer = keras.optimizers.Adam(lr=0.0025, beta_1=0.9, beta_2=0.999)
 model.compile(optimizer=optimizer, loss='mean_squared_error')
 
-autosave = ModelCheckpoint(model_saved, monitor='val_loss', 
-					verbose=0, save_best_only=False, 
+autosave = ModelCheckpoint(model_saved, monitor='val_loss',
+					verbose=0, save_best_only=False,
 					save_weights_only=True, mode='auto', period=1)
 
 
@@ -104,7 +104,7 @@ for steps in range(training_epoch):
 	# training
 	model.fit(x_train, y_train,
 					validation_split=0.1,
-	                nb_epoch=1,
+	                nb_epoch=10,
 	                batch_size=32,
 	                shuffle=True,
 	                callbacks=[autosave])
@@ -118,7 +118,7 @@ print("Predicting ...")
 res_test = model.predict(x_test)
 res = pd.DataFrame(data=res_test,columns=['test'])
 res['actual'] = pd.Series(y_test, index=res.index)
-res['diff'] = res['actual']-res['test'] 
+res['diff'] = res['actual']-res['test']
 # res = res[res.test>4]
 # res = res[res.test<12]
 res = round(res,2)

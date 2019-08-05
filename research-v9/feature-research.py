@@ -24,9 +24,9 @@ pd.set_option('display.width', 1000)
 security='600822.XSHG'
 # security='600001.XSHG'
 start_date=datetime.date(2004,7,30)
-end_date=datetime.date(2007,12,30)
+end_date=datetime.date(2010,12,30)
 
-# train_df = get_train_set(300, start_date, end_date)
+train_df = get_train_set(300, start_date, end_date)
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
 train_df = extract_all_features(security, backtest, get_price)
 

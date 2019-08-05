@@ -33,6 +33,10 @@ def visualize_report(dataset,backtest,strategy):
 
     xlabel = dataset.index.strftime(DATE_FORMAT).tolist()
     x = pd.to_datetime(dataset.index).tolist()
+
+    buy_points = dataset[dataset.buy==1]
+    buy_points_x = pd.to_datetime(buy_points.index).tolist()
+
     register_matplotlib_converters()
 
     max_width = min(len(x), 100)
@@ -51,7 +55,9 @@ def visualize_report(dataset,backtest,strategy):
     gs = gridspec.GridSpec(3, 3)
     fig =plt.figure(figsize=(15,8))
     ax1 =plt.subplot(gs[:2,:])
-    # ax1.plot(x, dataset['close'],label='Price', alpha=0.5)
+
+    ax1.scatter(buy_points_x, buy_points['low']*0.98, alpha=0.8,color='w',s=3)
+    ax1.plot(x, dataset['ma3'],label='MA3', alpha=0.9, color='r')
     ax1.plot(x, dataset['ma3'],label='MA3', alpha=0.9, color='r')
     ax1.plot(x, dataset['ma5'],label='MA5', alpha=0.5)
     ax1.plot(x, dataset['ma10'],label='MA10', alpha=0.5)

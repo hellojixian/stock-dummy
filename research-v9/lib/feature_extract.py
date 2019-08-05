@@ -41,6 +41,7 @@ def extract_features(security,trade_date,get_price,close=None):
 
     low = history['low'].iloc[-1]
     open = history['open'].iloc[-1]
+    high = history['high'].iloc[-1]
     for days in [5,3,2]:
         h = history[-10:].copy()
         h['ma'] = h['close'].rolling(window=days).mean()
@@ -73,6 +74,8 @@ def extract_features(security,trade_date,get_price,close=None):
 
     change = (close - prev_close)/prev_close
     feature['close'] = close
+    feature['low'] = low
+    feature['high'] = high
     feature['change'] = np.round(change,3)
     feature['date'] = trade_date
 

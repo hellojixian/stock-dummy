@@ -33,7 +33,6 @@ def extract_features(security,trade_date,get_price,close=None):
     prev_close = history.iloc[-2]['close']
     prev2_close = history.iloc[-3]['close']
 
-    history = history.iloc[:-1]
     feature = {}
 
     # env = ""
@@ -52,19 +51,20 @@ def extract_features(security,trade_date,get_price,close=None):
     # env = to_categorial(min_max_scale(env,0,15),n_steps)
     # feature['f_env'] = env
 
+    # history = history.iloc[:-1]
+
+    low = history['low'].iloc[-1]
+    open = history['open'].iloc[-1]
+
     for days in [5,3,2]:
         h = history[-10:].copy()
         h['ma'] = h['close'].rolling(window=days).mean()
         ma = h['ma'].iloc[-1]
-        low = h['low'].iloc[-1]
-        close = h['close'].iloc[-1]
-        open = h['open'].iloc[-1]
         if close > open:
             ma_bias = (close - ma) / ma
         else:
             ma_bias = (low - ma) / ma
         feature['f{}d_ma_bias'.format(days)] = to_categorial(min_max_scale(ma_bias,-0.03,0.01), n_steps)
-
 
 
     for param in params:
@@ -87,8 +87,6 @@ def extract_features(security,trade_date,get_price,close=None):
         feature['f{}d_up'.format(days)]= to_categorial(up, n_steps)
 
     change = (close - prev_close)/prev_close
-
-
     feature['close'] = close
     feature['change'] = np.round(change,3)
     feature['date'] = trade_date

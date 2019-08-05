@@ -94,9 +94,10 @@ def get_train_set(sample_set, start_date, end_date):
         while len(df)==0:
             i+=1
             backtest = get_price(security=securities.values[i], start_date=start_date, end_date=end_date)
-            backtest = backtest[:5]
-            df = extract_all_features(securities.values[i], backtest, get_price)
-            df = df[:1]
+            if len(backtest)>20:
+                backtest = backtest[:20]            
+                df = extract_all_features(securities.values[i], backtest, get_price)
+                df = df[:1]
         df.to_csv(train_cache, index=False, header=True)
 
         N_THREAD = mp.cpu_count()
@@ -140,7 +141,7 @@ def extract_all_features(security,dataset,get_price):
         df = mark_ideal_buypoint(security,df)
         df = mark_ideal_sellpoint(security,df)
         df = mark_holding_days(security,df)
-        # df.to_csv(cache_name_file, index=False)
+        df.to_csv(cache_name_file, index=False)
     return df
 
 

@@ -164,7 +164,7 @@ def mark_ideal_buypoint(security,dataset):
         if i<=2: continue
         if i+3>= len(dataset): break
         if close.iloc[i-1] >= close.iloc[i]   and \
-           close.iloc[i+1] > close.iloc[i]   and \
+           close.iloc[i+2] > close.iloc[i]   and \
            ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.015 or \
            (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.015 or \
            (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.015 ):

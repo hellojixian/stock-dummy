@@ -8,15 +8,18 @@ from lib.feature_extract import *
 from lib.backtest import *
 from lib.visualize import *
 from lib.strategy import Strategy
+from lib.ml import *
+
+from keras import optimizers
+from keras.models import Model, load_model, Sequential
+from keras.layers import Dense, Input, Dropout
+from keras.callbacks import ModelCheckpoint
 
 # set output
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-security='000919.XSHE'
-security='600822.XSHG'
-# security='600001.XSHG'
 security='000045.XSHE'
 start_date=datetime.date(2012,5,12)
 end_date=datetime.date(2013,12,30)
@@ -33,18 +36,16 @@ features = []
 action = ""
 
 features = extract_all_features(security, backtest, get_price)
-
 strategy = Strategy(cash=init_fund, kb={})
 features['action'] = ""
 for i,feature in features.iterrows():
     action = strategy.handle_data(feature)
     features.loc[i,'action'] = action
 
-buy_samples  = features[features.buy==1]
-sell_samples = features[features.sell==1]
-print("Buy : {} samples".format(buy_samples.shape[0]))
-print("Sell: {} samples".format(sell_samples.shape[0]))
-
+transformed = transform_data_buy(features)
+model_buy = get_model(transformed.shape[1])
+pred = np.round(model_buy.predict(transformed),2)
+features['buy_pred'] = pred[:,0]
 
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)

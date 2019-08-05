@@ -34,8 +34,6 @@ def visualize_report(dataset,backtest,strategy):
     xlabel = dataset.index.strftime(DATE_FORMAT).tolist()
     x = pd.to_datetime(dataset.index).tolist()
 
-    buy_points = dataset[dataset.buy==1]
-    buy_points_x = pd.to_datetime(buy_points.index).tolist()
 
     register_matplotlib_converters()
 
@@ -56,7 +54,25 @@ def visualize_report(dataset,backtest,strategy):
     fig =plt.figure(figsize=(15,8))
     ax1 =plt.subplot(gs[:2,:])
 
-    ax1.scatter(buy_points_x, buy_points['low']*0.98, alpha=0.8,color='w',s=3)
+    buy_points = dataset[dataset.buy==1]
+    buy_points_x = pd.to_datetime(buy_points.index).tolist()
+    ax1.scatter(buy_points_x, buy_points['low']-0.1, alpha=0.8,color='w',s=10)
+
+    if 'buy_pred' in dataset.columns:
+        buy_preds = dataset[dataset.buy_pred>0.5]
+        buy_preds_x = pd.to_datetime(buy_preds.index).tolist()
+        # ax1.scatter(buy_preds_x, buy_preds['low']-0.15, alpha=0.9,color='#34ebde',s=6, marker="^")
+        idx = 0
+        while idx <= len(buy_preds)-1:
+            end_date = buy_preds.iloc[idx].name
+            buy_pred = buy_preds.iloc[idx]['buy_pred']
+            v_pos = buy_preds.iloc[idx]['low']-0.15
+            end_date = mdates.date2num(end_date)
+            ax1.scatter(end_date, v_pos, alpha=buy_pred,color='#34ebde',s=20, marker="x")
+            # ax1.annotate("<        {:.1f}".format(buy_pred),(end_date, v_pos),
+            #     weight='bold',ha='left', va='bottom', color='#34ebde', fontsize=7,rotation=-90)
+            idx+=1
+
     ax1.plot(x, dataset['ma3'],label='MA3', alpha=0.9, color='r')
     ax1.plot(x, dataset['ma3'],label='MA3', alpha=0.9, color='r')
     ax1.plot(x, dataset['ma5'],label='MA5', alpha=0.5)
@@ -88,7 +104,6 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['f_kdj'], label='f_kdj',  alpha=0.9, color='r', marker=".")
     ax2.plot(x, dataset['f1d_pos'],  label='f1d_pos',  alpha=0.7, marker=".")
     ax2.plot(x, dataset['f2d_pos'],  label='f2d_pos', alpha=0.4)
     ax2.plot(x, dataset['f3d_pos'],  label='f3d_pos', alpha=0.4)

@@ -92,6 +92,7 @@ def extract_features(security,trade_date,get_price,close=None):
         feature['f{}d_amp'.format(days)]= to_categorial(amp, n_steps)
 
     change = (close - prev_close)/prev_close
+    feature['open'] = open
     feature['close'] = close
     feature['low'] = low
     feature['high'] = high
@@ -146,10 +147,6 @@ def extract_all_features(security,dataset,get_price):
     cache_name_file = "data/cache/{:.6}-features-{:.10}-{:.10}.cache".format(security,str(dataset.index[0]),str(dataset.index[-1]))
     if os.path.isfile(cache_name_file):
         df = pd.read_csv(cache_name_file)
-        cols = df.columns.tolist()
-        cols.remove('close')
-        cols.remove('date')
-        df[cols] = df[cols].astype('i')
     else:
         if len(dataset)==0: return pd.DataFrame()
         features = []
@@ -167,16 +164,20 @@ def extract_all_features(security,dataset,get_price):
 def mark_ideal_buypoint(security,dataset):
     if len(dataset)==0: return dataset
     close = dataset['close']
+    open = dataset['open']
     dataset['buy'] = 0
     for i in range(len(dataset)):
         if i<=2: continue
-        if i+3>= len(dataset): break
-        if close.iloc[i-1] >= close.iloc[i]   and \
+        if i+5>= len(dataset): break
+        if (close.iloc[i] - open.iloc[i])/open.iloc[i]<-0.001   and \
+           (close.iloc[i-1] - close.iloc[i])/close.iloc[i]>0.01   and \
            (close.iloc[i+1] - close.iloc[i])/close.iloc[i]>-0.015 and \
            close.iloc[i+2] > close.iloc[i]   and \
-           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.012 or \
-           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.012 or \
-           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.012 ):
+           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.02 or \
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.03 or \
+           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.03) and \
+           ((close.iloc[i+4] - close.iloc[i])/close.iloc[i]>0.03 or \
+           (close.iloc[i+5] - close.iloc[i])/close.iloc[i]>0.03):
            dataset.loc[dataset.iloc[i].name,'buy'] = 1
     return dataset
 

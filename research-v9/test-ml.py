@@ -32,7 +32,7 @@ MEASURE = 'buy'
 training_epoch=10
 
 true_samples = train_df[train_df.buy==1]
-false_samples = train_df.sample(len(true_samples))
+false_samples = train_df.sample(len(true_samples)*2)
 
 df = true_samples.append(false_samples)
 df = df.sample(frac=1)

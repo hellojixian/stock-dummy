@@ -20,9 +20,9 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-security='000045.XSHE'
+security='300201.XSHE'
 start_date=datetime.date(2012,5,12)
-end_date=datetime.date(2013,12,30)
+end_date=datetime.date(2014,12,30)
 
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
@@ -46,6 +46,10 @@ transformed = transform_data_buy(features)
 model_buy = get_model(transformed.shape[1])
 pred = np.round(model_buy.predict(transformed),2)
 features['buy_pred'] = pred[:,0]
+
+
+print(pred[:,0])
+print("buy_pred: ",features[features.buy_pred>0.4].shape[0])
 
 print("-"*50)
 baseline_profits = calc_baseline_profit(backtest)

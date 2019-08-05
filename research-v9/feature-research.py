@@ -26,7 +26,7 @@ backtest = get_price(security=security, start_date=start_date, end_date=end_date
 train_df = extract_all_features(security, backtest, get_price)
 
 print(train_df.shape)
-#
+
 # print(train_df['f60d_down'].quantile(0.9),train_df['f60d_down'].max())
 # print(train_df['f30d_down'].quantile(0.9),train_df['f30d_down'].max())
 # print(train_df['f10d_down'].quantile(0.9),train_df['f10d_down'].max())
@@ -47,6 +47,6 @@ for f in train_df.columns:
     }
 report = pd.DataFrame(report)
 report = report.T
-report['cor'] = np.abs(report['cor'])
-report['cov'] = np.abs(report['cov'])
-print(report.sort_values(by=["cor"],ascending=False))
+report['cor'] = report['cor']
+report['cov'] = report['cov']
+print(report.sort_values(by=["cor"],ascending=True))

@@ -18,12 +18,12 @@ def extract_features(security,trade_date,get_price,close=None):
     max_days = 120
     params = [
     # days, min, max
-    { 8:[0,1]},
+    {  8:[0,1]},
     {  5:[0,0.6]},
+    {  4:[0,0.5]},
     {  3:[0,0.4]},
     {  2:[0,0.3]},
-    {  1:[0,0.15]},
-    ]
+    {  1:[0,0.15]},]
 
     history = get_price(security=security, end_date=trade_date, count=max_days)
     if history.shape[0]!=max_days: return None
@@ -35,11 +35,35 @@ def extract_features(security,trade_date,get_price,close=None):
 
     history = history.iloc[:-1]
     feature = {}
+
+    # env = ""
+    # for days in [10,5,3]:
+    #     h = history[-days:]
+    #     min, max = h['low'].min(), h['high'].max()
+    #     min_idx = h[h.low==min].iloc[0].name
+    #     max_idx = h[h.high==max].iloc[0].name
+    #     min_idx = h.index.get_loc(min_idx)
+    #     max_idx = h.index.get_loc(max_idx)
+    #     env_bit = 0
+    #     if min_idx > max_idx: env_bit=1
+    #     env += str(env_bit)
+    #
+    # env = int(env,2)
+    # env = to_categorial(min_max_scale(env,0,15),n_steps)
+    # feature['f_env'] = env
+
+    h = history[-6:].copy()
+    h['ma5'] = h['close'].rolling(window=5).mean()
+    h['ma5_pos'] = (h['close'] - h['ma5']) / h['ma5']
+    fma5_pos = h['ma5_pos'].iloc[-1]
+    feature['fma5_pos'] = to_categorial(min_max_scale(fma5_pos,-0.05,0.05), n_steps)
+
     for param in params:
         days = list(param.keys())[0]
         param = param[days]
         history = history[-days:]
         min, max = history['low'].min(), history['high'].max()
+        env_bit=0
         if min==max:
             pos = np.round(n_steps/2)
             down = 0
@@ -54,6 +78,7 @@ def extract_features(security,trade_date,get_price,close=None):
         feature['f{}d_up'.format(days)]= to_categorial(up, n_steps)
 
     change = (close - prev_close)/prev_close
+
 
     feature['close'] = close
     feature['change'] = np.round(change,3)

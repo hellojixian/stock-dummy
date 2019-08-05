@@ -6,4 +6,6 @@ tables
 python-dotenv>0.10
 jqdatasdk>=1.7
 mpl_finance>=0.10
-matplotlib
+matplotlib>=1.4
+seaborn>=0.9
+ta-lib>=0.4

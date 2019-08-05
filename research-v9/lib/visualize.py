@@ -82,7 +82,7 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['f2d_ma_bias'], label='f2d_ma_bias',  alpha=0.9, color='r', marker=".")
+    ax2.plot(x, dataset['f_kdj'], label='f_kdj',  alpha=0.9, color='r', marker=".")
     ax2.plot(x, dataset['f1d_pos'],  label='f1d_pos',  alpha=0.7, marker=".")
     ax2.plot(x, dataset['f2d_pos'],  label='f2d_pos', alpha=0.4)
     ax2.plot(x, dataset['f3d_pos'],  label='f3d_pos', alpha=0.4)

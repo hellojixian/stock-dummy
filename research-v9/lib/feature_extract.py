@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import multiprocessing as mp
 import os
+import talib
 
 from lib.jqdata import *
 
@@ -35,27 +36,11 @@ def extract_features(security,trade_date,get_price,close=None):
 
     feature = {}
 
-    # env = ""
-    # for days in [10,5,3]:
-    #     h = history[-days:]
-    #     min, max = h['low'].min(), h['high'].max()
-    #     min_idx = h[h.low==min].iloc[0].name
-    #     max_idx = h[h.high==max].iloc[0].name
-    #     min_idx = h.index.get_loc(min_idx)
-    #     max_idx = h.index.get_loc(max_idx)
-    #     env_bit = 0
-    #     if min_idx > max_idx: env_bit=1
-    #     env += str(env_bit)
-    #
-    # env = int(env,2)
-    # env = to_categorial(min_max_scale(env,0,15),n_steps)
-    # feature['f_env'] = env
-
-    # history = history.iloc[:-1]
+    kdj = talib_KDJ(history[-15:],9,4,2)
+    feature['f_kdj'] = to_categorial(min_max_scale(kdj['j'][-1],20,110),n_steps)
 
     low = history['low'].iloc[-1]
     open = history['open'].iloc[-1]
-
     for days in [5,3,2]:
         h = history[-10:].copy()
         h['ma'] = h['close'].rolling(window=days).mean()
@@ -64,7 +49,7 @@ def extract_features(security,trade_date,get_price,close=None):
             ma_bias = (close - ma) / ma
         else:
             ma_bias = (low - ma) / ma
-        feature['f{}d_ma_bias'.format(days)] = to_categorial(min_max_scale(ma_bias,-0.03,0.01), n_steps)
+        feature['f{}d_ma_bias'.format(days)] = to_categorial(min_max_scale(ma_bias,-0.035,0.015), n_steps)
 
 
     for param in params:
@@ -164,10 +149,11 @@ def mark_ideal_buypoint(security,dataset):
         if i<=2: continue
         if i+3>= len(dataset): break
         if close.iloc[i-1] >= close.iloc[i]   and \
+           (close.iloc[i+1] - close.iloc[i])/close.iloc[i]>-0.015 and \
            close.iloc[i+2] > close.iloc[i]   and \
-           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.015 or \
-           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.015 or \
-           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.015 ):
+           ((close.iloc[i+1] - close.iloc[i])/close.iloc[i]>0.012 or \
+           (close.iloc[i+2] - close.iloc[i])/close.iloc[i]>0.012 or \
+           (close.iloc[i+3] - close.iloc[i])/close.iloc[i]>0.012 ):
            dataset.loc[dataset.iloc[i].name,'buy'] = 1
     return dataset
 
@@ -200,3 +186,18 @@ def mark_holding_days(security,dataset):
             hold_status=0
             dataset.loc[dataset.iloc[i].name,'hold'] = hold_status
     return dataset
+
+def talib_KDJ(data, fastk_period=9, slowk_period=3, slowd_period=2):
+    indicators={}
+    high = data['high'].values
+    low = data['low'].values
+    close = data['close'].values
+    #计算kd指标
+    indicators['k'], indicators['d'] = talib.STOCH(high, low, close,
+                                                   fastk_period=fastk_period,
+                                                   slowk_period=slowk_period,
+                                                   slowd_period=slowd_period,
+                                                  slowk_matype=0,slowd_matype=0)
+
+    indicators['j'] = 3 * indicators['k'] - 2 * indicators['d']
+    return indicators

@@ -39,6 +39,7 @@ def visualize_report(dataset,backtest,strategy):
     if 'action' not in dataset.columns:
         dataset['action']=""
 
+    dataset['ma3'] = dataset['close'].rolling(window=3).mean()
     dataset['ma5'] = dataset['close'].rolling(window=5).mean()
     dataset['ma10'] = dataset['close'].rolling(window=10).mean()
     dataset['ma30'] = dataset['close'].rolling(window=30).mean()
@@ -51,6 +52,7 @@ def visualize_report(dataset,backtest,strategy):
     fig =plt.figure(figsize=(15,8))
     ax1 =plt.subplot(gs[:2,:])
     # ax1.plot(x, dataset['close'],label='Price', alpha=0.5)
+    ax1.plot(x, dataset['ma3'],label='MA3', alpha=0.9, color='r')
     ax1.plot(x, dataset['ma5'],label='MA5', alpha=0.5)
     ax1.plot(x, dataset['ma10'],label='MA10', alpha=0.5)
     ax1.plot(x, dataset['ma30'],label='MA30', alpha=0.5)
@@ -80,13 +82,10 @@ def visualize_report(dataset,backtest,strategy):
 
 
     ax2 =plt.subplot(gs[2,:])
-    ax2.plot(x, dataset['fma5_pos'], label='fma5_pos',  alpha=0.7, marker=".")
+    ax2.plot(x, dataset['f2d_ma_bias'], label='f2d_ma_bias',  alpha=0.9, color='r', marker=".")
     ax2.plot(x, dataset['f1d_pos'],  label='f1d_pos',  alpha=0.7, marker=".")
-    ax2.plot(x, dataset['f1d_down'], label='f1d_down',  alpha=0.4)
     ax2.plot(x, dataset['f2d_pos'],  label='f2d_pos', alpha=0.4)
-    ax2.plot(x, dataset['f2d_down'], label='f2d_down', alpha=0.4)
     ax2.plot(x, dataset['f3d_pos'],  label='f3d_pos', alpha=0.4)
-    ax2.plot(x, dataset['f3d_down'], label='f3d_down',alpha=0.4)
     ax2.plot(x, dataset['f5d_pos'],  label='f5d_pos', alpha=0.4)
     ax2.plot(x, dataset['f8d_pos'],  label='f8d_pos', alpha=0.4)
 
@@ -97,7 +96,7 @@ def visualize_report(dataset,backtest,strategy):
     ax2.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
     ax2.xaxis.set_major_formatter(mdates.DateFormatter(DATE_FORMAT))
     ax2.set_xticklabels(xlabel,rotation=45, rotation_mode="default",alpha=0.5)
-    ax2.set_yticks(np.round(np.linspace(0,7, 8),2))
+    ax2.set_yticks(np.round(np.linspace(0,9, 10),2))
     ax2.yaxis.set_minor_locator(ticker.MultipleLocator(0.5))
     ax2.set_ylim(-0.5,9.5)
     ax2.set_xlim(x[-max_width],x[-1])

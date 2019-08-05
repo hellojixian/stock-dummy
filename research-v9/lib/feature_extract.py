@@ -52,11 +52,20 @@ def extract_features(security,trade_date,get_price,close=None):
     # env = to_categorial(min_max_scale(env,0,15),n_steps)
     # feature['f_env'] = env
 
-    h = history[-6:].copy()
-    h['ma5'] = h['close'].rolling(window=5).mean()
-    h['ma5_pos'] = (h['close'] - h['ma5']) / h['ma5']
-    fma5_pos = h['ma5_pos'].iloc[-1]
-    feature['fma5_pos'] = to_categorial(min_max_scale(fma5_pos,-0.05,0.05), n_steps)
+    for days in [5,3,2]:
+        h = history[-10:].copy()
+        h['ma'] = h['close'].rolling(window=days).mean()
+        ma = h['ma'].iloc[-1]
+        low = h['low'].iloc[-1]
+        close = h['close'].iloc[-1]
+        open = h['open'].iloc[-1]
+        if close > open:
+            ma_bias = (close - ma) / ma
+        else:
+            ma_bias = (low - ma) / ma
+        feature['f{}d_ma_bias'.format(days)] = to_categorial(min_max_scale(ma_bias,-0.03,0.01), n_steps)
+
+
 
     for param in params:
         days = list(param.keys())[0]
@@ -145,7 +154,7 @@ def extract_all_features(security,dataset,get_price):
         df = mark_ideal_buypoint(security,df)
         df = mark_ideal_sellpoint(security,df)
         df = mark_holding_days(security,df)
-        df.to_csv(cache_name_file, index=False)
+        # df.to_csv(cache_name_file, index=False)
     return df
 
 

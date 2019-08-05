@@ -64,8 +64,8 @@ def extract_features(security,trade_date,get_price,close=None):
     for param in params:
         days = list(param.keys())[0]
         param = param[days]
-        history = history[-days:]
-        min, max = history['low'].min(), history['high'].max()
+        h = history[-days:]
+        min, max = h['low'].min(), h['high'].max()
         env_bit=0
         if min==max:
             pos = np.round(n_steps/2)
@@ -83,6 +83,13 @@ def extract_features(security,trade_date,get_price,close=None):
         feature['f{}d_pos'.format(days)]= to_categorial(pos, n_steps)
         feature['f{}d_down'.format(days)]= to_categorial(down, n_steps)
         feature['f{}d_up'.format(days)]= to_categorial(up, n_steps)
+
+
+    for days in [2,5,10]:
+        h = history[-days:]
+        min, max = h['low'].min(), h['high'].max()
+        amp = min_max_scale(abs((max-min)/min),0,0.35)
+        feature['f{}d_amp'.format(days)]= to_categorial(amp, n_steps)
 
     change = (close - prev_close)/prev_close
     feature['close'] = close

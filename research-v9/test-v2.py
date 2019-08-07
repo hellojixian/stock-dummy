@@ -17,9 +17,9 @@ pd.set_option('display.width', 1000)
 security='000919.XSHE'
 security='600822.XSHG'
 # security='600001.XSHG'
-security='000045.XSHE'
+# security='000045.XSHE'
 start_date=datetime.date(2012,5,12)
-end_date=datetime.date(2013,12,30)
+end_date=datetime.date(2014,12,30)
 
 
 backtest = get_price(security=security, start_date=start_date, end_date=end_date)
@@ -52,4 +52,4 @@ strategy_profits = strategy.get_profit(backtest['close'].iloc[-1])
 print("Baseline Profit: {:.2f}%".format(baseline_profits))
 print("Strategy Profit: {:.2g}%".format(strategy_profits))
 print("Test Durtion: {:.2f} sec".format(time.time() - timestamp))
-visualize_report(generate_report(features),backtest,strategy)
+visualize_report_v2(generate_report(features),backtest,strategy)

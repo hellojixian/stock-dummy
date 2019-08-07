@@ -17,16 +17,14 @@ from lib.vis import *
 mpl.style.use('dark_background')
 mpl.rcParams['toolbar'] = 'None'
 
-lookback_size = 500
+lookback_size = 600
 security='000786.XSHE'
 security='000537.XSHE'
 end_date=datetime.date(2012,6,15)
 
 history=get_price(security, end_date=end_date, count=lookback_size)
 
-visualize(history)
 
-#
 # window_size=300
 # report = pd.DataFrame()
 # i = 0
@@ -62,3 +60,5 @@ visualize(history)
 #     record = pd.Series(record)
 #     report=report.append(record,ignore_index=True)
 #     i+=1
+
+visualize(history)

@@ -61,7 +61,65 @@ def visualize(dataset, max_width=100):
         price_label.set_color(c)
         return
 
-    update_price_label(dataset['num_date'].iloc[-1])
+    def onClick(event):
+        if not event.xdata: return
+        pos = int(event.xdata)
+        date = mdates.num2date(pos).strftime(DATE_FORMAT)
+        if date not in dataset.index:
+            date = datetime.datetime.strptime(date, DATE_FORMAT)
+            ns = dataset[dataset.index<date]
+            date = dataset[dataset.index<date].iloc[-1].name
+            pos = mdates.date2num(date)
+
+        for vline in cursor_vlines:
+            vline.set_data([pos,pos], [0, 1])
+
+        date = mdates.num2date(pos)
+        price = dataset['close'].loc[date]
+        cursor_hline.set_data([0, 1],[price,price])
+        update_price_label(pos)
+
+        subset = dataset[:dataset.index.get_loc(date)+1]
+        res = test_feature(subset,date)
+        period = 120
+        limit_hlines[0].set_data([0,1],[res['f_max_{}'.format(period)],res['f_max_{}'.format(period)]])
+        limit_hlines[1].set_data([0,1],[res['f_min_{}'.format(period)],res['f_min_{}'.format(period)]])
+
+        vmax = res['f_max_{}'.format(period)]
+        vmin = res['f_min_{}'.format(period)]
+
+        new_area = [[0,vmax],[0,vmin],[1,vmin],[1,vmax]]
+        minmax_hspan.set_xy(new_area)
+        print(res)
+
+        plt.draw()
+        return
+
+    def onPress(event):
+        offest = 0
+        step = 10
+        if event.key.lower()=='a' or event.key=='left':
+            offest = -1
+        elif event.key.lower()=='d' or event.key=='right':
+            offest = 1
+        if event.key.lower()=='z':
+            offest = -step
+        elif event.key.lower()=='c':
+            offest = step
+        x_start_num_date,x_end_num_date = ax1.get_xlim()
+        x_start_num_date+=offest
+        x_end_num_date+=offest
+
+        subset = dataset[dataset.eval("num_date>={} & num_date<={}"
+            .format(x_start_num_date, x_end_num_date))]
+
+        for ax in [ax1, ax2]:
+            ax.set_xlim(x_start_num_date, x_end_num_date)
+        ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
+        plt.draw()
+        return
+
+    ax1.plot(x, dataset['close'], label='Price', alpha=0.3)
 
     x_start_pos = len(dataset)-max_width-right_offest-1
     x_end_pos = len(dataset)-right_offest-1
@@ -80,9 +138,15 @@ def visualize(dataset, max_width=100):
     ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
     ax1.set_xticklabels([])
 
-    cusor_vlines = []
-    cusor_vlines.append(ax1.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.9))
-    cusor_vlines.append(ax2.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.9))
+    cursor_vlines = []
+    cursor_vlines.append(ax1.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.6))
+    cursor_vlines.append(ax2.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.6))
+    cursor_hline = ax1.axhline(y=0, color="w", linewidth=0.5, alpha=0.5)
+
+    limit_hlines = []
+    limit_hlines.append(ax1.axhline(y=0, color="y", label="max",linewidth=1, alpha=0.3))
+    limit_hlines.append(ax1.axhline(y=0, color="y", label="min",linewidth=1, alpha=0.3))
+    minmax_hspan = ax1.axhspan(0, 0, facecolor='y', alpha=0.08)
 
     candlestick_ohlc(ax1, zip(
         dataset['num_date'],
@@ -92,52 +156,25 @@ def visualize(dataset, max_width=100):
 
     ax2.set_ylim(0,1)
 
-
     # ax2.axhline(y=0, color="w", linewidth=0.5, alpha=0.9)
     # ax2.axhspan(2, 5, facecolor='blue', alpha=0.05)
-
-
-
-    def onClick(event):
-        if not event.xdata: return
-        pos = int(event.xdata)
-        date = mdates.num2date(pos).strftime(DATE_FORMAT)
-        if date not in dataset.index:
-            date = datetime.datetime.strptime(date, DATE_FORMAT)
-            ns = dataset[dataset.index<date]
-            date = dataset[dataset.index<date].iloc[-1].name
-            pos = mdates.date2num(date)
-
-        for vline in cusor_vlines:
-            vline.set_data([pos,pos], [0, 1])
-
-        update_price_label(pos)
-        plt.draw()
-        return
-
-    def onPress(event):
-        offest = 0
-        step = 10
-        if event.key.lower()=='a' or event.key=='left':
-            offest = -step
-        elif event.key.lower()=='d' or event.key=='right':
-            offest = step
-        x_start_num_date,x_end_num_date = ax1.get_xlim()
-        x_start_num_date+=offest
-        x_end_num_date+=offest
-
-        subset = dataset[dataset.eval("num_date>={} & num_date<={}"
-            .format(x_start_num_date, x_end_num_date))]
-
-        for ax in [ax1, ax2]:
-            ax.set_xlim(x_start_num_date, x_end_num_date)
-        ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
-        plt.draw()
-        return
 
     fig.canvas.mpl_connect('button_press_event', onClick)
     fig.canvas.mpl_connect('key_press_event', onPress)
 
+    update_price_label(dataset['num_date'].iloc[-1])
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     plt.show()
     return
+
+def test_feature(dataset,current_date):
+    res = {}
+    for period in [30,60,120]:
+        subset = dataset['close'][-period:]
+        v_max = max(subset)
+        v_min = min(subset)
+        v_space = (v_max-v_min)/v_max
+        res["f_vspace_{}".format(period)] = v_space
+        res["f_max_{}".format(period)] = v_max
+        res["f_min_{}".format(period)] = v_min
+    return res

@@ -20,7 +20,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-security='300201.XSHE'
+security='000038.XSHE'
 start_date=datetime.date(2012,5,12)
 end_date=datetime.date(2014,12,30)
 

@@ -37,7 +37,7 @@ false_samples = train_df.sample(len(true_samples)*2)
 df = true_samples.append(false_samples)
 df = df.sample(frac=1)
 
-# df = train_df
+df = train_df
 x = transform_data_buy(df)
 y = df[MEASURE].values
 

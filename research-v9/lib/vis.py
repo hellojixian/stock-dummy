@@ -23,7 +23,7 @@ def calc_baseline_profit(baseline):
                     / baseline['close'].iloc[0] * 100,2)
 
 right_offest = 0
-def visualize(dataset, max_width=100):
+def visualize(dataset, max_width=150):
     dataset = dataset.copy()
     dataset.index = pd.to_datetime(dataset.index, format=DATE_FORMAT)
     baseline_profits = calc_baseline_profit(dataset)
@@ -37,10 +37,11 @@ def visualize(dataset, max_width=100):
 
     mpl.style.use('dark_background')
     mpl.rcParams['toolbar'] = 'None'
-    gs = gridspec.GridSpec(3, 3)
-    fig =plt.figure(figsize=(15,8))
-    ax1 =plt.subplot(gs[:2,:])
-    ax2 =plt.subplot(gs[2,:])
+
+    fig =plt.figure(figsize=(12,10))
+    gs = gridspec.GridSpec(4, 3)
+    ax1 =plt.subplot(gs[:3,:])
+    ax2 =plt.subplot(gs[3,:])
 
     title = "Baseline: {:.2f}%".format(baseline_profits)
     subtitle = "From {:.10}    to {:.10}    Duration: {} days".format(str(dataset.index[0]), str(dataset.index[-1]), len(dataset))
@@ -81,13 +82,12 @@ def visualize(dataset, max_width=100):
 
         subset = dataset[:dataset.index.get_loc(date)+1]
         res = test_feature(subset,date)
-        period = 120
-        limit_hlines[0].set_data([0,1],[res['f_max_{}'.format(period)],res['f_max_{}'.format(period)]])
-        limit_hlines[1].set_data([0,1],[res['f_min_{}'.format(period)],res['f_min_{}'.format(period)]])
+        limit_hlines[0].set_data([0,1],[res['f_max'],res['f_max']])
+        limit_hlines[1].set_data([0,1],[res['f_min'],res['f_min']])
 
-        vmax = res['f_max_{}'.format(period)]
-        vmin = res['f_min_{}'.format(period)]
-
+        # update price area
+        vmax = res['f_max']
+        vmin = res['f_min']
         new_area = [[0,vmax],[0,vmin],[1,vmin],[1,vmax]]
         minmax_hspan.set_xy(new_area)
         print(res)
@@ -169,12 +169,27 @@ def visualize(dataset, max_width=100):
 
 def test_feature(dataset,current_date):
     res = {}
-    for period in [30,60,120]:
-        subset = dataset['close'][-period:]
-        v_max = max(subset)
-        v_min = min(subset)
-        v_space = (v_max-v_min)/v_max
-        res["f_vspace_{}".format(period)] = v_space
-        res["f_max_{}".format(period)] = v_max
-        res["f_min_{}".format(period)] = v_min
+    period = 250
+
+    subset = dataset['close'][-period:]
+    v_max = max(subset)
+    v_min = min(subset)
+    v_max_pos = subset[subset==v_max].index[0]
+    v_min_pos = subset[subset==v_min].index[0]
+
+    min_vspace = 0.45
+    v_space = (v_max-v_min)/v_max
+    if v_max_pos < v_min_pos:
+        # down trend
+        if v_space<min_vspace:
+            print('adjust v_space from',v_space)
+            v_min = v_max*(1-min_vspace)
+            v_space = (v_max-v_min)/v_max
+
+
+
+
+    res["f_vspace".format(period)] = v_space
+    res["f_max".format(period)] = v_max
+    res["f_min".format(period)] = v_min
     return res

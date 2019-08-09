@@ -67,7 +67,6 @@ def visualize(dataset, max_width=150):
         date = mdates.num2date(pos).strftime(DATE_FORMAT)
         if date not in dataset.index:
             date = datetime.datetime.strptime(date, DATE_FORMAT)
-            ns = dataset[dataset.index<date]
             date = dataset[dataset.index<date].iloc[-1].name
             pos = mdates.date2num(date)
 
@@ -101,7 +100,14 @@ def visualize(dataset, max_width=150):
             event.xdata = pos-1
             onClick(event)
         elif event.key.lower()=='d' or event.key=='right':
-            event.xdata = pos+1
+            pos += 1
+            date = mdates.num2date(pos).strftime(DATE_FORMAT)
+            if date not in dataset.index:
+                date = datetime.datetime.strptime(date, DATE_FORMAT)
+                date = dataset[dataset.index>date].iloc[0].name
+                pos = mdates.date2num(date)
+
+            event.xdata = pos
             onClick(event)
         if event.key.lower()=='z':
             offest = -step
@@ -172,8 +178,8 @@ def test_feature(dataset,axs):
     # 找有没有支撑
     # 看支撑被用过几次
 
-    fuzzy_range = 0.02
-    price = points['price'].iloc[-1]
+    fuzzy_range = 0.03
+    price = subset['low'].iloc[-1]
     action = ''
     if points['price'].iloc[-2] > price:
         # 下降破断

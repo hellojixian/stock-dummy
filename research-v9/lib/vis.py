@@ -38,7 +38,7 @@ def visualize(dataset, max_width=150):
     mpl.style.use('dark_background')
     mpl.rcParams['toolbar'] = 'None'
 
-    fig =plt.figure(figsize=(12,10))
+    fig =plt.figure(figsize=(12,9))
     gs = gridspec.GridSpec(4, 3)
     ax1 =plt.subplot(gs[:3,:])
     ax2 =plt.subplot(gs[3,:])
@@ -82,8 +82,6 @@ def visualize(dataset, max_width=150):
 
         subset = dataset[:dataset.index.get_loc(date)+1]
         res = test_feature(subset,date)
-        limit_hlines[0].set_data([0,1],[res['f_max'],res['f_max']])
-        limit_hlines[1].set_data([0,1],[res['f_min'],res['f_min']])
 
         # update price area
         vmax = res['f_max']
@@ -143,9 +141,6 @@ def visualize(dataset, max_width=150):
     cursor_vlines.append(ax2.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.6))
     cursor_hline = ax1.axhline(y=0, color="w", linewidth=0.5, alpha=0.5)
 
-    limit_hlines = []
-    limit_hlines.append(ax1.axhline(y=0, color="y", label="max",linewidth=1, alpha=0.3))
-    limit_hlines.append(ax1.axhline(y=0, color="y", label="min",linewidth=1, alpha=0.3))
     minmax_hspan = ax1.axhspan(0, 0, facecolor='y', alpha=0.08)
 
     candlestick_ohlc(ax1, zip(
@@ -164,8 +159,7 @@ def visualize(dataset, max_width=150):
 
     update_price_label(dataset['num_date'].iloc[-1])
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
-    plt.show()
-    return
+    return [plt,ax1, ax2]
 
 def test_feature(dataset,current_date):
     res = {}

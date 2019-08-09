@@ -173,7 +173,7 @@ def visualize(dataset, max_width=150):
 
 g={}
 def test_feature(dataset,axs):
-    points = find_turn_points(dataset)
+    points = find_turn_points(dataset[-120:])
     # 找有没有支撑
     # 看支撑被用过几次
     should_buy(dataset)

@@ -34,25 +34,25 @@ def should_buy(dataset):
 
     decision = False
     fuzzy_range = 0.03
-    fuzzy_range_low = 0.04
+    fuzzy_range_low = 0.08
     price = subset['close'].iloc[-1]
     low = subset['low'].iloc[-1]
     buy_signal_count = 0
 
     if points['direction'].iloc[-2]=='down':
         last_vspace = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
-        support_points = points[points.direction=='up']
+        support_points = points[(points.direction=='up') & (points.price>low*(1-fuzzy_range_low))]
         # 下降破断
         pos = 1
         if last_vspace>0.08: #最后一次的下跌空间要够
             while(pos<support_points.shape[0]):
                 point = support_points['price'].iloc[-pos]
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range) < price) \
-                    or (point*(1+fuzzy_range_low) > low and point*(1-fuzzy_range_low) < low):
+                    or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
                     buy_signal_count +=1
                     # print(last_vspace, price, point, point*(1+fuzzy_range), point*(1-fuzzy_range), pos)
                 pos += 1
-            if buy_signal_count>0 and buy_signal_count<=4:
+            if buy_signal_count>0 and buy_signal_count<3:
                 if subset['low'][-5:].min() == low: decision = True
 
         max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()

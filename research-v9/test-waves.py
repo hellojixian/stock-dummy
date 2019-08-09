@@ -39,6 +39,6 @@ plt,ax1,ax2 = visualize(history)
 ax1.plot(turn_points['num_date'],turn_points['price'], label="RDP", alpha=0.3)
 ax1.legend(loc='upper right')
 
-ax1.scatter(buy_points['num_date'],buy_points['price']-0.1, color="w", marker="^", alpha=1, s=10)
+ax1.scatter(buy_points['num_date'],buy_points['price']-0.3, color="w", marker="^", alpha=1, s=10)
 
 plt.show()

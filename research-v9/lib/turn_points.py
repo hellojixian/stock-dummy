@@ -6,6 +6,7 @@ def find_turn_points(points, epsilon):
     directions = np.diff(simplified[:,1])
     print(directions)
     print(directions.shape)
+    # todo https://stackoverflow.com/questions/38065898/how-to-remove-the-adjacent-duplicate-value-in-a-numpy-array
     return simplified
 
 def angle(dir):

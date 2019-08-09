@@ -1,29 +1,22 @@
 from rdp import rdp
 import numpy as np
+import pandas as pd
 
-def find_turn_points(points, epsilon):
+def _find_turn_points(points, epsilon):
     simplified = rdp(points, epsilon=epsilon)
     directions = np.diff(simplified[:,1])
-    print(directions)
-    print(directions.shape)
-    # todo https://stackoverflow.com/questions/38065898/how-to-remove-the-adjacent-duplicate-value-in-a-numpy-array
-    return simplified
+    idx_keep = [points[0]]
+    for i in range(directions.shape[0]-1):
+        if (directions[i]>=0 and directions[i+1]<0)\
+            or (directions[i]<=0 and directions[i+1]>0):
+            idx_keep.append(simplified[i+1])
+    idx_keep.append(points[-1])
+    idx_keep = np.array(idx_keep)
+    return idx_keep
 
-def angle(dir):
-    """
-    Returns the angles between vectors.
-
-    Parameters:
-    dir is a 2D-array of shape (N,M) representing N vectors in M-dimensional space.
-
-    The return value is a 1D-array of values of shape (N-1,), with each value
-    between 0 and pi.
-
-    0 implies the vectors point in the same direction
-    pi/2 implies the vectors are orthogonal
-    pi implies the vectors point in opposite directions
-    """
-    dir2 = dir[1:]
-    dir1 = dir[:-1]
-    return np.arccos((dir1*dir2).sum(axis=1)/(
-        np.sqrt((dir1**2).sum(axis=1)*(dir2**2).sum(axis=1))))
+def find_turn_points(history):
+    points = history[['num_date','close']].values
+    epsilon = history['close'].iloc[-1]*0.07
+    turn_points = _find_turn_points(points, epsilon=epsilon)
+    turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
+    return turn_points

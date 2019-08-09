@@ -10,8 +10,7 @@ import matplotlib.ticker as ticker
 from mpl_finance import candlestick_ohlc
 
 import datetime,time
-import talib as ta
-from talib import MA_Type
+from lib.turn_points import *
 
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -81,25 +80,29 @@ def visualize(dataset, max_width=150):
         update_price_label(pos)
 
         subset = dataset[:dataset.index.get_loc(date)+1]
-        res = test_feature(subset,date)
+        res = test_feature(subset,[ax1,ax2])
+
 
         # update price area
-        vmax = res['f_max']
-        vmin = res['f_min']
-        new_area = [[0,vmax],[0,vmin],[1,vmin],[1,vmax]]
-        minmax_hspan.set_xy(new_area)
-        print(res)
+        # vmax = res['f_max']
+        # vmin = res['f_min']
+        # new_area = [[0,vmax],[0,vmin],[1,vmin],[1,vmax]]
+        # minmax_hspan.set_xy(new_area)
+        # print(res)
 
         plt.draw()
         return
 
     def onPress(event):
         offest = 0
-        step = 10
+        step = 20
+        pos = cursor_vlines[0].get_data()[0][0]
         if event.key.lower()=='a' or event.key=='left':
-            offest = -1
+            event.xdata = pos-1
+            onClick(event)
         elif event.key.lower()=='d' or event.key=='right':
-            offest = 1
+            event.xdata = pos+1
+            onClick(event)
         if event.key.lower()=='z':
             offest = -step
         elif event.key.lower()=='c':
@@ -117,7 +120,7 @@ def visualize(dataset, max_width=150):
         plt.draw()
         return
 
-    ax1.plot(x, dataset['close'], label='Price', alpha=0.3)
+    # ax1.plot(x, dataset['close'], label='Price', alpha=0.3)
 
     x_start_pos = len(dataset)-max_width-right_offest-1
     x_end_pos = len(dataset)-right_offest-1
@@ -132,7 +135,6 @@ def visualize(dataset, max_width=150):
         ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%m/%d"))
         ax.set_xlim(x_start_num_date, x_end_num_date)
-        ax.legend(loc='upper right')
     ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
     ax1.set_xticklabels([])
 
@@ -161,29 +163,35 @@ def visualize(dataset, max_width=150):
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     return [plt,ax1, ax2]
 
-def test_feature(dataset,current_date):
-    res = {}
-    period = 250
+g={}
+def test_feature(dataset,axs):
+    period = 180
 
-    subset = dataset['close'][-period:]
-    v_max = max(subset)
-    v_min = min(subset)
-    v_max_pos = subset[subset==v_max].index[0]
-    v_min_pos = subset[subset==v_min].index[0]
+    subset = dataset[-period:]
+    points = find_turn_points(subset)
+    # 找有没有支撑
+    # 看支撑被用过几次
 
-    min_vspace = 0.45
-    v_space = (v_max-v_min)/v_max
-    if v_max_pos < v_min_pos:
-        # down trend
-        if v_space<min_vspace:
-            print('adjust v_space from',v_space)
-            v_min = v_max*(1-min_vspace)
-            v_space = (v_max-v_min)/v_max
+    fuzzy_range = 0.02
+    price = points['price'].iloc[-1]
+    action = ''
+    if points['price'].iloc[-2] > price:
+        # 下降破断
+        pos = 3
+        while(pos<points.shape[0]-2):
+            point = points['price'].iloc[-pos]
+            print(price, point, point*(1+fuzzy_range), point*(1-fuzzy_range), pos)
+            if point*(1+fuzzy_range) > price and point*(1-fuzzy_range) < price:
+                action = 'buy'
+                break
+            pos += 2
 
+    print('{:.10} action:{}'.format(str(subset.iloc[-1].name), action))
 
+    if 'short_rdp' not in g.keys():
+        g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')
+    else:
+        g['short_rdp'].set_xdata(points['num_date'])
+        g['short_rdp'].set_ydata(points['price'])
 
-
-    res["f_vspace".format(period)] = v_space
-    res["f_max".format(period)] = v_max
-    res["f_min".format(period)] = v_min
-    return res
+    return points

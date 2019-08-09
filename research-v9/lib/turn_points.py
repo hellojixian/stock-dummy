@@ -34,7 +34,7 @@ def should_buy(dataset):
 
     decision = False
     fuzzy_range = 0.03
-    fuzzy_range_low = 0.08
+    fuzzy_range_low = 0.07
     price = subset['close'].iloc[-1]
     low = subset['low'].iloc[-1]
     buy_signal_count = 0

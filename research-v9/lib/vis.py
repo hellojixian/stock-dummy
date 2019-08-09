@@ -169,30 +169,14 @@ def visualize(dataset, max_width=150):
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     return [plt,ax1, ax2]
 
+
+
 g={}
 def test_feature(dataset,axs):
-    period = 180
-
-    subset = dataset[-period:]
-    points = find_turn_points(subset)
+    points = find_turn_points(dataset)
     # 找有没有支撑
     # 看支撑被用过几次
-
-    fuzzy_range = 0.03
-    price = subset['low'].iloc[-1]
-    action = ''
-    if points['price'].iloc[-2] > price:
-        # 下降破断
-        pos = 3
-        while(pos<points.shape[0]-2):
-            point = points['price'].iloc[-pos]
-            print(price, point, point*(1+fuzzy_range), point*(1-fuzzy_range), pos)
-            if point*(1+fuzzy_range) > price and point*(1-fuzzy_range) < price:
-                action = 'buy'
-                break
-            pos += 2
-
-    print('{:.10} action:{}'.format(str(subset.iloc[-1].name), action))
+    should_buy(dataset)
 
     if 'short_rdp' not in g.keys():
         g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')

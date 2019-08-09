@@ -1,6 +1,8 @@
 from rdp import rdp
 import numpy as np
 import pandas as pd
+import matplotlib.dates as mdates
+
 
 def _find_turn_points(points, epsilon):
     simplified = rdp(points, epsilon=epsilon)
@@ -16,7 +18,12 @@ def _find_turn_points(points, epsilon):
 
 def find_turn_points(history):
     points = history[['num_date','close']].values
-    epsilon = history['close'].iloc[-1]*0.07
+    short_his = history[-5:].copy()
+    short_his['amp'] = short_his['high'] - short_his['low']
+    ma_amp = short_his['amp'].mean()
+    epsilon = ma_amp
+    # epsilon = history['close'].iloc[-1]*0.07
+
     turn_points = _find_turn_points(points, epsilon=epsilon)
     turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
     turn_points['direction'] = 'unknown'
@@ -34,31 +41,75 @@ def should_buy(dataset):
 
     decision = False
     fuzzy_range = 0.03
-    fuzzy_range_low = 0.07
+    fuzzy_range_low = 0.015
     price = subset['close'].iloc[-1]
     low = subset['low'].iloc[-1]
     buy_signal_count = 0
+    v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
+
+    bottom_points = points[(points.direction=='up')]
+    top_points = points[(points.direction=='down')]
+
+
 
     if points['direction'].iloc[-2]=='down':
-        last_vspace = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
-        support_points = points[(points.direction=='up') & (points.price>low*(1-fuzzy_range_low))]
+        last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
+        last_up = (points['price'].iloc[-2] - points['price'].iloc[-3]) / points['price'].iloc[-2]
+        prev_down = (points['price'].iloc[-4] - points['price'].iloc[-3]) / points['price'].iloc[-4]
+
         # 下降破断
         pos = 1
-        if last_vspace>0.08: #最后一次的下跌空间要够
+        if (last_down>0.06) \
+            or prev_down>0.25: #最后一次的下跌空间要够
+
+            if v_pos>0.45 or v_pos<0.2:
+                fuzzy_range=0.05
+                if last_up>0.2 and last_down>0.1:
+                    fuzzy_range=0.05
+                    decision = True
+                    print('got it')
+            else:
+                #下跌幅度不够，往下看支撑位
+                if (last_down<0.1 and prev_down<0.25):
+                    fuzzy_range=0.01
+
+            support_points = points[(points.direction=='up') & (points.price>price*(1-fuzzy_range))]
             while(pos<support_points.shape[0]):
                 point = support_points['price'].iloc[-pos]
-                if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range) < price) \
+                num_date =  support_points['num_date'].iloc[-pos]
+                date = mdates.num2date(num_date)
+                print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}/{:.2f}".format(str(date), price,
+                        point*(1-fuzzy_range_low), point*(1+fuzzy_range),last_down,prev_down ))
+                if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
                     or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
                     buy_signal_count +=1
-                    # print(last_vspace, price, point, point*(1+fuzzy_range), point*(1-fuzzy_range), pos)
+                    break
                 pos += 1
-            if buy_signal_count>0 and buy_signal_count<3:
+            if buy_signal_count>0:
                 if subset['low'][-5:].min() == low: decision = True
 
-        max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
-        if max_drop > 0.58: decision = True
-        max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
-        if max_drop > 0.48: decision = True
+        # 说明下爹无力
+        if (last_down<0.01 and v_pos<0.2): decision = True
 
-        print('{:.10}\t buy: {} \tsignal: {} \tlast_vspace: {:.3f}'.format(str(subset.iloc[-1].name), decision,buy_signal_count,last_vspace))
+        max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
+        if max_drop > 0.58:
+            print("240 max_drop:",max_drop)
+            decision = True
+        max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
+        if max_drop > 0.48:
+            print("60 max_drop:",max_drop)
+            decision = True
+
+        # 判断是否应该忽略这次购买信号
+        # 比如箱体横盘太久了
+        print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}'\
+            .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,prev_down,last_up,v_pos))
+
+    if decision == True:
+        if ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1]) \
+            or (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
+            and v_pos > 0.2:
+            print('ignore down trend')
+            return False
+
     return decision

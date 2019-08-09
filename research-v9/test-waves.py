@@ -16,8 +16,9 @@ import datetime,time
 
 
 lookback_size = 600
-security='000786.XSHE'
+# security='000786.XSHE'
 # security='000537.XSHE'
+security='000919.XSHE'
 # end_date=datetime.date(2012,6,15)
 end_date=datetime.date(2011,4,15)
 

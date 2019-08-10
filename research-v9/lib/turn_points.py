@@ -21,7 +21,7 @@ def find_turn_points(history):
     short_his = history[-5:].copy()
     short_his['amp'] = short_his['high'] - short_his['low']
     ma_amp = short_his['amp'].mean()
-    epsilon = ma_amp
+    epsilon = ma_amp*2
 
     turn_points = _find_turn_points(points, epsilon=epsilon)
     turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
@@ -109,15 +109,15 @@ def should_buy(dataset):
     if points['direction'].iloc[-2]=='up':
         last_down = (points['price'].iloc[-3] - points['price'].iloc[-2]) / points['price'].iloc[-3]
         last_up = (points['price'].iloc[-1] - points['price'].iloc[-2]) / points['price'].iloc[-2]
-        prev_down = (points['price'].iloc[-5] - points['price'].iloc[-4]) / points['price'].iloc[-5]
+        # prev_down = (points['price'].iloc[-5] - points['price'].iloc[-4]) / points['price'].iloc[-5]
 
 
         if (bottom_points['price'].iloc[-2] < bottom_points['price'].iloc[-1] ) \
             and v_pos < 0.4 and last_up<0.03:
             decision = True
         if os.environ['DEBUG']=='ON':
-            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
-                .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,prev_down,last_up,v_pos,points['direction'].iloc[-2]))
+            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+                .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,last_up,v_pos,points['direction'].iloc[-2]))
 
 
     # 判断是否应该忽略这次购买信号

@@ -14,7 +14,7 @@ from lib.turn_points import *
 import matplotlib.dates as mdates
 import datetime,time
 
-debug = 'OFF'
+debug = 'ON'
 lookback_size = 600
 # security='000786.XSHE'
 # security='000537.XSHE'

@@ -2,7 +2,7 @@ from rdp import rdp
 import numpy as np
 import pandas as pd
 import matplotlib.dates as mdates
-
+import math, sys, os
 
 def _find_turn_points(points, epsilon):
     simplified = rdp(points, epsilon=epsilon)
@@ -22,7 +22,6 @@ def find_turn_points(history):
     short_his['amp'] = short_his['high'] - short_his['low']
     ma_amp = short_his['amp'].mean()
     epsilon = ma_amp
-    # epsilon = history['close'].iloc[-1]*0.07
 
     turn_points = _find_turn_points(points, epsilon=epsilon)
     turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
@@ -67,7 +66,7 @@ def should_buy(dataset):
                 if last_up>0.2 and last_down>0.1:
                     fuzzy_range=0.05
                     decision = True
-                    print('got it')
+                    if os.environ['DEBUG']=='ON':print('got it')
             else:
                 #下跌幅度不够，往下看支撑位
                 if (last_down<0.1 and prev_down<0.25):
@@ -78,7 +77,8 @@ def should_buy(dataset):
                 point = support_points['price'].iloc[-pos]
                 num_date =  support_points['num_date'].iloc[-pos]
                 date = mdates.num2date(num_date)
-                print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}/{:.2f}".format(str(date), price,
+                if os.environ['DEBUG']=='ON':
+                    print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}/{:.2f}".format(str(date), price,
                         point*(1-fuzzy_range_low), point*(1+fuzzy_range),last_down,prev_down ))
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
                     or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
@@ -93,23 +93,41 @@ def should_buy(dataset):
 
         max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
         if max_drop > 0.58:
-            print("240 max_drop:",max_drop)
+            if os.environ['DEBUG']=='ON':
+                print("240 max_drop:",max_drop)
             decision = True
         max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
         if max_drop > 0.48:
-            print("60 max_drop:",max_drop)
+            if os.environ['DEBUG']=='ON':
+                print("60 max_drop:",max_drop)
             decision = True
 
-        # 判断是否应该忽略这次购买信号
-        # 比如箱体横盘太久了
-        print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}'\
-            .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,prev_down,last_up,v_pos))
+        if os.environ['DEBUG']=='ON':
+            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+                .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,prev_down,last_up,v_pos,points['direction'].iloc[-2]))
 
+    if points['direction'].iloc[-2]=='up':
+        last_down = (points['price'].iloc[-3] - points['price'].iloc[-2]) / points['price'].iloc[-3]
+        last_up = (points['price'].iloc[-1] - points['price'].iloc[-2]) / points['price'].iloc[-2]
+        prev_down = (points['price'].iloc[-5] - points['price'].iloc[-4]) / points['price'].iloc[-5]
+
+
+        if (bottom_points['price'].iloc[-2] < bottom_points['price'].iloc[-1] ) \
+            and v_pos < 0.4 and last_up<0.03:
+            decision = True
+        if os.environ['DEBUG']=='ON':
+            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+                .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,prev_down,last_up,v_pos,points['direction'].iloc[-2]))
+
+
+    # 判断是否应该忽略这次购买信号
+    # 比如箱体横盘太久了
     if decision == True:
-        if ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1]) \
-            or (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
+        if ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1] ) \
+            and (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
             and v_pos > 0.2:
-            print('ignore down trend')
-            return False
+            if os.environ['DEBUG']=='ON':
+                print('ignore down trend')
+            decision = False
 
     return decision

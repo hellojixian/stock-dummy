@@ -5,7 +5,7 @@
 
 import datetime
 import pandas as pd
-import math, sys
+import math, sys, os
 
 from lib.jqdata import *
 from lib.vis import *
@@ -14,14 +14,18 @@ from lib.turn_points import *
 import matplotlib.dates as mdates
 import datetime,time
 
-
+debug = 'OFF'
 lookback_size = 600
 # security='000786.XSHE'
 # security='000537.XSHE'
-security='000919.XSHE'
+# security='000919.XSHE'
+security='600822.XSHG'
 # end_date=datetime.date(2012,6,15)
 end_date=datetime.date(2011,4,15)
 
+
+
+os.environ['DEBUG'] = str(debug)
 history=get_price(security, end_date=end_date, count=lookback_size)
 history['num_date'] = mdates.date2num(pd.to_datetime(history.index, format="%Y-%m-%d")).astype('i')
 turn_points = find_turn_points(history)

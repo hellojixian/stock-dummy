@@ -129,7 +129,6 @@ def visualize_report(dataset,backtest,strategy):
     ax2.axhspan(2, 5, facecolor='blue', alpha=0.05)
 
     # 标记获利还是亏损
-
     idx = 0
     while idx <= len(dataset)-1:
         row = dataset.iloc[idx]

@@ -47,6 +47,7 @@ def visualize(dataset, max_width=150):
     fig.text(0.05, 0.96, title, fontsize=10, weight='bold')
     fig.text(0.97, 0.96, subtitle, ha='right', fontsize=10)
 
+    profit_label = fig.text(0.2, 0.96, "", fontsize=10, weight='bold')
     date_label = fig.text(0.07, 0.92, "")
     price_label = fig.text(0.07, 0.895, "")
 
@@ -166,10 +167,48 @@ def visualize(dataset, max_width=150):
     fig.canvas.mpl_connect('key_press_event', onPress)
 
     update_price_label(dataset['num_date'].iloc[-1])
+    mark_buysell_range(dataset, [ax1, ax2], profit_label)
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     return [plt,ax1, ax2]
 
+def mark_buysell_range(dataset, axs, profit_label=None):
+    # 标记获利还是亏损
+    idx = 0
+    total_profit = 1
+    while idx <= len(dataset)-1:
+        row = dataset.iloc[idx]
+        if row['action']=='buy':
+            start_date_n =row['num_date']
+            start_date = row.name
+            bought_price = row['close']
+            while idx <= len(dataset)-1:
+                row = dataset.iloc[idx]
 
+                if row['action']=='sell':
+                    end_date_n = row['num_date']
+                    end_date = row.name
+                    sell_price = row['close']
+                    color = '#177508'
+                    annon_y_pos  = sell_price*0.95
+                    sell_marker = "v"
+                    profit = (sell_price - bought_price) / bought_price
+                    if profit>0:
+                        color = '#960e0e'
+                        annon_y_pos = sell_price*1.05
+                        sell_marker = "^"
+                    total_profit *= (1+profit)
+                    axs[0].axvspan(start_date, end_date, facecolor=color, alpha=0.15)
+                    axs[1].axvspan(start_date, end_date, facecolor=color, alpha=0.15)
+                    axs[0].annotate("  {:.1f}%".format(profit*100),(end_date, annon_y_pos),
+                        weight='bold',ha='left', va='center', color=color, rotation=0)
+                    break
+                idx+=1
+        else:
+            idx+=1
+    if profit_label is not None:
+        total_profit -= 1
+        profit_label.set_text("Strategy: {:.2f}%".format(total_profit*100))
+    return
 
 g={}
 def test_feature(dataset,axs):

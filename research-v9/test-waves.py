@@ -18,9 +18,9 @@ debug = 'ON'
 lookback_size = 600
 # security='000786.XSHE'
 # security='000537.XSHE'
-# security='000919.XSHE'
+security='000919.XSHE'
 # security='600822.XSHG'
-security='600001.XSHG'
+# security='600001.XSHG'
 # end_date=datetime.date(2012,6,15)
 end_date=datetime.date(2011,4,15)
 tmp_cache_file = 'data/cache/tmp_cache_file'
@@ -30,8 +30,9 @@ sell_points = []
 turn_points = []
 
 os.environ['DEBUG'] = str(debug)
+read_cache = False
 
-if os.path.isfile(tmp_cache_file):
+if os.path.isfile(tmp_cache_file) and read_cache==True:
     history = pd.read_csv(tmp_cache_file, index_col=0)
     sell_points = pd.read_csv(tmp_cache_file+'_sell', index_col=0)
     buy_points = pd.read_csv(tmp_cache_file+'_buy', index_col=0)
@@ -47,12 +48,14 @@ else:
         x= subset['num_date'].iloc[-1]
         y= subset['close'].iloc[-1]
 
-        if should_buy(subset):
-            buy_points.append((x,y))
-            action="buy"
         if should_sell(subset):
             sell_points.append((x,y))
             action="sell"
+
+        if should_buy(subset):
+            buy_points.append((x,y))
+            action="buy"
+
         history.loc[subset.iloc[-1].name,'action'] = action
 
     buy_points  = pd.DataFrame(buy_points, columns=["num_date","price"])

@@ -16,13 +16,13 @@ def _find_turn_points(points, epsilon):
     idx_keep = np.array(idx_keep)
     return idx_keep
 
-def find_turn_points(history):
+def find_turn_points(history, epsilon=None):
     points = history[['num_date','close']].values
-    short_his = history[-5:].copy()
-    short_his['amp'] = short_his['high'] - short_his['low']
-    ma_amp = short_his['amp'].mean()
-    epsilon = ma_amp*1.5
-
+    if epsilon is None:
+        short_his = history[-5:].copy()
+        short_his['amp'] = short_his['high'] - short_his['low']
+        ma_amp = short_his['amp'].mean()
+        epsilon = ma_amp
     turn_points = _find_turn_points(points, epsilon=epsilon)
     turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
     turn_points['direction'] = 'unknown'
@@ -36,7 +36,12 @@ def find_turn_points(history):
 def should_buy(dataset):
     len = 120
     subset = dataset[-len:]
-    points = find_turn_points(subset)
+
+    short_his = subset[-5:].copy()
+    short_his['amp'] = short_his['high'] - short_his['low']
+    ma_amp = short_his['amp'].mean()
+    epsilon = ma_amp*1.5
+    points = find_turn_points(subset, epsilon)
 
     decision = False
     fuzzy_range = 0.03
@@ -117,7 +122,7 @@ def should_buy(dataset):
             and v_pos < 0.4 and last_up<0.03:
             decision = True
         if os.environ['DEBUG']=='ON':
-            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/(n/a) \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/000 \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
                 .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,last_up,v_pos,points['direction'].iloc[-2]))
 
     max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
@@ -159,4 +164,76 @@ def should_buy(dataset):
             print('double amp in down trend')
         decision = True
 
+    return decision
+
+def should_sell(dataset):
+    len = 120
+    decision = False
+    subset = dataset[-len:]
+    short_his = subset[-5:].copy()
+    short_his['amp'] = short_his['high'] - short_his['low']
+    ma_amp = short_his['amp'].mean()
+    epsilon = ma_amp
+    points = find_turn_points(subset, epsilon)
+
+    last_turn_pt = points['num_date'].iloc[-2]
+    days_since_last_turnpoint = dataset[dataset.num_date>last_turn_pt].shape[0]
+
+    price = subset['close'].iloc[-1]
+    low = subset['low'].iloc[-1]
+    open = subset['open'].iloc[-1]
+    v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
+
+    if points['direction'].iloc[-2]=='down':
+        last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
+        last_up = (points['price'].iloc[-2] - points['price'].iloc[-3]) / points['price'].iloc[-2]
+        prev_down = (points['price'].iloc[-4] - points['price'].iloc[-3]) / points['price'].iloc[-4]
+
+        if days_since_last_turnpoint<=2 \
+            and last_down>0.04 \
+            and v_pos>0.2:
+            if os.environ['DEBUG']=='ON':
+                print('sell it',days_since_last_turnpoint)
+            decision = True
+
+    # 提前下车逻辑
+    if points['direction'].iloc[-2]=='up':
+        last_down = (points['price'].iloc[-3] - points['price'].iloc[-2]) / points['price'].iloc[-3]
+        last_up = (points['price'].iloc[-1] - points['price'].iloc[-2]) / points['price'].iloc[-1]
+        prev_down = 0
+
+        fuzzy_range = 0.03
+        fuzzy_range_low = 0.03
+        sell_signal_count = 0
+        pos = 1
+        pressure_points = points[(points.direction=='down') & (points.price<price*(1+fuzzy_range))]
+        while(pos<pressure_points.shape[0]):
+            point = pressure_points['price'].iloc[-pos]
+            num_date =  pressure_points['num_date'].iloc[-pos]
+            date = mdates.num2date(num_date)
+            if os.environ['DEBUG']=='ON':
+                print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}\t up:{:.2f}".format(str(date), price,
+                    point*(1-fuzzy_range_low), point*(1+fuzzy_range),last_down, last_up ))
+            if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
+                and price > open:
+                sell_signal_count +=1
+                break
+            pos += 1
+        if sell_signal_count>0:
+            if v_pos > 0.35 and v_pos <0.5:
+                if subset['close'][-5:].max() == price: decision = True
+
+    if os.environ['DEBUG']=='ON':
+        print('{:.10}\t sell: {} \tdown: {:.3f}/000 \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+            .format(str(subset.iloc[-1].name), decision,last_down,last_up,v_pos,points['direction'].iloc[-2]))
+
+
+    last_amp = short_his['amp'][-3:].mean()
+    prev_amp = short_his['amp'][:-3].mean()
+    if last_amp > prev_amp*2 \
+        and open > price\
+        and v_pos > 0.2 and v_pos<0.8:
+        if os.environ['DEBUG']=='ON':
+            print('double amp in down trend')
+        decision = True
     return decision

@@ -176,7 +176,8 @@ def test_feature(dataset,axs):
     points = find_turn_points(dataset[-120:])
     # 找有没有支撑
     # 看支撑被用过几次
-    should_buy(dataset)
+    # should_buy(dataset)
+    should_sell(dataset)
 
     if 'short_rdp' not in g.keys():
         g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')

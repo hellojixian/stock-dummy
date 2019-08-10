@@ -21,7 +21,7 @@ def find_turn_points(history):
     short_his = history[-5:].copy()
     short_his['amp'] = short_his['high'] - short_his['low']
     ma_amp = short_his['amp'].mean()
-    epsilon = ma_amp*2
+    epsilon = ma_amp*1.5
 
     turn_points = _find_turn_points(points, epsilon=epsilon)
     turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
@@ -48,7 +48,6 @@ def should_buy(dataset):
 
     bottom_points = points[(points.direction=='up')]
     top_points = points[(points.direction=='down')]
-
 
 
     if points['direction'].iloc[-2]=='down':
@@ -90,6 +89,7 @@ def should_buy(dataset):
 
         # 说明下爹无力
         if (last_down<0.01 and v_pos<0.2): decision = True
+        if (last_down>0.25 and v_pos<0.1): decision = True
 
         max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
         if max_drop > 0.58:
@@ -129,5 +129,19 @@ def should_buy(dataset):
             if os.environ['DEBUG']=='ON':
                 print('ignore down trend')
             decision = False
+
+
+    # 按振幅判断， 如果后3日振幅相比前7日振幅扩大 并且当日是3日最低
+    short_his = dataset[-7:].copy()
+    short_his['amp'] = short_his['high'] - short_his['low']
+
+    last_amp = short_his['amp'][-3:].mean()
+    prev_amp = short_his['amp'][:-3].mean()
+    if last_amp > prev_amp*2 \
+        and price == short_his['close'].min() \
+        and v_pos > 0.4:
+        if os.environ['DEBUG']=='ON':
+            print('double amp in down trend')
+        decision = True
 
     return decision

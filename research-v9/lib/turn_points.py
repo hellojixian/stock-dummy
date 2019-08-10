@@ -51,7 +51,9 @@ def should_buy(dataset):
     top_points = points[(points.direction=='down')]
 
     # not enough data
-    if points.shape[0]<10: return False
+    if points.shape[0]<10:
+        if os.environ['DEBUG']=='ON':print('No enough data')
+        return False
 
     if points['direction'].iloc[-2]=='down':
         last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
@@ -122,6 +124,10 @@ def should_buy(dataset):
     if max_drop > 0.58 and price>open:
         if os.environ['DEBUG']=='ON':
             print("240 max_drop:",max_drop)
+        decision = True
+    if max_drop > 0.65 and price<open:
+        if os.environ['DEBUG']=='ON':
+            print("240 65%off max_drop:",max_drop)
         decision = True
     max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
     if max_drop > 0.48  and price>open:

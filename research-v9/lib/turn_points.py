@@ -43,12 +43,15 @@ def should_buy(dataset):
     fuzzy_range_low = 0.015
     price = subset['close'].iloc[-1]
     low = subset['low'].iloc[-1]
+    open = subset['open'].iloc[-1]
     buy_signal_count = 0
     v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
 
     bottom_points = points[(points.direction=='up')]
     top_points = points[(points.direction=='down')]
 
+    # not enough data
+    if points.shape[0]<10: return False
 
     if points['direction'].iloc[-2]=='down':
         last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
@@ -59,6 +62,11 @@ def should_buy(dataset):
         pos = 1
         if (last_down>0.06) \
             or prev_down>0.25: #最后一次的下跌空间要够
+
+            if last_up<0.15 and last_down>0.2 and v_pos>0.2 and v_pos<0.4:
+                fuzzy_range=0.05
+                decision = True
+                if os.environ['DEBUG']=='ON':print('got it 2')
 
             if v_pos>0.45 or v_pos<0.2:
                 fuzzy_range=0.05
@@ -91,16 +99,7 @@ def should_buy(dataset):
         if (last_down<0.01 and v_pos<0.2): decision = True
         if (last_down>0.25 and v_pos<0.1): decision = True
 
-        max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
-        if max_drop > 0.58:
-            if os.environ['DEBUG']=='ON':
-                print("240 max_drop:",max_drop)
-            decision = True
-        max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
-        if max_drop > 0.48:
-            if os.environ['DEBUG']=='ON':
-                print("60 max_drop:",max_drop)
-            decision = True
+
 
         if os.environ['DEBUG']=='ON':
             print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/{:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
@@ -116,16 +115,26 @@ def should_buy(dataset):
             and v_pos < 0.4 and last_up<0.03:
             decision = True
         if os.environ['DEBUG']=='ON':
-            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f} \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
+            print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/(n/a) \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
                 .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,last_up,v_pos,points['direction'].iloc[-2]))
 
+    max_drop = (dataset['high'][-240:].max() - low )/dataset['high'][-240:].max()
+    if max_drop > 0.58 and price>open:
+        if os.environ['DEBUG']=='ON':
+            print("240 max_drop:",max_drop)
+        decision = True
+    max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
+    if max_drop > 0.48  and price>open:
+        if os.environ['DEBUG']=='ON':
+            print("60 max_drop:",max_drop)
+        decision = True
 
     # 判断是否应该忽略这次购买信号
     # 比如箱体横盘太久了
     if decision == True:
         if ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1] ) \
             and (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
-            and v_pos > 0.2:
+            and v_pos > 0.3:
             if os.environ['DEBUG']=='ON':
                 print('ignore down trend')
             decision = False

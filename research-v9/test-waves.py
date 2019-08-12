@@ -23,7 +23,7 @@ security='600822.XSHG'
 # security='600001.XSHG'
 # end_date=datetime.date(2012,6,15)
 end_date=datetime.date(2011,4,15)
-end_date=datetime.date(2017,4,15)
+# end_date=datetime.date(2017,4,15)
 tmp_cache_file = 'data/cache/tmp_cache_file'
 
 buy_points = []
@@ -31,6 +31,7 @@ sell_points = []
 turn_points = []
 
 os.environ['DEBUG'] = str(debug)
+# read_cache = True
 read_cache = False
 min_len = 120
 print('running')

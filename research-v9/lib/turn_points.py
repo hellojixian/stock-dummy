@@ -161,11 +161,20 @@ def should_buy(dataset):
         last_down = (points['price'].iloc[-3] - points['price'].iloc[-2]) / points['price'].iloc[-3]
         last_up = (points['price'].iloc[-1] - points['price'].iloc[-2]) / points['price'].iloc[-2]
 
-
-
         if (bottom_points['price'].iloc[-2] < bottom_points['price'].iloc[-1] ) \
             and v_pos < 0.4 and last_up<0.03:
             decision = True
+
+        # 阳线反包 追着买入
+        if dataset['open'].iloc[-1] < dataset['close'].iloc[-1]*1.005 \
+            and dataset['open'].iloc[-2] > dataset['close'].iloc[-2]*1.005 \
+            and dataset['open'].iloc[-1] < dataset['close'].iloc[-2] \
+            and dataset['close'].iloc[-1] > dataset['open'].iloc[-2] \
+            and dataset['change'].iloc[-1]<0.07 and last_up<0.15:
+            if os.environ['DEBUG']=='ON':
+                print('Grow line hugging down line')
+            decision = True
+
         if os.environ['DEBUG']=='ON':
             print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/000 \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
                 .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,last_up,v_pos,points['direction'].iloc[-2]))
@@ -184,6 +193,7 @@ def should_buy(dataset):
         if os.environ['DEBUG']=='ON':
             print("60 max_drop:",max_drop)
         decision = True
+
 
     # 判断是否应该忽略这次购买信号
     if decision == True:

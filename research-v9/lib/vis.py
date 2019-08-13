@@ -194,12 +194,14 @@ def mark_buysell_range(dataset, axs, profit_label=None):
                     end_date = row.name
                     sell_price = row['close']
                     color = '#44ff26'
+                    text_color = '#44ff26'
                     annon_y_pos  = sell_price*0.98
                     sell_marker = "v"
                     profit = (sell_price - bought_price) / bought_price
                     rotation = -15
                     if profit>0:
                         color = '#ff3636'
+                        text_color = '#ff0000'
                         annon_y_pos = sell_price*1.02
                         sell_marker = "^"
                         rotation = abs(rotation)
@@ -208,7 +210,7 @@ def mark_buysell_range(dataset, axs, profit_label=None):
                     axs[1].axvspan(start_date, end_date, facecolor=color, alpha=0.15)
                     axs[0].scatter(end_date, annon_y_pos, alpha=1, marker=sell_marker,s=10, color=color)
                     axs[0].annotate("  {:.1f}%".format(profit*100),(end_date, annon_y_pos),
-                        weight='bold',ha='left', va='center', color=color)
+                        weight='bold',ha='left', va='center', color=text_color)
 
                     strategy_profit = strategy_profit*(1+row['change'])
                     sell_actions = sell_actions.append(pd.Series({

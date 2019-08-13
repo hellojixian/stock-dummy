@@ -104,7 +104,7 @@ def should_buy(dataset):
                 if os.environ['DEBUG']=='ON':print('got it 2')
 
             if v_pos>0.45 or v_pos<0.2:
-                fuzzy_range=0.05
+                fuzzy_range=0.025
                 if last_up>0.2 and last_down>0.1:
                     fuzzy_range=0.02
                     decision = True
@@ -114,22 +114,24 @@ def should_buy(dataset):
                 if (last_down<0.1 and prev_down<0.25):
                     fuzzy_range=0.01
 
-            support_points = points[(points.direction=='up') & (points.price>price*(1-fuzzy_range))]
-            while(pos<=support_points.shape[0]):
-                point = support_points['price'].iloc[-pos]
-                num_date =  support_points['num_date'].iloc[-pos]
+            support_points = points[(points.direction=='up')]
+            support_points = support_points.sort_values(by=["num_date"], ascending=False)
+            while(support_points.shape[0]>0):
+                point = support_points['price'].iloc[0]
+                num_date =  support_points['num_date'].iloc[0]
                 date = mdates.num2date(num_date)
-                print(support_points)
                 support_since_days = int(dataset['num_date'].iloc[-1] -  num_date)
+                support_points = support_points[support_points.price<point].sort_values(by=["num_date"], ascending=False)
                 if os.environ['DEBUG']=='ON':
-                    print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f} since {} days\t last_down:{:.2f}/{:.2f}".format(str(date), price,
-                        point*(1-fuzzy_range_low), point*(1+fuzzy_range),support_since_days,last_down,prev_down ))
+                    print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f} since {} days\t last_down:{:.2f}/{:.2f} fuzzy_range:{:.2f}/{:.2f}".format(str(date), price,
+                        point*(1-fuzzy_range_low), point*(1+fuzzy_range),support_since_days,last_down,prev_down,fuzzy_range, fuzzy_range_low ))
+                price = min(close,open)
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
                     or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
-                    if support_since_days<60:
+                    if support_since_days<60 :
                         buy_signal_count +=1
                         if os.environ['DEBUG']=='ON':
-                            print ("^ signal ",support_since_days)
+                            print ("^ signal at {} days ago".format(support_since_days))
                         break
                 pos += 1
             if buy_signal_count>0:

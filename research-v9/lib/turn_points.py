@@ -119,11 +119,13 @@ def should_buy(dataset):
                 point = support_points['price'].iloc[-pos]
                 num_date =  support_points['num_date'].iloc[-pos]
                 date = mdates.num2date(num_date)
+                support_since_days = dataset['num_date'].iloc[-1] -  num_date
                 if os.environ['DEBUG']=='ON':
                     print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}/{:.2f}".format(str(date), price,
                         point*(1-fuzzy_range_low), point*(1+fuzzy_range),last_down,prev_down ))
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
-                    or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
+                    or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low) \
+                    and support_since_days< 60:
                     buy_signal_count +=1
                     break
                 pos += 1
@@ -204,7 +206,7 @@ def should_buy(dataset):
             print("240 65%off max_drop:",max_drop)
         decision = True
     max_drop = (dataset['high'][-60:].max() - low )/dataset['high'][-60:].max()
-    if max_drop > 0.48  and price>open:
+    if max_drop > 0.48  and price>open and last_up<0.1:
         if os.environ['DEBUG']=='ON':
             print("60 max_drop:",max_drop)
         decision = True
@@ -264,7 +266,7 @@ def should_buy(dataset):
         # 阴线孕育阴线
         if prev_change<-0.02 and change>0 \
             and prev_close < open and prev_open > close \
-            and open < close:
+            and open > close:
             if os.environ['DEBUG']=='ON':
                 print("black bar contains black bar YunXian")
             decision = False
@@ -412,6 +414,9 @@ def should_hold(dataset):
     date = dataset.iloc[-1].name
     v_pos = (close - dataset['close'].min()) / (dataset['close'].max() - dataset['close'].min())
     drop_from_highest = (highest - bought_price)/highest
+    prev_open = dataset['open'].iloc[-2]
+    prev_close = dataset['close'].iloc[-2]
+    prev_change = dataset['change'].iloc[-2]
 
     if hold_days==2:
         stop_line = bought_price
@@ -436,7 +441,13 @@ def should_hold(dataset):
                 str(dataset.iloc[-1].name),bought_price,close,stop_line,hold_days))
         decision = False
 
+
     if hold_days==1:
+        if ideal_profit>0.1:
+            if os.environ['DEBUG']=='ON':
+                print("{:.10} stop wining ideal_profit:{:.2f}".format(str(date),ideal_profit))
+            decision = False
+
         grow_rate = 1
         if abs(dataset['change'].iloc[-2])!=0:
             grow_rate = change / abs(dataset['change'].iloc[-2])
@@ -489,6 +500,14 @@ def should_hold(dataset):
         if os.environ['DEBUG']=='ON':
             print("{:.10} jump dump drop it".format(
                 str(dataset.iloc[-1].name)))
+        decision = False
+
+    # 判断是否阳线孕育阴线
+    if hold_days==1 and change<-0.01 and prev_change>0.02 \
+        and prev_close > open and prev_open < close \
+        and close < open:
+        if os.environ['DEBUG']=='ON':
+            print("Red bar contains block bar YunXian")
         decision = False
 
     if dataset['change'].iloc[-1] <-0.045 :

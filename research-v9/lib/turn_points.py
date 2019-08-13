@@ -125,7 +125,6 @@ def should_buy(dataset):
                 if os.environ['DEBUG']=='ON':
                     print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f} since {} days\t last_down:{:.2f}/{:.2f} fuzzy_range:{:.2f}/{:.2f}".format(str(date), price,
                         point*(1-fuzzy_range_low), point*(1+fuzzy_range),support_since_days,last_down,prev_down,fuzzy_range, fuzzy_range_low ))
-                price = min(close,open)
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
                     or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
                     if support_since_days<60 :

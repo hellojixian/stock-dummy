@@ -210,7 +210,7 @@ def should_buy(dataset):
             and (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
             and v_pos > 0.3:
             if os.environ['DEBUG']=='ON':
-                print('ignore down trend')
+                print('Ignore Buy decision - down trend')
             decision = False
 
         # 忽略 向下有跳空
@@ -218,25 +218,40 @@ def should_buy(dataset):
             and dataset['close'].iloc[-1] < dataset['close'].iloc[-2] \
             and dataset['change'].iloc[-2] < -0.05:
             if os.environ['DEBUG']=='ON':
-                print('ignore jump down')
+                print('Ignore Buy decision - jump down')
             decision = False
 
         if dataset['open'].iloc[-1] > dataset['close'].iloc[-1]*1.005 \
             and dataset['close'].iloc[-2]*0.99 > dataset['open'].iloc[-1]  \
             and (dataset['change'].iloc[-2]+dataset['change'].iloc[-1]) < -0.05:
             if os.environ['DEBUG']=='ON':
-                print('ignore jump down v2')
+                print('Ignore Buy decision - jump down v2')
             decision = False
 
         # 忽略下跌幅度不够
         if v_pos == 0 and since_days > 10 and last_down < 0.25:
             if os.environ['DEBUG']=='ON':
-                print('ignore Not droping enough yet')
+                print('Ignore Buy decision - Not droping enough yet')
             decision = False
-
 
         # 不跟跌停
         if abs((dataset['close'].iloc[-1] - dataset['open'].iloc[-1]) /dataset['open'].iloc[-1]) > 0.07:
+            decision = False
+
+        # 跌得太多 反弹太小
+        if dataset['change'].iloc[-1] < 0.02 \
+            and (dataset['change'].iloc[-2]<0 and dataset['change'].iloc[-3]<0) \
+            and abs(dataset['change'].iloc[-2]+dataset['change'].iloc[-3]) > 0.075:
+            if os.environ['DEBUG']=='ON':
+                print('Ignore Buy decision - recover to little')
+            decision = False
+
+        # 两阴夹一阳 先别买
+        if dataset['change'].iloc[-1] < -0.03 \
+            and dataset['change'].iloc[-2] < 0.03 \
+            and dataset['change'].iloc[-3] < -0.03:
+            if os.environ['DEBUG']=='ON':
+                print('Ignore Buy decision - 2 black bar hugging one red bar')
             decision = False
 
 
@@ -380,6 +395,11 @@ def should_hold(dataset):
 
     if hold_days>2 and profit>0:
         stop_line = lowest * (1+ideal_profit/2)
+
+    if hold_days>=4 and profit<0.03 and max_loss>-0.035:
+        if os.environ['DEBUG']=='ON':
+            print("{:.10} so many days not growing, days:{} profit:{:.2f}".format(str(date),hold_days,profit))
+        decision = False
 
     if close < stop_line:
         if os.environ['DEBUG']=='ON':

@@ -181,10 +181,16 @@ def mark_buysell_range(dataset, axs, profit_label=None):
     profit_stat = pd.DataFrame()
     # print(dataset[:20])
     # assert(False)
+    buy_actions = pd.DataFrame()
+    sell_actions = pd.DataFrame()
     while idx <= len(dataset)-1:
         row = dataset.iloc[idx]
         if row['action']=='buy':
             start_date_n =row['num_date']
+            buy_actions = buy_actions.append(pd.Series({
+                'num_date': start_date_n,
+                'strategy_profit': (strategy_profit-1) *100
+            },name=start_date_n))
             start_date = row.name
             bought_price = row['close']
             b_row = row
@@ -196,39 +202,42 @@ def mark_buysell_range(dataset, axs, profit_label=None):
                     end_date = row.name
                     sell_price = row['close']
                     color = '#177508'
-                    annon_y_pos  = sell_price*0.95
+                    annon_y_pos  = sell_price*0.98
                     sell_marker = "v"
                     profit = (sell_price - bought_price) / bought_price
                     rotation = -15
                     if profit>0:
                         color = '#960e0e'
-                        annon_y_pos = sell_price*1.05
+                        annon_y_pos = sell_price*1.02
                         sell_marker = "^"
                         rotation = abs(rotation)
                     # strategy_profit *= (1+profit)
                     axs[0].axvspan(start_date, end_date, facecolor=color, alpha=0.15)
                     axs[1].axvspan(start_date, end_date, facecolor=color, alpha=0.15)
-                    axs[0].annotate("{:.1f}%".format(profit*100),(end_date, annon_y_pos),
-                        weight='bold',ha='left', va='center', color=color, rotation=rotation)
+                    axs[0].scatter(end_date, annon_y_pos, alpha=1, marker=sell_marker,s=10, color=color)
+                    axs[0].annotate("  {:.1f}%".format(profit*100),(end_date, annon_y_pos),
+                        weight='bold',ha='left', va='center', color=color)
 
                     strategy_profit = strategy_profit*(1+row['change'])
-                    # print('sell',row.name,strategy_profit,row['change'])
+                    sell_actions = sell_actions.append(pd.Series({
+                        'num_date': end_date_n,
+                        'strategy_profit': (strategy_profit-1) *100,
+                        'color': color,
+                        'mark': sell_marker
+                    },name=start_date_n))
                     break
                 idx+=1
                 baseline_profit *=(1+row['change'])
 
                 if row['action']!='buy':
-
                     strategy_profit = strategy_profit*(1+row['change'])
                     # print('hold',row.name,strategy_profit,row['change'])
-
                 rec = pd.Series({
                     "num_date":row['num_date'],
                     "baseline_profit":(baseline_profit-1) * 100,
                     "strategy_profit":(strategy_profit-1) * 100
                 }, name="{:.10}".format(str(mdates.num2date(row['num_date']))))
                 profit_stat = profit_stat.append(rec)
-
         else:
             idx+=1
             baseline_profit *=(1+row['change'])
@@ -239,7 +248,7 @@ def mark_buysell_range(dataset, axs, profit_label=None):
             }, name="{:.10}".format(str(mdates.num2date(row['num_date']))))
             profit_stat = profit_stat.append(rec)
 
-    axs[1].plot(profit_stat['num_date'],profit_stat['baseline_profit'], label="baseline_profit", color="#f54242")
+    axs[1].plot(profit_stat['num_date'],profit_stat['baseline_profit'], label="baseline_profit", color='#f54242')
     axs[1].fill_between(profit_stat['num_date'],profit_stat['baseline_profit'],0, alpha=0.1, color="#f54242")
 
     axs[1].plot(profit_stat['num_date'],profit_stat['strategy_profit'], label="strategy_profit",alpha=1, color="#4287f5")
@@ -247,6 +256,13 @@ def mark_buysell_range(dataset, axs, profit_label=None):
     axs[1].legend(loc='upper left')
     axs[1].set_ylim(np.min([profit_stat['baseline_profit'],profit_stat['strategy_profit']])*0.95,
         np.max([profit_stat['baseline_profit'],profit_stat['strategy_profit']])*1.05)
+
+
+    dataset['strategy_profit'] = profit_stat['strategy_profit']
+
+    axs[1].scatter(buy_actions['num_date'],buy_actions['strategy_profit']*0.97, label="strategy_profit",alpha=1, marker="|", s=5, color='#ffffff')
+    for _,action in sell_actions.iterrows():
+        axs[1].scatter(action['num_date'],action['strategy_profit']*1.03, alpha=1, marker=action['mark'],s=6, color=action['color'])
     if profit_label is not None:
         strategy_profit -= 1
         profit_label.set_text("Strategy: {:.2f}%".format(strategy_profit*100))

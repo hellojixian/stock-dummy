@@ -31,8 +31,8 @@ sell_points = []
 turn_points = []
 
 os.environ['DEBUG'] = str(debug)
-# read_cache = True
-read_cache = False
+read_cache = True
+# read_cache = False
 min_len = 120
 print('running')
 
@@ -94,6 +94,6 @@ if len(turn_points)>0:
     ax1.plot(turn_points['num_date'],turn_points['price'], label="RDP", alpha=0.3)
     ax1.legend(loc='upper right')
 if len(buy_points)>0:  ax1.scatter(buy_points['num_date'],buy_points['price']-0.3, color="w", marker="^", alpha=1, s=10)
-if len(sell_points)>0: ax1.scatter(sell_points['num_date'],sell_points['price']+0.3, color="w", marker="v", alpha=1, s=10)
+# if len(sell_points)>0: ax1.scatter(sell_points['num_date'],sell_points['price']+0.3, color="w", marker="v", alpha=1, s=10)
 
 plt.show()

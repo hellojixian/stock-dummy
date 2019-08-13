@@ -43,7 +43,8 @@ def should_buy(dataset):
     epsilon = ma_amp*1
     epsilon_2 = subset['close'].iloc[-1]*0.03
     points = find_turn_points(subset, epsilon)
-
+    if points.shape[0]<4: return False
+    
     decision = False
     fuzzy_range = 0.03
     fuzzy_range_low = 0.015
@@ -309,6 +310,8 @@ def should_sell(dataset):
     ma_amp = short_his['amp'].mean()
     epsilon = ma_amp
     points = find_turn_points(subset, epsilon)
+    if points.shape[0]<4: return False
+    if dataset.shape[0]<=0: return False
 
     last_turn_pt = points['num_date'].iloc[-2]
     days_since_last_turnpoint = dataset[dataset.num_date>last_turn_pt].shape[0]
@@ -318,8 +321,6 @@ def should_sell(dataset):
     open = subset['open'].iloc[-1]
     v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
 
-    if points.shape[0]<3: return False
-    
     if points['direction'].iloc[-2]=='down':
         last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
         last_up = (points['price'].iloc[-2] - points['price'].iloc[-3]) / points['price'].iloc[-2]

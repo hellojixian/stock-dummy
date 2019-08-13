@@ -176,6 +176,7 @@ def should_buy(dataset):
             and prev_open > prev_close*1.005 \
             and open < prev_close \
             and price > prev_open \
+            and close > open*1.025 \
             and change<0.07 and last_up<0.15:
             if os.environ['DEBUG']=='ON':
                 print('Grow line hugging down line')
@@ -260,9 +261,18 @@ def should_buy(dataset):
                 print('Ignore Buy decision - 2 black bar hugging one red bar')
             decision = False
 
+        # 阴线孕育阴线
+        if prev_change<-0.02 and change>0 \
+            and prev_close < open and prev_open > close \
+            and open < close:
+            if os.environ['DEBUG']=='ON':
+                print("black bar contains black bar YunXian")
+            decision = False
+
     # 判断是否阴线孕育阳线
     if prev_change<-0.02 and change>0 \
-        and prev_close < open and prev_open > close:
+        and prev_close < open and prev_open > close \
+        and close > open *1.01:
         if os.environ['DEBUG']=='ON':
             print("black bar contains red bar YunXian")
         decision = True

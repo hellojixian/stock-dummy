@@ -22,8 +22,8 @@ security='000919.XSHE'
 # security='600822.XSHG'
 # security='600001.XSHG'
 # end_date=datetime.date(2012,6,15)
-# end_date=datetime.date(2011,4,15)
-end_date=datetime.date(2017,4,15)
+end_date=datetime.date(2011,4,15)
+# end_date=datetime.date(2017,4,15)
 tmp_cache_file = 'data/cache/tmp_cache_file'
 
 buy_points = []

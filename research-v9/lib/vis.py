@@ -274,8 +274,11 @@ def test_feature(dataset,axs):
     points = find_turn_points(dataset[-120:])
     # 找有没有支撑
     # 看支撑被用过几次
+    print("should buy","-"*50)
     should_buy(dataset)
+    print("should hold","-"*50)
     should_hold(dataset)
+    # print("should buy","-"*50)
     should_stoploss(dataset)
 
     if 'short_rdp' not in g.keys():

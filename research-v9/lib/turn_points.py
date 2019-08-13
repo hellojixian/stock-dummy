@@ -119,15 +119,17 @@ def should_buy(dataset):
                 point = support_points['price'].iloc[-pos]
                 num_date =  support_points['num_date'].iloc[-pos]
                 date = mdates.num2date(num_date)
-                support_since_days = dataset['num_date'].iloc[-1] -  num_date
+                support_since_days = int(dataset['num_date'].iloc[-1] -  num_date)
                 if os.environ['DEBUG']=='ON':
-                    print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f}\t last_down:{:.2f}/{:.2f}".format(str(date), price,
-                        point*(1-fuzzy_range_low), point*(1+fuzzy_range),last_down,prev_down ))
+                    print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f} since {} days\t last_down:{:.2f}/{:.2f}".format(str(date), price,
+                        point*(1-fuzzy_range_low), point*(1+fuzzy_range),support_since_days,last_down,prev_down ))
                 if (point*(1+fuzzy_range) > price and point*(1-fuzzy_range_low) < price) \
-                    or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low) \
-                    and support_since_days< 60:
-                    buy_signal_count +=1
-                    break
+                    or (point*(1+fuzzy_range) > low and point*(1-fuzzy_range_low) < low):
+                    if support_since_days<60:
+                        buy_signal_count +=1
+                        if os.environ['DEBUG']=='ON':
+                            print ("^ signal ",support_since_days)
+                        break
                 pos += 1
             if buy_signal_count>0:
                 # if subset['close'][-5:].min()*0.99 < low:
@@ -245,6 +247,8 @@ def should_buy(dataset):
 
         # 不跟跌停
         if abs((price - open) /open) > 0.07:
+            if os.environ['DEBUG']=='ON':
+                print('Ignore Buy decision - After big drop', (price - open) /open)
             decision = False
 
         # 跌得太多 反弹太小

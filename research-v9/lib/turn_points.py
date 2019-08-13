@@ -318,6 +318,8 @@ def should_sell(dataset):
     open = subset['open'].iloc[-1]
     v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
 
+    if points.shape[0]<3: return False
+    
     if points['direction'].iloc[-2]=='down':
         last_down = (points['price'].iloc[-2] - points['price'].iloc[-1]) / points['price'].iloc[-2]
         last_up = (points['price'].iloc[-2] - points['price'].iloc[-3]) / points['price'].iloc[-2]

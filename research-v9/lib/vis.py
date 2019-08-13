@@ -260,6 +260,7 @@ def test_feature(dataset,axs):
     # 看支撑被用过几次
     should_buy(dataset)
     should_hold(dataset)
+    should_stoploss(dataset)
 
     if 'short_rdp' not in g.keys():
         g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')

@@ -175,6 +175,14 @@ def should_buy(dataset):
                 print('Grow line hugging down line')
             decision = True
 
+        # 前面是大绿柱 两根阳线收复绿柱 80%
+        if dataset['change'].iloc[-3]<-0.04 \
+            and dataset['change'].iloc[-2] < abs(dataset['change'].iloc[-3]) \
+            and dataset['change'].iloc[-1]+dataset['change'].iloc[-2] > abs(dataset['change'].iloc[-3])*0.8:
+            if os.environ['DEBUG']=='ON':
+                print('Recovered big green bar')
+            decision = True
+
         if os.environ['DEBUG']=='ON':
             print('{:.10}\t buy: {} \tsignal: {} \tdown: {:.3f}/000 \tup:{:.3f}\t v_pos:{:.2f}\t d:{}'\
                 .format(str(subset.iloc[-1].name), decision,buy_signal_count,last_down,last_up,v_pos,points['direction'].iloc[-2]))
@@ -218,6 +226,17 @@ def should_buy(dataset):
             and (dataset['change'].iloc[-2]+dataset['change'].iloc[-1]) < -0.05:
             if os.environ['DEBUG']=='ON':
                 print('ignore jump down v2')
+            decision = False
+
+        # 忽略下跌幅度不够
+        if v_pos == 0 and since_days > 10 and last_down < 0.25:
+            if os.environ['DEBUG']=='ON':
+                print('ignore Not droping enough yet')
+            decision = False
+
+
+        # 不跟跌停
+        if abs((dataset['close'].iloc[-1] - dataset['open'].iloc[-1]) /dataset['open'].iloc[-1]) > 0.07:
             decision = False
 
 
@@ -306,6 +325,31 @@ def should_sell(dataset):
         if os.environ['DEBUG']=='ON':
             print('double amp in down trend')
         decision = True
+    return decision
+
+def should_stoploss(dataset):
+    decision = False
+    hold_days = 0
+    for i in range(1,len(dataset)-1):
+        if dataset['action'].iloc[-i] == 'buy':
+            bought_price = dataset['close'].iloc[-i]
+            hold_days = i-1
+            stop_line = bought_price * (1-0.02)
+            highest = dataset['close'][-i:].max()
+            lowest = dataset['low'][-i:].min()
+            ideal_profit =  (highest - lowest) / lowest
+            max_loss = (dataset['close'][-i:].min() - bought_price)/bought_price
+            break
+    if hold_days == 0: return False
+
+    close = dataset['close'].iloc[-1]
+    profit = (close - bought_price)/bought_price
+
+    # 不管如何赔太多了也要扔
+    if profit < -0.035:
+        decision = True
+
+    # 买了以后 没挣钱 连赔4天必须扔
     return decision
 
 def should_hold(dataset):
@@ -397,4 +441,8 @@ def should_hold(dataset):
             print("{:.10} jump dump drop it".format(
                 str(dataset.iloc[-1].name)))
         decision = False
+
+    if dataset['change'].iloc[-1] <-0.045 :
+        decision = False
+
     return decision

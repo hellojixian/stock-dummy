@@ -43,8 +43,7 @@ def should_buy(dataset):
     epsilon = ma_amp*1
     epsilon_2 = subset['close'].iloc[-1]*0.03
     points = find_turn_points(subset, epsilon)
-    if points.shape[0]<4: return False
-    
+
     decision = False
     fuzzy_range = 0.03
     fuzzy_range_low = 0.015
@@ -174,7 +173,8 @@ def should_buy(dataset):
         last_down = (points['price'].iloc[-3] - points['price'].iloc[-2]) / points['price'].iloc[-3]
         last_up = (points['price'].iloc[-1] - points['price'].iloc[-2]) / points['price'].iloc[-2]
 
-        if (bottom_points['price'].iloc[-2] < bottom_points['price'].iloc[-1] ) \
+        if bottom_points.shape[0]>=2 \
+            and (bottom_points['price'].iloc[-2] < bottom_points['price'].iloc[-1] ) \
             and v_pos < 0.4 and last_up<0.03:
             decision = True
 
@@ -220,7 +220,8 @@ def should_buy(dataset):
     # 判断是否应该忽略这次购买信号
     if decision == True:
         # 忽略 比如箱体横盘太久了
-        if ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1] ) \
+        if bottom_points.shape[0]>=2 \
+            and ((bottom_points['price'].iloc[-2] > bottom_points['price'].iloc[-1] ) \
             and (top_points['price'].iloc[-2] > top_points['price'].iloc[-1]))  \
             and v_pos > 0.3:
             if os.environ['DEBUG']=='ON':

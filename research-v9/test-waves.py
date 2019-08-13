@@ -16,14 +16,17 @@ import datetime,time
 
 debug = 'OFF'
 lookback_size = 600
-security='000786.XSHE'
+# security='000786.XSHE'
 # security='000537.XSHE'
 # security='000919.XSHE'
 # security='600822.XSHG'
+# security='601899.XSHG'
+# security='000063.XSHE'
+security='000651.XSHE'
 # security='600001.XSHG'
 # end_date=datetime.date(2012,6,15)
-# end_date=datetime.date(2011,4,15)
-end_date=datetime.date(2017,4,15)
+end_date=datetime.date(2011,4,15)
+# end_date=datetime.date(2017,4,15)
 tmp_cache_file = 'data/cache/tmp_cache_file'
 
 buy_points = []

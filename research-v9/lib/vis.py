@@ -84,14 +84,6 @@ def visualize(dataset, max_width=150):
         subset = dataset[:dataset.index.get_loc(date)+1]
         res = test_feature(subset,[ax1,ax2])
 
-
-        # update price area
-        # vmax = res['f_max']
-        # vmin = res['f_min']
-        # new_area = [[0,vmax],[0,vmin],[1,vmin],[1,vmax]]
-        # minmax_hspan.set_xy(new_area)
-        # print(res)
-
         plt.draw()
         return
 
@@ -274,12 +266,14 @@ def test_feature(dataset,axs):
     points = find_turn_points(dataset[-120:])
     # 找有没有支撑
     # 看支撑被用过几次
-    print("should buy","-"*50)
+    print("-"*10,"should buy","-"*50)
     should_buy(dataset)
-    print("should hold","-"*50)
+    print("-"*10,"should hold","-"*50)
     should_hold(dataset)
-    # print("should buy","-"*50)
+    print("-"*10,"should stoploss","-"*50)
     should_stoploss(dataset)
+    print("="*100)
+    print("\n\n")
 
     if 'short_rdp' not in g.keys():
         g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')

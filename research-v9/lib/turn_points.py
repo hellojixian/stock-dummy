@@ -93,7 +93,7 @@ def should_buy(dataset):
         if last_down > last_up*2 and v_pos<0.1:
             decision = True
             if os.environ['DEBUG']=='ON':
-                print('{:.10} try to catch the bottom vpos:{:.2f}'.format(str(date),since_days,v_pos))
+                print('{:.10} try to catch the bottom days:{} vpos:{:.2f}'.format(str(date),since_days,v_pos))
 
         if (last_down>0.06) \
             or prev_down>0.25: #最后一次的下跌空间要够
@@ -119,6 +119,7 @@ def should_buy(dataset):
                 point = support_points['price'].iloc[-pos]
                 num_date =  support_points['num_date'].iloc[-pos]
                 date = mdates.num2date(num_date)
+                print(support_points)
                 support_since_days = int(dataset['num_date'].iloc[-1] -  num_date)
                 if os.environ['DEBUG']=='ON':
                     print("{:.10}\t p:{:.2f}\t scope: {:.2f} - {:.2f} since {} days\t last_down:{:.2f}/{:.2f}".format(str(date), price,
@@ -390,6 +391,14 @@ def should_stoploss(dataset):
 
     # 不管如何赔太多了也要扔
     if profit < -0.035:
+        if os.environ['DEBUG']=='ON':
+            print('stop loss profit:{:.2f}'.format(profit))
+        decision = True
+
+    # print(hold_days, profit, ideal_profit)
+    if hold_days>3 and profit<0:
+        if os.environ['DEBUG']=='ON':
+            print('stop loss profit:{:.2f} hold_days:{}'.format(profit, hold_days))
         decision = True
 
     # 买了以后 没挣钱 连赔4天必须扔
@@ -434,7 +443,7 @@ def should_hold(dataset):
             print("{:.10} continue drop more than {:.2f}".format(str(date),hold_days,profit))
         decision = False
 
-    if hold_days>=4 and profit<0.03 and max_loss>-0.035:
+    if hold_days>=5 and profit<0.03 and max_loss>-0.035:
         if os.environ['DEBUG']=='ON':
             print("{:.10} so many days not growing, days:{} profit:{:.2f}".format(str(date),hold_days,profit))
         decision = False

@@ -31,8 +31,8 @@ sell_points = []
 turn_points = []
 
 os.environ['DEBUG'] = str(debug)
-# read_cache = True
-read_cache = False
+read_cache = True
+# read_cache = False
 min_len = 120
 print('running')
 

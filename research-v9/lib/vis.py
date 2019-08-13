@@ -201,13 +201,13 @@ def mark_buysell_range(dataset, axs, profit_label=None):
                     end_date_n = row['num_date']
                     end_date = row.name
                     sell_price = row['close']
-                    color = '#177508'
+                    color = '#44ff26'
                     annon_y_pos  = sell_price*0.98
                     sell_marker = "v"
                     profit = (sell_price - bought_price) / bought_price
                     rotation = -15
                     if profit>0:
-                        color = '#960e0e'
+                        color = '#ff3636'
                         annon_y_pos = sell_price*1.02
                         sell_marker = "^"
                         rotation = abs(rotation)
@@ -260,9 +260,9 @@ def mark_buysell_range(dataset, axs, profit_label=None):
 
     dataset['strategy_profit'] = profit_stat['strategy_profit']
 
-    axs[1].scatter(buy_actions['num_date'],buy_actions['strategy_profit']*0.97, label="strategy_profit",alpha=1, marker="|", s=5, color='#ffffff')
+    axs[1].scatter(buy_actions['num_date'],buy_actions['strategy_profit'], label="strategy_profit",alpha=1,lw=1, marker="|", s=20, color='#ffffff',zorder=10)
     for _,action in sell_actions.iterrows():
-        axs[1].scatter(action['num_date'],action['strategy_profit']*1.03, alpha=1, marker=action['mark'],s=6, color=action['color'])
+        axs[1].scatter(action['num_date'],action['strategy_profit'], alpha=1, marker='|',s=20, lw=1,color=action['color'],zorder=10)
     if profit_label is not None:
         strategy_profit -= 1
         profit_label.set_text("Strategy: {:.2f}%".format(strategy_profit*100))

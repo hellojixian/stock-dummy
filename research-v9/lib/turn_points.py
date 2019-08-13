@@ -47,12 +47,18 @@ def should_buy(dataset):
     decision = False
     fuzzy_range = 0.03
     fuzzy_range_low = 0.015
-    price = subset['close'].iloc[-1]
+    close = price = subset['close'].iloc[-1]
     low = subset['low'].iloc[-1]
     open = subset['open'].iloc[-1]
     date = subset.iloc[-1].name
+    prev_open = subset['open'].iloc[-2]
+    prev_close = subset['close'].iloc[-2]
+    prev_change = dataset['change'].iloc[-2]
+
     buy_signal_count = 0
     v_pos = (price - subset['close'].min()) / (subset['close'].max() - subset['close'].min())
+
+    change = dataset['change'].iloc[-1]
 
     bottom_points = points[(points.direction=='up')]
     top_points = points[(points.direction=='down')]
@@ -109,7 +115,7 @@ def should_buy(dataset):
                     fuzzy_range=0.01
 
             support_points = points[(points.direction=='up') & (points.price>price*(1-fuzzy_range))]
-            while(pos<support_points.shape[0]):
+            while(pos<=support_points.shape[0]):
                 point = support_points['price'].iloc[-pos]
                 num_date =  support_points['num_date'].iloc[-pos]
                 date = mdates.num2date(num_date)
@@ -131,10 +137,10 @@ def should_buy(dataset):
 
         # 阴线反包赶紧扔
         if dataset['change'].iloc[-3]>0.01 and \
-            (dataset['change'].iloc[-2]>0.01 or dataset['change'].iloc[-1]<-0.03 ) and \
-            (dataset['change'].iloc[-1] <0 and dataset['change'].iloc[-2]>0) and \
-            (dataset['open'].iloc[-1] > dataset['close'].iloc[-2]) and \
-            (dataset['close'].iloc[-1] < dataset['open'].iloc[-2]):
+            (prev_change>0.01 or change<-0.03 ) and \
+            (change <0 and prev_change>0) and \
+            (open > prev_close) and \
+            (price < prev_open):
             if os.environ['DEBUG']=='ON':
                 print("{:.10} 阴线反包 不能买".format(
                     str(dataset.iloc[-1].name)))
@@ -147,10 +153,10 @@ def should_buy(dataset):
                     str(dataset.iloc[-1].name)))
             decision = True
 
-        if since_days==1 and v_pos<0.35 and dataset['change'].iloc[-1]<-0.06:
+        if since_days==1 and v_pos<0.35 and change<-0.06:
             decision = True
 
-        if decision == True and since_days==1 and dataset['change'].iloc[-1] < -0.09:
+        if decision == True and since_days==1 and change < -0.09:
             decision = False
 
         if os.environ['DEBUG']=='ON':
@@ -166,19 +172,19 @@ def should_buy(dataset):
             decision = True
 
         # 阳线反包 追着买入
-        if dataset['open'].iloc[-1] < dataset['close'].iloc[-1]*1.005 \
-            and dataset['open'].iloc[-2] > dataset['close'].iloc[-2]*1.005 \
-            and dataset['open'].iloc[-1] < dataset['close'].iloc[-2] \
-            and dataset['close'].iloc[-1] > dataset['open'].iloc[-2] \
-            and dataset['change'].iloc[-1]<0.07 and last_up<0.15:
+        if open < price*1.005 \
+            and prev_open > prev_close*1.005 \
+            and open < prev_close \
+            and price > prev_open \
+            and change<0.07 and last_up<0.15:
             if os.environ['DEBUG']=='ON':
                 print('Grow line hugging down line')
             decision = True
 
         # 前面是大绿柱 两根阳线收复绿柱 80%
         if dataset['change'].iloc[-3]<-0.04 \
-            and dataset['change'].iloc[-2] < abs(dataset['change'].iloc[-3]) \
-            and dataset['change'].iloc[-1]+dataset['change'].iloc[-2] > abs(dataset['change'].iloc[-3])*0.8:
+            and prev_change < abs(dataset['change'].iloc[-3]) \
+            and change+prev_change > abs(dataset['change'].iloc[-3])*0.8:
             if os.environ['DEBUG']=='ON':
                 print('Recovered big green bar')
             decision = True
@@ -214,16 +220,16 @@ def should_buy(dataset):
             decision = False
 
         # 忽略 向下有跳空
-        if dataset['open'].iloc[-1] < dataset['close'].iloc[-1]*1.005 \
-            and dataset['close'].iloc[-1] < dataset['close'].iloc[-2] \
-            and dataset['change'].iloc[-2] < -0.05:
+        if open < price*1.005 \
+            and price < prev_close \
+            and prev_change < -0.05:
             if os.environ['DEBUG']=='ON':
                 print('Ignore Buy decision - jump down')
             decision = False
 
-        if dataset['open'].iloc[-1] > dataset['close'].iloc[-1]*1.005 \
-            and dataset['close'].iloc[-2]*0.99 > dataset['open'].iloc[-1]  \
-            and (dataset['change'].iloc[-2]+dataset['change'].iloc[-1]) < -0.05:
+        if open > price*1.005 \
+            and prev_close*0.99 > open  \
+            and (prev_change+change) < -0.05:
             if os.environ['DEBUG']=='ON':
                 print('Ignore Buy decision - jump down v2')
             decision = False
@@ -235,25 +241,31 @@ def should_buy(dataset):
             decision = False
 
         # 不跟跌停
-        if abs((dataset['close'].iloc[-1] - dataset['open'].iloc[-1]) /dataset['open'].iloc[-1]) > 0.07:
+        if abs((price - open) /open) > 0.07:
             decision = False
 
         # 跌得太多 反弹太小
-        if dataset['change'].iloc[-1] < 0.02 \
-            and (dataset['change'].iloc[-2]<0 and dataset['change'].iloc[-3]<0) \
-            and abs(dataset['change'].iloc[-2]+dataset['change'].iloc[-3]) > 0.075:
+        if change < 0.02 \
+            and (prev_change<0 and dataset['change'].iloc[-3]<0) \
+            and abs(prev_change+dataset['change'].iloc[-3]) > 0.075:
             if os.environ['DEBUG']=='ON':
                 print('Ignore Buy decision - recover to little')
             decision = False
 
         # 两阴夹一阳 先别买
-        if dataset['change'].iloc[-1] < -0.03 \
-            and dataset['change'].iloc[-2] < 0.03 \
+        if change < -0.03 \
+            and prev_change < 0.03 \
             and dataset['change'].iloc[-3] < -0.03:
             if os.environ['DEBUG']=='ON':
                 print('Ignore Buy decision - 2 black bar hugging one red bar')
             decision = False
 
+    # 判断是否阴线孕育阳线
+    if prev_change<-0.02 and change>0 \
+        and prev_close < open and prev_open > close:
+        if os.environ['DEBUG']=='ON':
+            print("black bar contains red bar YunXian")
+        decision = True
 
     # 按振幅判断， 如果后3日振幅相比前7日振幅扩大 并且当日是3日最低
     short_his = dataset[-7:].copy()
@@ -311,7 +323,7 @@ def should_sell(dataset):
         sell_signal_count = 0
         pos = 1
         pressure_points = points[(points.direction=='down') & (points.price<price*(1+fuzzy_range))]
-        while(pos<pressure_points.shape[0]):
+        while(pos<=pressure_points.shape[0]):
             point = pressure_points['price'].iloc[-pos]
             num_date =  pressure_points['num_date'].iloc[-pos]
             date = mdates.num2date(num_date)
@@ -389,12 +401,19 @@ def should_hold(dataset):
     change =  dataset['change'].iloc[-1]
     date = dataset.iloc[-1].name
     v_pos = (close - dataset['close'].min()) / (dataset['close'].max() - dataset['close'].min())
+    drop_from_highest = (highest - bought_price)/highest
 
     if hold_days==2:
         stop_line = bought_price
 
     if hold_days>2 and profit>0:
         stop_line = lowest * (1+ideal_profit/2)
+
+    if hold_days>=2 and change<-0.01 \
+        and drop_from_highest > 0.05:
+        if os.environ['DEBUG']=='ON':
+            print("{:.10} continue drop more than {:.2f}".format(str(date),hold_days,profit))
+        decision = False
 
     if hold_days>=4 and profit<0.03 and max_loss>-0.035:
         if os.environ['DEBUG']=='ON':

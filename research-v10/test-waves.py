@@ -13,7 +13,7 @@ import datetime,time
 debug = 'OFF'
 
 LOOKBACK_SIZE = 200
-SAMPLE_SIZE = 500
+SAMPLE_SIZE = 1000
 
 start_date=datetime.date(2008,4,15)
 end_date=datetime.date(2012,4,15)
@@ -43,6 +43,7 @@ for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security
     if p_min == p_max : continue
     p_pos = (close - p_min) / (p_max - p_min)
     p_down = (p_max-close)/p_max
+    p_space = (p_max-p_min)/p_max
 
     vol = history['volume'].iloc[-1]
     v_min,v_max = history['volume'].min(), history['volume'].quantile(0.95)
@@ -52,14 +53,21 @@ for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security
     env = env.append(pd.Series({
         'p_pos': p_pos,
         'p_down':p_down,
+        'p_space': p_space,
         'v_pos': v_pos,
         'future':future_change
     }, name=security))
 
-    if _%10 ==0:
-        env = env.sort_values(by=['p_down'],ascending=False)
-        env=round(env,3)
-        print(env)
+    # if _%10 ==0:
+    #     env = env.sort_values(by=['future'],ascending=False)
+    #     env=round(env,3)
+    #     print(env)
 
+env = np.round(env,4)
 env = env.sort_values(by=['future'],ascending=False)
+env = env * 100
+future = np.round(env['future'],2)
+env=env[['p_pos','p_down','p_space','v_pos']]
+env.to_csv('report.tsv',sep="\t",index=False, header=False)
+future.to_csv('report.meta',sep="\t",index=False, header=False)
 print(env)

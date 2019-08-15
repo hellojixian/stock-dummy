@@ -40,8 +40,6 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
             dataset = dataset.sort_index()
             end_date = np.datetime64(end_date)
             dataset = dataset[dataset.index>=start_date]
-            dataset.index = dataset.index.strftime("%Y-%m-%d")
-
 
     try:
         end_date = str(end_date)
@@ -51,7 +49,7 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
         else:
             if start_date is not None:
                 dataset = dataset[:end_iloc]
-            else:                
+            else:
                 dataset = dataset[end_iloc-count:end_iloc]
     except:
         dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
@@ -62,8 +60,8 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
             dataset = dataset[dataset.index>=start_date]
         if start_date is None:
             dataset = dataset[-count:]
-        dataset.index = dataset.index.strftime("%Y-%m-%d")
     dataset = dataset.dropna()
+    dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
     return dataset
 
 def get_all_securites():

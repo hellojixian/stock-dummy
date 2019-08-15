@@ -154,14 +154,13 @@ def visualize(dataset, max_width=150):
 
     ax2.set_ylim(0,1)
 
-    # ax2.axhline(y=0, color="w", linewidth=0.5, alpha=0.9)
-    # ax2.axhspan(2, 5, facecolor='blue', alpha=0.05)
-
     fig.canvas.mpl_connect('button_press_event', onClick)
     fig.canvas.mpl_connect('key_press_event', onPress)
 
     update_price_label(dataset['num_date'].iloc[-1])
-    mark_buysell_range(dataset, [ax1, ax2], profit_label)
+    if 'action' in dataset.columns:
+        mark_buysell_range(dataset, [ax1, ax2], profit_label)
+
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
     return [plt,ax1, ax2]
 
@@ -265,22 +264,18 @@ def mark_buysell_range(dataset, axs, profit_label=None):
 
 g={}
 def test_feature(dataset,axs):
-    points = find_turn_points(dataset[-120:])
-    # 找有没有支撑
-    # 看支撑被用过几次
-    print("-"*10,"should buy","-"*50)
-    should_buy(dataset)
-    print("-"*10,"should hold","-"*50)
-    should_hold(dataset)
-    print("-"*10,"should stoploss","-"*50)
-    should_stoploss(dataset)
-    print("="*100)
-    print("\n\n")
+    close = dataset['close'].iloc[-1]
 
-    if 'short_rdp' not in g.keys():
-        g['short_rdp'], = axs[0].plot(points['num_date'],points['price'], label="Short_RDP", alpha=0.7, c='r')
-    else:
-        g['short_rdp'].set_xdata(points['num_date'])
-        g['short_rdp'].set_ydata(points['price'])
-
+    for key,rate in [
+        ('short_rdp_2',0.025),
+        ('short_rdp_5',0.05),
+        ('short_rdp_10',0.10),
+    ]:
+        points = find_turn_points(dataset[-120:], epsilon=close*rate)
+        if key not in g.keys():
+            g[key], = axs[0].plot(points['num_date'],points['price'], label=key, alpha=0.5 )
+        else:
+            g[key].set_xdata(points['num_date'])
+            g[key].set_ydata(points['price'])
+    axs[0].legend(loc='upper right')
     return points

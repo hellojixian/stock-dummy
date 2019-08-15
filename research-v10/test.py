@@ -1,6 +1,5 @@
-import time
-import progressbar
-
-for i in progressbar.progressbar(range(100), redirect_stdout=True):
-    # print('Some text', i)
-    time.sleep(0.1)
+for key,value in [
+    ('short_rdp_5',0.05),
+    ('short_rdp_10',0.10),
+]:
+    print(key,value)

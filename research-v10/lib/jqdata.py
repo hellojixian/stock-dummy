@@ -51,7 +51,7 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
         else:
             if start_date is not None:
                 dataset = dataset[:end_iloc]
-            else:
+            else:                
                 dataset = dataset[end_iloc-count:end_iloc]
     except:
         dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")

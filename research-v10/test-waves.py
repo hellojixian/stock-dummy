@@ -33,10 +33,10 @@ env = pd.DataFrame()
 for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security_list.shape[0]):
     security = row['security']
     history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE)
-    if history.shape[0] <= 5: continue
 
-    future_close = history['close'].iloc[-1]
-    history = history[:-5]
+    future = get_price(security, start_date=trade_date, end_date=(trade_date+datetime.timedelta(days=10)), count=-10)
+    f5_close = future['close'].iloc[4]
+    f10_close = future['close'].iloc[-1]
 
     close = history['close'].iloc[-1]
     p_min,p_max = history['low'].min(), history['high'].max()
@@ -49,13 +49,15 @@ for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security
     v_min,v_max = history['volume'].min(), history['volume'].quantile(0.95)
     v_pos = (vol - v_min) / (v_max - v_min)
 
-    future_change = (future_close - close) / close
+    f10_change = (f10_close - close) / close
+    f5_change = (f5_close - close) / close
     env = env.append(pd.Series({
         'p_pos': p_pos,
         'p_down':p_down,
         'p_space': p_space,
         'v_pos': v_pos,
-        'future':future_change
+        'f5_c':f5_change,
+        'f10_c':f10_change,
     }, name=security))
 
     # if _%10 ==0:

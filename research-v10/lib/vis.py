@@ -77,6 +77,8 @@ def visualize(dataset, max_width=150):
 
     def onClick(event):
         if not event.xdata: return
+        if event.xdata<0: return
+        if event.xdata>len(dataset): return
         pos = int(event.xdata)
 
         for vline in cursor_vlines:
@@ -97,11 +99,13 @@ def visualize(dataset, max_width=150):
         step = 20
         pos = cursor_vlines[0].get_data()[0][0]
         if event.key.lower()=='a' or event.key=='left':
-            event.xdata = pos-1
-            onClick(event)
+            if pos-1 >=0:
+                event.xdata = pos-1
+                onClick(event)
         elif event.key.lower()=='d' or event.key=='right':
-            event.xdata = pos+1
-            onClick(event)
+            if pos+1 <len(dataset):
+                event.xdata = pos+1
+                onClick(event)
         if event.key.lower()=='z':
             offest = -step
         elif event.key.lower()=='c':
@@ -110,10 +114,20 @@ def visualize(dataset, max_width=150):
         x_start_num_date+=offest
         x_end_num_date+=offest
 
-        subset = dataset[max(0,int(x_start_num_date)):min(len(dataset),int(x_end_num_date+1))]
-        if x_start_num_date <=0: return
-        if x_end_num_date >= len(dataset): return
+        xlim = ax1.get_xlim()
+        width = xlim[1]-xlim[0]
+        if x_start_num_date<=0:
+            x_start_num_date = 0
+            x_end_num_date = width
 
+        if x_end_num_date>=len(dataset):
+            x_end_num_date = len(dataset)
+            x_start_num_date = x_end_num_date-width
+
+        x_start_num_date = int(x_start_num_date)
+        x_end_num_date = int(x_end_num_date)
+
+        subset = dataset[x_start_num_date:x_end_num_date]
         for ax in [ax1, ax2]:
             ax.set_xlim(x_start_num_date, x_end_num_date)
         ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
@@ -130,7 +144,7 @@ def visualize(dataset, max_width=150):
         ax.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=10))
         ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
-        ax.set_xlim(x_start_idx, x_end_idx)
+        ax.set_xlim(x_start_idx, x_end_idx+2)
     ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
     ax1.set_xticklabels([])
     cursor_vlines = []

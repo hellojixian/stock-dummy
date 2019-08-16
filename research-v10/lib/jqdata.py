@@ -62,6 +62,8 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
             dataset = dataset[-count:]
     dataset = dataset.dropna()
     dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
+    if skip_paused==True:        
+        dataset = dataset[dataset.volume>0]
     return dataset
 
 def get_all_securites():

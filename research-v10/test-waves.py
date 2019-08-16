@@ -34,8 +34,8 @@ env = pd.DataFrame()
 for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security_list.shape[0]):
     if _ != 10: continue
     security = row['security']
-    history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE)
-    future = get_price(security, start_date=trade_date, end_date=(trade_date+datetime.timedelta(days=12)), count=10)
+    history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE, skip_paused=True)
+    future = get_price(security, start_date=trade_date, end_date=(trade_date+datetime.timedelta(days=12)), count=10, skip_paused=True)
     if history.shape[0]<=10 or future.shape[0]<10: continue
 
 
@@ -45,11 +45,11 @@ for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security
 
     history['num_date'] = mdates.date2num(history.index.to_pydatetime())
     history['de_noised'] = savgol_filter(history['close'], 21, 3)
-    points = find_turn_points(history,epsilon=close*0.15,field='close')
+    points = find_turn_points(history,epsilon=close*0.1,field='close')
 
     plt,ax1,ax2 = visualize(history)
     # ax1.plot(points['num_date'], points['price'], label="turnpoints")
     # ax1.plot(history['num_date'], history['close'], label="smooth_close")
     plt.show()
     break
-print(env)
+# print(env)

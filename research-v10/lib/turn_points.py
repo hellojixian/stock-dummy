@@ -14,7 +14,7 @@ def _find_turn_points(points, epsilon):
             idx_keep.append(simplified[i+1])
     idx_keep.append(points[-1])
     idx_keep = np.array(idx_keep)
-    return simplified
+    return idx_keep
 
 def find_turn_points(history, epsilon=None, field='close'):
     points = history[['num_date',field]].values

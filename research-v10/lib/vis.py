@@ -110,7 +110,9 @@ def visualize(dataset, max_width=150):
         x_start_num_date+=offest
         x_end_num_date+=offest
 
-        subset = dataset[int(x_start_num_date):int(x_end_num_date+1)]
+        subset = dataset[max(0,int(x_start_num_date)):min(len(dataset),int(x_end_num_date+1))]
+        if x_start_num_date <=0: return
+        if x_end_num_date >= len(dataset): return
 
         for ax in [ax1, ax2]:
             ax.set_xlim(x_start_num_date, x_end_num_date)

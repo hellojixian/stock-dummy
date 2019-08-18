@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.dates as mdates
 import math, sys, os
+import talib as ta
 
 def _find_turn_points(points, epsilon):
     simplified = rdp(points, epsilon=epsilon)
@@ -87,9 +88,12 @@ def find_turn_points(history, epsilon=None, field='close'):
     #     print('got it')
     return turn_points
 
-def find_trend(history, field='close'):
+def find_trend(values, history):
+    history = history[int(values[0]):int(values[-1])]
     trends = []
-    for period in [60, 30, 20, 10, 5, 3]:
+    periods = [53, 29, 13, 7, 5, 3]
+    weights = [3, 2, 1.5, 1, 0.5, 1.5]
+    for period,weight in zip(periods, weights):
         subset = history[-period:]
         p_min, p_max = subset['low'].min(), subset['high'].max()
         p_min_idx = subset[subset.low==p_min].iloc[-1].name
@@ -102,8 +106,14 @@ def find_trend(history, field='close'):
         if p_max_idx < p_min_idx:
             # down trend
             trend = - 1
-        # trend = trend**2
-        trends.append(trend)
-    final_trend = np.mean(trends)
+        trends.append(trend * weight)
+    final_trend = np.sum(trends) / np.sum(weights)
     print("{:.10} {:.2f}".format(str(history['index'].iloc[-1]), final_trend))
     return final_trend
+
+def HMA(data, periods = 4):
+    wmaA = ta.WMA(data,timeperiod = periods / 2) * 2
+    wmaB = ta.WMA(data,timeperiod = periods)
+    wmaDiffs = wmaA - wmaB
+    hma = ta.WMA(wmaA - wmaB, math.sqrt(periods))
+    return hma

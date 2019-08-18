@@ -17,18 +17,19 @@ def _find_turn_points(points, epsilon):
     return idx_keep
 
 def find_turn_points(history, epsilon=None, field='close'):
-    points = history[['num_date',field]].values
+    points = history[['id',field]].values
     if epsilon is None:
         short_his = history[-5:].copy()
         short_his['amp'] = short_his['high'] - short_his['low']
         ma_amp = short_his['amp'].mean()
         epsilon = ma_amp
     turn_points = _find_turn_points(points, epsilon=epsilon)
-    turn_points = pd.DataFrame(turn_points,columns=['num_date','price'])
+    turn_points = pd.DataFrame(turn_points,columns=['id','price'])
     turn_points['direction'] = 'unknown'
     for i in range(0,turn_points.shape[0]-1):
         if turn_points['price'].iloc[i] < turn_points['price'].iloc[i+1]:
             turn_points.loc[i,'direction'] = 'up'
         else:
             turn_points.loc[i,'direction'] = 'down'
+    turn_points['id'] = turn_points['id'].astype('i')
     return turn_points

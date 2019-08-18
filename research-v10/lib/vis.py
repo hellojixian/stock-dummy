@@ -33,8 +33,6 @@ def visualize(dataset, max_width=150):
     c_down, c_up = '#77d879','#db3f3f'
 
     # transform data
-    if 'num_date' not in dataset.columns:
-        dataset['num_date'] = mdates.date2num(dataset.index.to_pydatetime())
     if 'change' not in dataset.columns:
         dataset['change'] = (dataset['close'] - dataset['close'].shift(periods=1))/dataset['close'].shift(periods=1)
 
@@ -43,15 +41,14 @@ def visualize(dataset, max_width=150):
     dataset['date'] = dataset['index']
     dataset = dataset.drop(columns=['index'])
 
-    x = pd.to_datetime(dataset.index).tolist()
-
     mpl.style.use('dark_background')
     mpl.rcParams['toolbar'] = 'None'
 
     fig =plt.figure(figsize=(12,9))
-    gs = gridspec.GridSpec(4, 3)
+    gs = gridspec.GridSpec(5, 3)
     ax1 =plt.subplot(gs[:3,:])
     ax2 =plt.subplot(gs[3,:])
+    ax3 =plt.subplot(gs[4,:])
 
     title = "Baseline: {:.2f}%".format(baseline_profits)
     subtitle = "From {:.10}    to {:.10}    Duration: {} days".format(str(dataset['date'].iloc[0]), str(dataset['date'].iloc[-1]), len(dataset))
@@ -61,6 +58,7 @@ def visualize(dataset, max_width=150):
     profit_label = fig.text(0.2, 0.96, "", fontsize=10, weight='bold')
     date_label = fig.text(0.07, 0.92, "")
     price_label = fig.text(0.07, 0.895, "")
+    vol_label = fig.text(0.07, 0.87, "", alpha=0.5)
 
     def update_price_label(pos):
         rec = dataset.iloc[pos]
@@ -68,11 +66,13 @@ def visualize(dataset, max_width=150):
         idx = rec.name
         price = dataset['close'].iloc[idx]
         change = dataset['change'].iloc[idx]
+        vol = dataset['volume'].iloc[idx]
         c = c_up
         if dataset['open'].iloc[idx] > dataset['close'].iloc[idx]: c = c_down
         date_label.set_text("Date: {:.10}".format(str(date)))
         price_label.set_text("Price: {} ({:5.2f}%)".format(price, change*100))
         price_label.set_color(c)
+        vol_label.set_text("Vol: {}k".format(vol/1000))
         return
 
     def onClick(event):
@@ -128,9 +128,11 @@ def visualize(dataset, max_width=150):
         x_end_num_date = int(x_end_num_date)
 
         subset = dataset[x_start_num_date:x_end_num_date]
-        for ax in [ax1, ax2]:
+        for ax in [ax1, ax2, ax3]:
             ax.set_xlim(x_start_num_date, x_end_num_date)
         ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
+        ax2.set_ylim(0, np.max(subset['ud_r'])*1.1)
+
         plt.draw()
         return
 
@@ -139,17 +141,18 @@ def visualize(dataset, max_width=150):
     subset = dataset[x_start_pos:x_end_pos]
     x_start_idx = subset.iloc[0].name
     x_end_idx = subset.iloc[-1].name
-    for ax in [ax1, ax2]:
+    cursor_vlines = []
+    for ax in [ax1, ax2, ax3]:
         ax.grid(color='gray',which='major',linestyle='dashed',alpha=0.3)
         ax.grid(color='gray',which='minor',linestyle='dashed',alpha=0.15)
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=10))
         ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
         ax.set_xlim(x_start_idx, x_end_idx+2)
+        cursor_vlines.append(ax.axvline(x=dataset.index[-1], color="w", linewidth=0.5, alpha=0.6))
+        cursor_vlines.append(ax.axvline(x=dataset.index[-1], color="w", linewidth=0.5, alpha=0.6))
     ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
     ax1.set_xticklabels([])
-    cursor_vlines = []
-    cursor_vlines.append(ax1.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.6))
-    cursor_vlines.append(ax2.axvline(x=x[-1], color="w", linewidth=0.5, alpha=0.6))
+    ax2.set_xticklabels([])
     cursor_hline = ax1.axhline(y=0, color="w", linewidth=0.5, alpha=0.5)
 
     candlestick_ohlc(ax1, zip(
@@ -168,7 +171,7 @@ def visualize(dataset, max_width=150):
         global ds
         label = ds['date'].iloc[int(x)]
         return label.strftime("%m/%d")
-    ax2.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
+    ax3.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
 
     fig.canvas.mpl_connect('button_press_event', onClick)
     fig.canvas.mpl_connect('key_press_event', onPress)
@@ -178,7 +181,7 @@ def visualize(dataset, max_width=150):
         mark_buysell_range(dataset, [ax1, ax2], profit_label)
 
     plt.subplots_adjust(left=0.05, right=0.97, top=0.95, bottom=0.12)
-    return [plt,ax1, ax2]
+    return [plt,ax1, ax2, ax3]
 
 def mark_buysell_range(dataset, axs, profit_label=None):
     return

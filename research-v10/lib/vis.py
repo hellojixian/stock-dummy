@@ -131,8 +131,9 @@ def visualize(dataset, max_width=150):
         for ax in [ax1, ax2, ax3]:
             ax.set_xlim(x_start_num_date, x_end_num_date)
         ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
-        ax2.set_ylim(0, np.max(subset['ud_r'])*1.1)
 
+        ax2.set_ylim(0, np.max(subset['vp_r'])*1.1)
+        # ax3.set_ylim(subset['trend_wma'].min(), subset['trend_wma'].max())
         plt.draw()
         return
 
@@ -188,16 +189,16 @@ def mark_buysell_range(dataset, axs, profit_label=None):
 
 g={}
 def test_feature(dataset,axs):
-    # close = dataset['close'].iloc[-1]
-    #
-    # for key,rate in [
-    #     ('short_rdp_10',0.10),
-    # ]:
-    #     points = find_turn_points(dataset[-120:], epsilon=close*rate)
-    #     if key not in g.keys():
-    #         g[key], = axs[0].plot(points['num_date'],points['price'], label=key, alpha=0.5 )
-    #     else:
-    #         g[key].set_xdata(points['num_date'])
-    #         g[key].set_ydata(points['price'])
-    # axs[0].legend(loc='upper right')
+    close = dataset['close'].iloc[-1]
+    len=60
+    for key,rate in [
+        ('short_rdp_10',0.10),
+    ]:
+        points = find_turn_points(dataset[-len:], epsilon=close*rate)
+        if key not in g.keys():
+            g[key], = axs[0].plot(points['id'],points['price'], label=key, alpha=0.5 )
+        else:
+            g[key].set_xdata(points['id'])
+            g[key].set_ydata(points['price'])
+    axs[0].legend(loc='upper right')
     return

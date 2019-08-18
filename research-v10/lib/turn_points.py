@@ -32,4 +32,78 @@ def find_turn_points(history, epsilon=None, field='close'):
         else:
             turn_points.loc[i,'direction'] = 'down'
     turn_points['id'] = turn_points['id'].astype('i')
+
+    # logic for fixing the tail
+    last_tp = turn_points.iloc[-2]
+    last_tp_price = turn_points.iloc[-2]['price']
+    last_price = turn_points.iloc[-1]['price']
+    last_id = turn_points.iloc[-1]['id']
+    last_subset = history[history.id>=last_tp['id']][['id',field]]
+    last_direction = turn_points.iloc[-2]['direction']
+    last_min, last_max = last_subset[field].min(), last_subset[field].max()
+    last_min_idx = int(last_subset[last_subset.eval("{}=={}".format(field,last_min))]['id'].iloc[0])
+    last_max_idx = int(last_subset[last_subset.eval("{}=={}".format(field,last_max))]['id'].iloc[0])
+
+    fuzzy_rate = 0.01
+    if last_direction == 'up' \
+        and (last_price != last_max or last_tp_price!=last_min):
+        turn_points = turn_points[:-1].copy()
+        # prev_idx = turn_points.iloc[-1].name
+        # turn_points.loc[prev_idx,'id'] = last_min_idx
+        # turn_points.loc[prev_idx,'price'] = last_min
+        turn_points = turn_points.append(pd.Series({
+            'id':last_max_idx,
+            'price':last_max,
+            'direction':'down'
+            }),ignore_index=True)
+        if last_price != last_max:
+            turn_points = turn_points.append(pd.Series({
+                'id':last_id,
+                'price':last_price,
+                'direction':'up'
+                }),ignore_index=True)
+        print('need fix up')
+    if last_direction == 'down' \
+        and (last_price != last_min or last_tp_price!=last_max):
+        turn_points = turn_points[:-1].copy()
+
+
+        turn_points = turn_points.append(pd.Series({
+            'id':last_min_idx,
+            'price':last_min,
+            'direction':'up'
+            }),ignore_index=True)
+        if last_price != last_min:
+            turn_points = turn_points.append(pd.Series({
+                'id':last_id,
+                'price':last_price,
+                'direction':'down'
+                }),ignore_index=True)
+        print(turn_points)
+        print('need fix down')
+    # print(np.min(last_subset))
+    # print(points['price'][:])
+    # if idx_keep[-2][1] == points['price'][idx_keep['id'][-2]:].min():
+    #     print('got it')
     return turn_points
+
+def find_trend(history, field='close'):
+    trends = []
+    for period in [60, 30, 20, 10, 5, 3]:
+        subset = history[-period:]
+        p_min, p_max = subset['low'].min(), subset['high'].max()
+        p_min_idx = subset[subset.low==p_min].iloc[-1].name
+        p_max_idx = subset[subset.high==p_max].iloc[-1].name
+
+        trend = 0
+        if p_max_idx > p_min_idx:
+            # up trend
+            trend =  + 1
+        if p_max_idx < p_min_idx:
+            # down trend
+            trend = - 1
+        # trend = trend**2
+        trends.append(trend)
+    final_trend = np.mean(trends)
+    print("{:.10} {:.2f}".format(str(history['index'].iloc[-1]), final_trend))
+    return final_trend

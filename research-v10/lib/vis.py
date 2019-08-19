@@ -132,7 +132,7 @@ def visualize(dataset, max_width=150):
             ax.set_xlim(x_start_num_date, x_end_num_date)
         ax1.set_ylim(np.min(subset['low'])*0.9, np.max(subset['high'])*1.1)
 
-        ax2.set_ylim(0, 6)
+        # ax2.set_ylim(0, 0.6)
         # ax3.set_ylim(subset['trend_wma'].min(), subset['trend_wma'].max())
         plt.draw()
         return

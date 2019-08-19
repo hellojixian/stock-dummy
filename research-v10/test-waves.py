@@ -36,7 +36,7 @@ env = pd.DataFrame()
 # for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security_list.shape[0]):
     # if _ <= 25: continue
 if True:
-    row = security_list.iloc[14]
+    row = security_list.iloc[15]
 
     security = row['security']
     history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE, skip_paused=True)

@@ -108,6 +108,29 @@ def find_trend(values, history):
             trend = - 1
         trends.append(trend * weight)
     final_trend = np.sum(trends) / np.sum(weights)
+    # print("{:.10} {:.2f}".format(str(history['index'].iloc[-1]), final_trend))
+    return final_trend
+
+def find_price_pos(values, history):
+    history = history[int(values[0]):int(values[-1])]
+    close = history['close'].iloc[-1]
+    trends = []
+    amps = []
+    periods = [ 75,60, 29,  13, 7, 5,  3]
+    weights = [  3 ,3, 1.5, 1.5, 1, 1, 1]
+    for period,weight in zip(periods, weights):
+        subset = history[-period:]
+        p_min, p_max = subset['close'].min(), subset['close'].max()
+        if p_min == p_max:
+            pos = 0.5
+        else:
+            pos = (close - p_min) / (p_max-p_min)
+        pos = pos * 2 -1
+        amp = (p_max - p_min) / p_min
+        amps.append(amp)
+        trends.append(pos * (weight + amp))
+    final_trend = np.sum(trends) / (np.sum(weights) + np.sum(amps))
+
     print("{:.10} {:.2f}".format(str(history['index'].iloc[-1]), final_trend))
     return final_trend
 

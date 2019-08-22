@@ -42,7 +42,7 @@ for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security
     # if i<91: continue
     security = row['security']
     history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE, skip_paused=True)
-    if history.shape[0]<=10: break
+    if history.shape[0]<=10: continue
 
     close = history['close'].iloc[-1]
     history = history.reset_index()

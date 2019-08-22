@@ -29,8 +29,8 @@ pd.set_option('display.width', 1000)
 
 print('start testing')
 
-security_list = get_all_securites().sample(SAMPLE_SIZE)
-# security_list = get_all_securites()
+# security_list = get_all_securites().sample(SAMPLE_SIZE)
+security_list = get_all_securites()
 trade_date = end_date
 
 dataset = pd.DataFrame()

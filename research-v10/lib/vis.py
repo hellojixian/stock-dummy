@@ -170,8 +170,11 @@ def visualize(dataset, max_width=150):
     ds = dataset
     def format_date(x, pos=None):
         global ds
-        label = ds['date'].iloc[int(x)]
-        return label.strftime("%m/%d")
+        try:
+            label = ds['date'].iloc[int(x)]
+            return label.strftime("%m/%d")
+        except:
+            return 'n/a'
     ax3.xaxis.set_major_formatter(ticker.FuncFormatter(format_date))
 
     fig.canvas.mpl_connect('button_press_event', onClick)

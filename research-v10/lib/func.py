@@ -69,13 +69,15 @@ def find_buysell_points(history):
     history['action'] = ''
     history['hold'] = 0
 
-    if turnup_points.shape[0]>0 and turndown_points.shape[0]>0:
-        if turnup_points.iloc[0].name > turndown_points.iloc[0].name:
+    if turnup_points.shape[0]>0 and turndown_points.shape[0]>0 \
+        and turnup_points.iloc[0].name > turndown_points.iloc[0].name:
             turndown_points = turndown_points[1:]
 
-        if turnup_points.iloc[-1].name > turndown_points.iloc[-1].name:
+    if turnup_points.shape[0]>0 and turndown_points.shape[0]>0 \
+        and turnup_points.iloc[-1].name > turndown_points.iloc[-1].name:
             turnup_points = turnup_points[:-1]
 
+    if turnup_points.shape[0]>0 and turndown_points.shape[0]>0:
         for i in range(turnup_points.shape[0]):
             sp = turnup_points.iloc[i].name
             ep = turndown_points.iloc[i].name

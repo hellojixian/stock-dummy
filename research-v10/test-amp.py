@@ -37,7 +37,7 @@ dataset = pd.DataFrame()
 i=0
 for _,row in progressbar.progressbar(security_list.iterrows(),max_value=security_list.shape[0]):
     i+=1
-    # if i<26: continue
+    # if i<91: continue
     security = row['security']
     history = get_price(security, end_date=trade_date, count=LOOKBACK_SIZE, skip_paused=True)
     if history.shape[0]<=10: break

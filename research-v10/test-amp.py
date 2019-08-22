@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import datetime
 import pandas as pd
 import math, sys, os

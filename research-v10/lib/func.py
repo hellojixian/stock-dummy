@@ -86,3 +86,13 @@ def find_buysell_points(history):
             history.loc[ep,'action']='sell'
 
     return turnup_points,turndown_points, history
+
+
+def get_prime_numbers(vmin,vmax):
+    pn=[]
+    for a in range(vmin,vmax):
+        k = 0
+        for i in range(2,a):
+            if a % i == 0 : k += 1
+        if k == 0 : pn.append(a)
+    return pn

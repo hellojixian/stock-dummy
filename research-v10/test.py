@@ -21,8 +21,8 @@ print(p_min, p_max)
 
 print(values.index(p_min), values.index(p_max))
 
-for i in range(4,8):
-    print(7+4-i)
+for i in range(5,10):
+    print(8+4-i)
 
-for i in range(8,16,2):
+for i in range(10,16,2):
     print(3+int(4-i/2))

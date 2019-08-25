@@ -53,7 +53,6 @@ finished = mp.Value('i', 0)
 def do_work(dna):
     global finished
     global DNA_LEN,DNAset
-    lock = l
 
     q = to_query_v1(dna)
     subset = dataset[dataset.eval(q)]
@@ -87,16 +86,16 @@ print(dataset.shape)
 DNA_LEN = 16
 DNAset = gen_bits(DNA_LEN)
 bar = progressbar.ProgressBar(max_value=len(DNAset))
-
+qtable = pd.DataFrame()
 
 m = mp.Manager()
 l = m.Lock()
 pool = mp.Pool(processes=mp.cpu_count())
-res = pool.map(do_work,DNAset)
+res = pool.imap(do_work,DNAset)
 pool.close()
 pool.join()
 
-qtable = pd.DataFrame()
+
 for r in res:
     if r is not None: qtable = qtable.append(r)
 qtable = qtable.sort_values(by=['wr_f1'],ascending=False)

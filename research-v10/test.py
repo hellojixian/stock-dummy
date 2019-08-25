@@ -8,39 +8,15 @@ import progressbar
 import multiprocessing as mp
 from lib.jqdata import *
 
-start_date=datetime.date(2008,4,15)
-end_date=datetime.date(2019,7,15)
-np.random.seed(0)
+values=[3.97,3.67,3.51,3.57,3.7,3.74,3.84,3.71,3.78,4.08,4.31,4.17,4.14,3.9
+,3.89,3.69,3.74,3.64,3.78,3.84,3.83,3.81,3.81,3.71,3.6,3.63,3.65,3.71
+,3.62,3.64,3.64,3.65,3.57,3.72,3.7,3.68,3.64,3.6,3.58,3.57,3.62,3.62
+,3.58,3.59,3.67,3.64,3.7,3.63,3.63,3.58,3.59,3.58,3.58,3.56,3.56,3.56
+,3.54,3.52,3.5,3.55,3.51,3.54,3.53,3.51,3.56,3.55,3.9,3.98,3.84,3.7
+,3.7,3.63,3.61,3.68,3.59,3.61,3.62,3.6,3.62,3.57,3.59,3.59,3.56,3.58
+,3.56,3.54,3.56,3.56,3.56,3.58]
 
-security_list = get_all_securites()
-filename = 'data/dataset-labeled-2.csv'
+p_min, p_max = np.min(values), np.max(values)
+print(p_min, p_max)
 
-start_date=datetime.date(2008,4,15)
-end_date=datetime.date(2019,7,15)
-np.random.seed(0)
-
-# set output
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
-
-security_list = security_list[:10]
-bar = progressbar.ProgressBar(max_value=len(security_list))
-
-def do_work(v):
-    i = v[0]
-    row = v[1]
-    security = row['security']
-    # print(filename)
-    time.sleep(0.1)
-    bar.update(i+1)
-    return v
-
-
-pool = mp.Pool(processes=mp.cpu_count())
-
-# for _ in progressbar.progressbar(pool.map(do_work,security_list.iterrows()),max_value=len(security_list), redirect_stdout=True):
-#     # print(_)
-#     pass
-pool.map(do_work,security_list.iterrows())
-print('done')
+print(values.index(p_min), values.index(p_max))

@@ -1,5 +1,6 @@
 import datetime
 import pandas as pd
+import numpy as np
 import math, sys, os
 
 def find_turnup_points(history):
@@ -97,28 +98,15 @@ def get_prime_numbers(vmin,vmax):
         if k == 0 : pn.append(a)
     return pn
 
+def find_trend(values):
+    values = list(values)
+    p_min, p_max = np.min(values), np.max(values)
+    p_min_idx, p_max_idx = values.index(p_min), values.index(p_max)
 
-
-def extract_feature_worker(v):
-    i = v[0]
-    row = v[1]
-    security = row['security']
-    dataset = pd.DataFrame()
-    # history = get_price(security, start_date=start_date, end_date=end_date,
-    #                         skip_paused=True)
-    #
-    # for i in range(0,10):
-    #     history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)*100
-    #     history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)],2)
-    #
-    # for i in range(0,5):
-    #     history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)*100
-    #     history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)],2)
-    #
-    # history.drop(columns=['high','low','volume','money'])
-    # history=history.dropna()
-    # dataset = dataset.append(history)
-    # dataset.to_csv(filename)
-
-    print(i, security)
-    return v
+    # down trend
+    trend = 0
+    if p_max_idx > p_min_idx:
+        # up trend
+        trend = 1
+    
+    return trend

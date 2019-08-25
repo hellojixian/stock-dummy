@@ -30,27 +30,36 @@ def to_query(dna):
     query = query[:-2]
     return query
 
-filename = 'data/dataset-labeled.csv'
+def DNAset(dna):
+    print(dna)
+    # q = to_query(dna)
+    # subset = dataset[dataset.eval(q)]
+    # total = subset.shape[0]
+    # if total>0:
+    #     cond = "(fu_1) >0 or (fu_1+fu_2)>0 or (fu_1+fu_2+fu_3)>0"
+    #     win_r = subset[subset.eval(cond)].shape[0]/total
+    #     qtable = qtable.append(pd.Series({
+    #     'dna':dna,
+    #     'win_r':win_r,
+    #     'samples':total
+    #     }, name=int(dna,2)))
+    #     print("{}\t{}\twin_r:{:.2f}\tsamples:{}".format(int(dna,2),dna,win_r,total,total))
+
+
+filename = 'data/dataset-labeled-2.csv'
 dataset = pd.read_csv(filename,index_col=0)
 
-
-DNA_LEN = 8
+DNA_LEN = 12
 qtable = pd.DataFrame()
 DNAset = gen_bits(DNA_LEN)
 
-for dna in DNAset:
-    q = to_query(dna)
-    subset = dataset[dataset.eval(q)]
-    total = subset.shape[0]
-    if total>0:
-        cond = "(fu_1) >0 or (fu_1+fu_2)>0 or (fu_1+fu_2+fu_3)>0"
-        win_r = subset[subset.eval(cond)].shape[0]/total
-        qtable = qtable.append(pd.Series({
-        'dna':dna,
-        'win_r':win_r,
-        'samples':total
-        }, name=int(dna,2)))
-        print("{}\t{}\twin_r:{:.2f}\tsamples:{}".format(int(dna,2),dna,win_r,total,total))
+print(len(DNAset))
+print(DNAset[:10])
+
+pool = mp.Pool(processes=mp.cpu_count())
+pool.map(do_work,DNAset)
+
+assert(False)
 
 qtable = qtable.sort_values(by=['win_r'],ascending=False)
 qtable.to_csv('data/report_len{}.csv'.format(DNA_LEN))

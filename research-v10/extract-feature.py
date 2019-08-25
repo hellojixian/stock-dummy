@@ -7,6 +7,7 @@ import math, sys, os
 import progressbar
 import multiprocessing as mp
 from lib.jqdata import *
+from lib.func import *
 
 start_date=datetime.date(2008,4,15)
 end_date=datetime.date(2019,7,15)
@@ -45,6 +46,9 @@ def do_work(v):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)*100
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)],2)
 
+    for i in [60,30,20,10]:
+        history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
+
     history.drop(columns=['high','low','volume','money'])
     history=history.dropna()
 
@@ -61,7 +65,9 @@ def do_work(v):
     bar.update(finished.value)
     return v
 
+if os.path.isfile(filename): os.remove(filename)
 pool = mp.Pool(processes=mp.cpu_count())
-pool.map(do_work,security_list.iterrows())
+do_work((0,security_list.iloc[0]))
+pool.map(do_work,security_list[1:].iterrows())
 
 print('done')

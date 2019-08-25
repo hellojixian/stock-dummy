@@ -64,8 +64,8 @@ def do_work(v):
     cmd = "cat {} >> {}".format(f,filename)
     os.system(cmd)
     os.remove(f)
-    lock.release()
     finished.value+=1
+    lock.release()
     bar.update(finished.value)
     return v
 
@@ -75,5 +75,6 @@ if os.path.isfile(filename): os.remove(filename)
 pool = mp.Pool(processes=mp.cpu_count())
 do_work((0,security_list.iloc[0]))
 pool.map(do_work,security_list[1:].iterrows())
-
+pool.close()
+pool.join()
 print('done')

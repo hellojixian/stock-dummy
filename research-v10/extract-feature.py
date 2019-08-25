@@ -31,6 +31,8 @@ pd.set_option('display.width', 1000)
 finished = mp.Value('i', 0)
 def do_work(v):
     global finished
+    global lock
+    lock = l
     sec_i = v[0]
     row = v[1]
     security = row['security']
@@ -56,15 +58,19 @@ def do_work(v):
     should_output_header = False
     if sec_i == 0:
         should_output_header=True
+    lock.acquire()
     history.to_csv(f, index=True, header=should_output_header)
 
     cmd = "cat {} >> {}".format(f,filename)
     os.system(cmd)
     os.remove(f)
+    lock.release()
     finished.value+=1
     bar.update(finished.value)
     return v
 
+m = mp.Manager()
+l = m.Lock()
 if os.path.isfile(filename): os.remove(filename)
 pool = mp.Pool(processes=mp.cpu_count())
 do_work((0,security_list.iloc[0]))

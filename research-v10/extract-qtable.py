@@ -52,7 +52,6 @@ def to_query_v1(dna):
 finished = mp.Value('i', 0)
 def do_work(dna):
     global finished
-    global lock
     global DNA_LEN,DNAset
     lock = l
 

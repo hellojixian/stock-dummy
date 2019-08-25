@@ -76,8 +76,8 @@ def do_work(dna):
 
     lock.acquire()
     finished.value+=1
-    if len(qtable) % 100 ==0:
-        qtable = qtable.sort_values(by=['win_r'],ascending=False)
+    if finished.value % 100 ==0:
+        print('save data')
         qtable.to_csv('data/report_len{}.csv'.format(DNA_LEN))
     # bar.update(finished.value)
     lock.release()
@@ -102,6 +102,6 @@ pool.close()
 pool.join()
 
 
-qtable = qtable.sort_values(by=['win_r'],ascending=False)
+qtable = qtable.sort_values(by=['wr_f1'],ascending=False)
 qtable.to_csv('data/report_len{}.csv'.format(DNA_LEN))
 print(qtable)

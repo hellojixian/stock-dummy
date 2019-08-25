@@ -53,7 +53,7 @@ finished = mp.Value('i', 0)
 def do_work(dna):
     global finished
     global lock
-    global qtable,DNA_LEN,DNAset
+    global DNA_LEN,DNAset
     lock = l
 
     q = to_query_v1(dna)

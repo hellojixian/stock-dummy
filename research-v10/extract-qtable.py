@@ -67,7 +67,7 @@ def do_work(dna):
     wr_f5 = subset[subset.eval("(fu_5)>0")].shape[0]/total
     record = pd.Series({
         'ver':'v1',
-        'dna':dna,        
+        'dna':dna,
         'wr_f1':wr_f1,
         'wr_f2':wr_f2,
         'wr_f3':wr_f3,
@@ -87,7 +87,6 @@ print(dataset.shape)
 
 DNA_LEN = 16
 DNAset = gen_bits(DNA_LEN)
-DNAset = DNAset[:200]
 bar = progressbar.ProgressBar(max_value=len(DNAset))
 
 

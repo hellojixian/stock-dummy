@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import time, datetime, os, gc, sys
 
-DATABASE_FILE = 'data/raw_dataset_2005-01-01-2016-12-30-3740.csv'
+DATABASE_FILE = 'data/raw_dataset_2005-01-01-2019-06-30-3740.csv'
 SLICE_CACHE_FILE = 'data/cache/{:.6}-full.cache'
 
 MEM_CACHE_KEY = '{:.6}'
@@ -62,7 +62,7 @@ def get_price(security, end_date, start_date=None, count=10, skip_paused=True):
             dataset = dataset[-count:]
     dataset = dataset.dropna()
     dataset.index = pd.to_datetime(dataset.index, format="%Y-%m-%d")
-    if skip_paused==True:        
+    if skip_paused==True:
         dataset = dataset[dataset.volume>0]
     return dataset
 

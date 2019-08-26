@@ -50,7 +50,7 @@ def do_work(v):
 
     for i in [60,30,10]:
         history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()*100
-        history['amp_{}'.format(i+1)] = np.round(history['amp_{}'.format(i+1)],2)        
+        history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)],2)        
 
     for i in [60,30,20,10,5,3]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)

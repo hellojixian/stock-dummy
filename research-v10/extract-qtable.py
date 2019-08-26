@@ -54,7 +54,7 @@ def do_work(dna):
     }, name=int(dna,2))
 
     l.acquire()
-    print("{:6.2f}% ({} of {})\t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(
+    print("{:6.2f}% ({} of {})  \t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(
                 finished.value/len(DNAset)*100,finished.value,len(DNAset),
                 dna,wr_f1,wr_f2,wr_f3,total))
     finished.value+=1

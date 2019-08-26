@@ -14,7 +14,8 @@ class DNAv1(object):
         # 4bits for prev_4-7
         # 8bits for prev_0-4
         step = 2
-        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
+        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & \
+                (trend_10=={}) & (trend_5=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3],dna[4])
         for i in range(5,10):
             op='<'
@@ -40,10 +41,13 @@ class DNAv2(object):
     @staticmethod
     def to_query(dna):
         # 6bits for trend
-        # 4bits for prev_4-7
-        # 8bits for prev_0-4
+        # 2bits for amp_60
+        # 2bits for amp_10
+        # 2bits for prev_2-3
+        # 4bits for prev_0-1
         step = 2
-        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & (trend_3=={}) & ".format(
+        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & \
+                (trend_10=={}) & (trend_5=={}) & (trend_3=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3],dna[4],dna[5])
         for i in range(6,10):
             op='<'

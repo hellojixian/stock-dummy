@@ -34,13 +34,18 @@ def do_work(dna):
     func = "DNA{}.to_query('{}')".format(DNA_VERSION, dna)
     q = eval(func)
     subset = dataset[dataset.eval(q)]
-    total = subset.shape[0]
+    total = int(subset.shape[0])
     if total==0: return None
     wr_f1 = subset[subset.eval("(fu_1)>0")].shape[0]/total
     wr_f2 = subset[subset.eval("(fu_2)>0")].shape[0]/total
     wr_f3 = subset[subset.eval("(fu_3)>0")].shape[0]/total
     wr_f4 = subset[subset.eval("(fu_4)>0")].shape[0]/total
     wr_f5 = subset[subset.eval("(fu_5)>0")].shape[0]/total
+    wr_f1z = subset[subset.eval("(fu_1)>=0")].shape[0]/total
+    wr_f2z = subset[subset.eval("(fu_2)>=0")].shape[0]/total
+    wr_f3z = subset[subset.eval("(fu_3)>=0")].shape[0]/total
+    wr_f4z = subset[subset.eval("(fu_4)>=0")].shape[0]/total
+    wr_f5z = subset[subset.eval("(fu_5)>=0")].shape[0]/total
     record = pd.Series({
         'ver':DNA_VERSION,
         'dna':dna,
@@ -49,13 +54,18 @@ def do_work(dna):
         'wr_f3':wr_f3,
         'wr_f4':wr_f4,
         'wr_f5':wr_f5,
+        'wr_f1z':wr_f1z,
+        'wr_f2z':wr_f2z,
+        'wr_f3z':wr_f3z,
+        'wr_f4z':wr_f4z,
+        'wr_f5z':wr_f5z,
         'samples':total
     }, name=int(dna,2))
 
     l.acquire()
-    print("{:6.2f}% ({} of {})  \t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(
+    print("{:6.2f}% ({} of {})  \t{}\twr_f1: {:.2f} ({:.2f})\twr_f2: {:.2f} ({:.2f})\twr_f3: {:.2f} ({:.2f})\ttotal:{}".format(
                 finished.value/len(DNAset)*100,finished.value,len(DNAset),
-                dna,wr_f1,wr_f2,wr_f3,total))
+                dna,wr_f1,wr_f1z,wr_f2,wr_f2z,wr_f3,wr_f3z,total))
     finished.value+=1
     l.release()
     return record

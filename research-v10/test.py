@@ -38,9 +38,15 @@ class DNAv1(object):
 
 p60_q25=10323
 # for i,p in zip((10,12),(60,10)):
-for i,p in zip((13,14),(2,3)):
-    print(i,p)
-
+# for i,p in zip(range(3,6),[8,7,6,5]):
+#     print(i,p)
+# for i,p in zip([6,8],[4,3]):
+#     print(i,p)
 # print(eval("p{}_q25".format(60)))
 
+for i in range(5,10):
+    print(i,8+4-i)
+for i in range(10,16,2):
+    periods = 3+int(4-i/2)
+    print(i,periods)
 # DNAv1.test()

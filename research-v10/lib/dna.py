@@ -43,13 +43,12 @@ class DNAv2(object):
         # 4bits for prev_4-7
         # 8bits for prev_0-4
         step = 2
-        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={})\
-                & (trend_10=={}) & (trend_5=={}) & (trend_3=={}) & ".format(
+        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & (trend_3=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3],dna[4],dna[5])
-        for i in range(5,10):
+        for i in range(6,10):
             op='<'
             if int(dna[i])==1: op='>'
-            query += "(prev_{}{}0) & ".format(8+4-i,op)
+            query += "(prev_{}{}0) & ".format(7+4-i,op)
         for i in range(10,16,2):
             val, op = 0,'<'
             if int(dna[i+1])==1: val,op=-step,'<='

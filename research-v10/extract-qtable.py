@@ -20,11 +20,10 @@ pd.set_option('display.width', 1000)
 
 parser = argparse.ArgumentParser(description='extract qtable regarding the DNA.')
 parser.add_argument('-v','--ver', dest='dna_version', nargs=1, type=str,
-                    default='v1',help='specify the DNA version number, (default: v1)')
+                    default=['v1'],help='specify the DNA version number, (default: v1)')
 
 args = parser.parse_args()
 DNA_VERSION = vars(args)['dna_version'][0]
-
 
 finished = mp.Value('i', 0)
 def do_work(dna):

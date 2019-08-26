@@ -13,7 +13,10 @@ class DNAv1(object):
         # 4bits for trend
         # 4bits for prev_4-7
         # 8bits for prev_0-4
-        step = 2
+
+        quantile_up = 1.52      # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
+        quantile_down = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
+
         query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & \
                 (trend_10=={}) & (trend_5=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3],dna[4])
@@ -22,13 +25,17 @@ class DNAv1(object):
             if int(dna[i])==1: op='>'
             query += "(prev_{}{}0) & ".format(8+4-i,op)
         for i in range(10,16,2):
-            val, op = 0,'<'
-            if int(dna[i+1])==1: val,op=-step,'<='
+            periods = 3+int(4-i/2)
+            if int(dna[i])==0:
+                if int(dna[i+1])==0:
+                    query += "(prev_{}<{}) & ".format(periods,quantile_down)
+                if int(dna[i+1])==1:
+                    query += "(prev_{}<0 & prev_{}>={}) & ".format(periods,periods,quantile_down)
             if int(dna[i])==1:
-                val, op = 0,'>'
-                if int(dna[i+1])==1: val,op=step,'>='
-
-            query += "(prev_{}{}{}) & ".format(3+int(4-i/2),op,val)
+                if int(dna[i+1])==0:
+                    query += "(prev_{}>=0 & prev_{}<{}) & ".format(periods,periods,quantile_up)
+                if int(dna[i+1])==1:
+                    query += "(prev_{}>{}) & ".format(periods,quantile_up)
         query = query[:-2]
         return query
 

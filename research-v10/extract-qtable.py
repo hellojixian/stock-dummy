@@ -23,7 +23,7 @@ parser.add_argument('-v','--ver', dest='dna_version', nargs=1, type=str,
                     default='v1',help='specify the DNA version number, (default: v1)')
 
 args = parser.parse_args()
-DNA_VERSION = vars(args)['dna_version'][0]
+DNA_VERSION = vars(args)['dna_version']
 
 
 finished = mp.Value('i', 0)
@@ -32,7 +32,7 @@ def do_work(dna):
     global DNA_LEN,DNAset,DNA_VERSION
     global l
 
-    func = "to_query_{}('{}')".format(DNA_VERSION, dna)
+    func = "DNA{}.to_query('{}')".format(DNA_VERSION, dna)
     q = eval(func)
     subset = dataset[dataset.eval(q)]
     total = subset.shape[0]
@@ -54,7 +54,9 @@ def do_work(dna):
     }, name=int(dna,2))
 
     l.acquire()
-    print("{:.2f}%\t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(finished.value/len(DNAset)*100,dna,wr_f1,wr_f2,wr_f3,total))
+    print("{:6.2f}% ({} of {})\t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(
+                finished.value/len(DNAset)*100,finished.value,len(DNAset),
+                dna,wr_f1,wr_f2,wr_f3,total))
     finished.value+=1
     l.release()
     return record

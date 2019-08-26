@@ -48,7 +48,7 @@ def do_work(v):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)*100
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)],2)
 
-    for i in [60,30,20,10,5]:
+    for i in [60,30,20,10,5,3]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
     history.drop(columns=['high','low','volume','money'])

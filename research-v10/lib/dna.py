@@ -170,12 +170,17 @@ class DNAv4(object):
     观察视角：3日超细分短线 + 2日细分短线 + 3日涨跌 + 20日趋势 +振幅
     1 11 1 1 1 11 11 111 111 111
     '''
-    amp_20_q25 = 5.98     # dataset['amp_10'].quantile(0.25)
-    amp_20_q50 = 9.08     # dataset['amp_10'].quantile(0.50)
-    amp_20_q75 = 13.97    # dataset['amp_10'].quantile(0.75)
+    amp_20_q25 = 5.98     # dataset['amp_20'].quantile(0.25)
+    amp_20_q50 = 9.08     # dataset['amp_20'].quantile(0.50)
+    amp_20_q75 = 13.97    # dataset['amp_20'].quantile(0.75)
 
+    change_up_q75   = 2.93    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.75)
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
+    change_up_q25   = 0.71    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.25)
+
+    change_down_q25 = -0.75
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
+    change_down_q75 = -2.99
 
     @staticmethod
     def to_query(dna):

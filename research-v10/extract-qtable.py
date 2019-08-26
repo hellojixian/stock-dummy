@@ -6,8 +6,10 @@ import progressbar
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
+import argparse
 
 from lib.jqdata import *
+from lib.dna import *
 
 
 # set output
@@ -16,46 +18,22 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 
-def gen_bits(len):
-    bits=[]
-    max = "0b"+(''.join(str(e) for e in ['1']*len))
-    for i in range(int(max,2)):
-        s =  ("{0:0"+str(DNA_LEN)+"b}").format(i)
-        bits.append(s)
-    return bits
+parser = argparse.ArgumentParser(description='extract qtable regarding the DNA.')
+parser.add_argument('-v','--ver', dest='dna_version', nargs=1, type=str,
+                    default='v1',help='specify the DNA version number, (default: v1)')
 
-
-def to_query_v1(dna):
-    # 4bits for trend
-    # 4bits for prev_4-7
-    # 8bits for prev_0-4
-    step = 2
-    query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
-            dna[0],dna[1],dna[2],dna[3],dna[4])
-    for i in range(5,10):
-        op='<'
-        if int(dna[i])==1: op='>'
-        query += "(prev_{}{}0) & ".format(8+4-i,op)
-    for i in range(10,16,2):
-        val, op = 0,'<'
-        if int(dna[i+1])==1: val,op=-step,'<='
-        if int(dna[i])==1:
-            val, op = 0,'>'
-            if int(dna[i+1])==1: val,op=step,'>='
-
-
-        query += "(prev_{}{}{}) & ".format(3+int(4-i/2),op,val)
-    query = query[:-2]
-    return query
+args = parser.parse_args()
+DNA_VERSION = vars(args)['dna_version'][0]
 
 
 finished = mp.Value('i', 0)
 def do_work(dna):
     global finished
-    global DNA_LEN,DNAset
+    global DNA_LEN,DNAset,DNA_VERSION
     global l
 
-    q = to_query_v1(dna)
+    func = "to_query_{}('{}')".format(DNA_VERSION, dna)
+    q = eval(func)
     subset = dataset[dataset.eval(q)]
     total = subset.shape[0]
     if total==0: return None
@@ -65,7 +43,7 @@ def do_work(dna):
     wr_f4 = subset[subset.eval("(fu_4)>0")].shape[0]/total
     wr_f5 = subset[subset.eval("(fu_5)>0")].shape[0]/total
     record = pd.Series({
-        'ver':'v1',
+        'ver':DNA_VERSION,
         'dna':dna,
         'wr_f1':wr_f1,
         'wr_f2':wr_f2,
@@ -78,7 +56,6 @@ def do_work(dna):
     l.acquire()
     print("{:.2f}%\t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(finished.value/len(DNAset)*100,dna,wr_f1,wr_f2,wr_f3,total))
     finished.value+=1
-    if finished.value % 1000 == 0:        
     l.release()
     return record
 
@@ -88,7 +65,7 @@ dataset = pd.read_csv(filename,index_col=0)
 print(dataset.shape)
 
 DNA_LEN = 16
-DNAset = gen_bits(DNA_LEN)
+DNAset = gen_DNAset(DNA_LEN)
 bar = progressbar.ProgressBar(max_value=len(DNAset))
 qtable = pd.DataFrame()
 
@@ -103,5 +80,5 @@ pool.join()
 for r in res:
     if r is not None: qtable = qtable.append(r)
 qtable = qtable.sort_values(by=['wr_f1'],ascending=False)
-qtable.to_csv('data/report_len{}.csv'.format(DNA_LEN))
+qtable.to_csv('data/dna_{}_qtable.csv'.format(DNA_VERSION))
 print(qtable)

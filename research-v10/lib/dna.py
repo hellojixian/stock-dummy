@@ -172,7 +172,7 @@ class DNAv4(object):
     '''
     amp_20_q25 = 13.83     # dataset['amp_20'].quantile(0.25)
     amp_20_q50 = 20.31     # dataset['amp_20'].quantile(0.50)
-    amp_20_q75 = 30.52    # dataset['amp_20'].quantile(0.75)
+    amp_20_q75 = 30.52     # dataset['amp_20'].quantile(0.75)
 
     change_up_q75   = 2.93    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.75)
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)

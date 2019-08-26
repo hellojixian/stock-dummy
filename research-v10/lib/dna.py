@@ -21,7 +21,7 @@ class DNAv1(object):
                 (trend_10=={}) & (trend_5=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3],dna[4])
         for i in range(5,10):
-            op='<'
+            op='<='
             if int(dna[i])==1: op='>'
             query += "(prev_{}{}0) & ".format(8+4-i,op)
         for i in range(10,16,2):

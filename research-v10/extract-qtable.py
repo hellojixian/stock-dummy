@@ -53,6 +53,7 @@ finished = mp.Value('i', 0)
 def do_work(dna):
     global finished
     global DNA_LEN,DNAset
+    global l
 
     q = to_query_v1(dna)
     subset = dataset[dataset.eval(q)]
@@ -74,8 +75,11 @@ def do_work(dna):
         'samples':total
     }, name=int(dna,2))
 
+    l.acquire()
     print("{:.2f}%\t{}\twr_f1:{:.2f}\twr_f2:{:.2f}\twr_f3:{:.2f}\ttotal:{}".format(finished.value/len(DNAset)*100,dna,wr_f1,wr_f2,wr_f3,total))
     finished.value+=1
+    if finished.value % 1000 == 0:        
+    l.release()
     return record
 
 filename = 'data/dataset-labeled-2.csv'

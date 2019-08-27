@@ -41,23 +41,23 @@ def do_work(v):
                             skip_paused=True)
 
     for i in range(0,10):
-        history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)*100
-        history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)],2)
+        history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)
+        history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)]*100,2)
 
     for i in range(0,5):
-        history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)*100
-        history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)],2)
+        history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
+        history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
     for i in [60,30,20,10]:
-        history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()*100
-        history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)],2)
+        history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()
+        history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)]*100,2)
 
     for i in [60,30,20,10,5,3]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
     for i in [60,30,20,10,5,3]:
-        history['pos_{}'.format(i)] = (history['close'].iloc[-1] - history['close'].rolling(window=i).min()) / (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min())*100
-        history['pos_{}'.format(i)] = np.round(history['pos_{}'.format(i)],2)
+        history['pos_{}'.format(i)] = (history['close'].iloc[-1] - history['close'].rolling(window=i).min()) / (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min())
+        history['pos_{}'.format(i)] = np.round(history['pos_{}'.format(i)]*100,2)
 
 
     history.drop(columns=['high','low','volume','money'])

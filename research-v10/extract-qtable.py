@@ -35,7 +35,11 @@ def do_work(dna):
     q = eval(func)
     subset = dataset[dataset.eval(q)]
     total = int(subset.shape[0])
-    if total==0: return None
+    if total==0:
+        l.acquire()
+        finished.value+=1
+        l.release()
+        return None
     wr_f1 = subset[subset.eval("(fu_1)>0")].shape[0]/total
     wr_f2 = subset[subset.eval("(fu_2)>0")].shape[0]/total
     wr_f3 = subset[subset.eval("(fu_3)>0")].shape[0]/total

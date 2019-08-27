@@ -164,7 +164,6 @@ class DNAv3(object):
     def to_dna(record):
         return 0
 
-
 class DNAv4(object):
     '''
     观察视角：3日超细分短线 + 2日细分短线 + 3日涨跌
@@ -225,6 +224,57 @@ class DNAv4(object):
                     query += "(prev_{}>{}) & ".format(p,self.change_down_q75)
         query = query[:-2]
 
+        return query
+
+    @staticmethod
+    def to_dna(record):
+        return 0
+
+class DNAv5(object):
+    '''
+    观察视角：
+        5 bits - trend
+        4 bits - amp
+        7 bits - pos
+
+    1 1 1 11 11 111 111 111
+    '''
+    amp_20_q25 = 13.83     # dataset['amp_20'].quantile(0.25)
+    amp_20_q50 = 20.31     # dataset['amp_20'].quantile(0.50)
+    amp_20_q75 = 30.52     # dataset['amp_20'].quantile(0.75)
+
+    amp_60_q25 = 22.65     # dataset['amp_20'].quantile(0.25)
+    amp_60_q50 = 32.88     # dataset['amp_20'].quantile(0.50)
+    amp_60_q75 = 49.67     # dataset['amp_20'].quantile(0.75)
+
+
+    @staticmethod
+    def to_query(dna):
+        self = __class__
+        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
+                dna[0],dna[1],dna[2],dna[3],dna[4])
+
+        for i,p in zip([5,6],[60,20]):
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0:
+                    # q0-25
+                    query += "(amp_{}<{}) & ".format(p,
+                        eval("self.amp_{}_q25".format(p)))
+                if int(dna[i+1])==1:
+                    # q25-50
+                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
+                        p,eval("self.amp_{}_q25".format(p)),p,eval("self.amp_{}_q50".format(p)))
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0:
+                    # q50-75
+                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
+                        p,eval("self.amp_{}_q50".format(p)),p,eval("self.amp_{}_q75".format(p)))
+                if int(dna[i+1])==1:
+                    # q75-100
+                    query += ("(amp_{}>={}) & ").format(
+                        p,eval("self.amp_{}_q75".format(p)))
+
+        query = query[:-2]
         return query
 
     @staticmethod

@@ -56,8 +56,7 @@ def do_work(v):
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
     for i in [60,30,20,10,5,3]:
-        history['pos_{}'.format(i)] = (history['close'].iloc[-1] - history['close'].rolling(window=i).min()) / (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min())
-        history['pos_{}'.format(i)] = np.round(history['pos_{}'.format(i)]*100,2)
+        history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
 
 
     history.drop(columns=['high','low','volume','money'])

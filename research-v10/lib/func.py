@@ -108,5 +108,13 @@ def find_trend(values):
     if p_max_idx > p_min_idx:
         # up trend
         trend = 1
-    
+
     return trend
+
+def find_trend(values):
+    values = list(values)
+    close = values[-1]
+    p_min, p_max = np.min(values), np.max(values)
+    pos = (close - p_min) / (p_max - p_min) * 100
+    pos = np.round(pos,2)
+    return pos

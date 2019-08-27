@@ -58,6 +58,9 @@ def do_work(v):
     for i in [60,30,20,10,5,3]:
         history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
 
+    for i in [60,30,20,10,5]:
+        history['pos_ma_{}'.format(i)] = history['close'].rolling(window=i).apply(find_ma_pos,raw=True)
+
 
     history.drop(columns=['high','low','volume','money'])
     history=history.dropna()

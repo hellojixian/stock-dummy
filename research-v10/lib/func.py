@@ -102,13 +102,11 @@ def find_trend(values):
     values = list(values)
     p_min, p_max = np.min(values), np.max(values)
     p_min_idx, p_max_idx = values.index(p_min), values.index(p_max)
-
     # down trend
     trend = 0
     if p_max_idx > p_min_idx:
         # up trend
         trend = 1
-
     return trend
 
 def find_pos(values):
@@ -116,5 +114,13 @@ def find_pos(values):
     close = values[-1]
     p_min, p_max = np.min(values), np.max(values)
     pos = (close - p_min) / (p_max - p_min) * 100
+    pos = np.round(pos,2)
+    return pos
+
+def find_ma_pos(values):
+    values = list(values)
+    close = values[-1]
+    v_mean = np.mean(values)
+    pos = (close - v_mean) / v_mean * 100
     pos = np.round(pos,2)
     return pos

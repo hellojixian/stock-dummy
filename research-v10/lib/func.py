@@ -111,7 +111,7 @@ def find_trend(values):
 
     return trend
 
-def find_trend(values):
+def find_pos(values):
     values = list(values)
     close = values[-1]
     p_min, p_max = np.min(values), np.max(values)

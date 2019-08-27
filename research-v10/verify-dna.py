@@ -9,8 +9,6 @@ from lib.jqdata import *
 from lib.func import *
 from lib.dna import *
 
-pn = get_prime_numbers(5,250)
-
 filename = 'data/dataset-labeled-min.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename)

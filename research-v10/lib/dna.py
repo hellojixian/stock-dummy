@@ -8,6 +8,7 @@ def gen_DNAset(len):
 
 
 class DNAv1(object):
+    name = 'v1'
 
     change_up_q50   = 1.52      # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
@@ -41,9 +42,31 @@ class DNAv1(object):
 
     @staticmethod
     def to_dna(record):
-        return 0
+        self = __class__
+        dna = list("0"*16)
+        for i,p in zip([0,1,2,3,4],[60,30,20,10,5]):
+            if record['trend_{}'.format(p)] == 0:
+                dna[i]=str(0)
+            if record['trend_{}'.format(p)] == 1:
+                dna[i]=str(1)
+        for i,p in zip([5,6,7,8,9],[7,6,5,4,3]):
+            if record["prev_{}".format(p)]<=0:
+                dna[i]=str(0)
+            if record["prev_{}".format(p)]>0:
+                dna[i]=str(1)
+        for i,p in zip([10,12,14],[2,1,0]):
+            if record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        return "".join(dna)
 
 class DNAv2(object):
+    name = 'v2'
 
     amp_10_q25 = 5.98     # dataset['amp_10'].quantile(0.25)
     amp_10_q50 = 9.08     # dataset['amp_10'].quantile(0.50)
@@ -101,12 +124,39 @@ class DNAv2(object):
 
     @staticmethod
     def to_dna(record):
-        return 0
+        self = __class__
+        dna = list("0"*16)
+        for i,p in zip([0,1,2,3],[60,30,20,10]):
+            if record['trend_{}'.format(p)] == 0:
+                dna[i]=str(0)
+            if record['trend_{}'.format(p)] == 1:
+                dna[i]=str(1)
+        for i,p in zip([4,6],[60,10]):
+            if record["amp_{}".format(p)]<eval("self.amp_{}_q25".format(p)):
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q25".format(p)) and record["amp_{}".format(p)]<eval("self.amp_{}_q50".format(p)):
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q50".format(p)) and record["amp_{}".format(p)]<eval("self.amp_{}_q75".format(p)):
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q75".format(p)):
+                dna[i],dna[i+1]=str(1),str(1)
+        for i,p in zip([8,10,12,14],[3,2,1,0]):
+            if record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        return "".join(dna)
 
 class DNAv3(object):
     '''
     观察视角：6日短线，长30短10日振幅 和 趋势
     '''
+    name = 'v3'
+
     amp_10_q25 = 5.98     # dataset['amp_10'].quantile(0.25)
     amp_10_q50 = 9.08     # dataset['amp_10'].quantile(0.50)
     amp_10_q75 = 13.97    # dataset['amp_10'].quantile(0.75)
@@ -124,7 +174,7 @@ class DNAv3(object):
 
         query="(trend_20=={}) & (trend_10=={}) & ".format(dna[0],dna[1])
 
-        for i,p in zip([2,3],[30,10]):
+        for i,p in zip([2,4],[30,10]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     # q0-25
@@ -144,7 +194,7 @@ class DNAv3(object):
                     query += ("(amp_{}>={}) & ").format(
                         p,eval("self.amp_{}_q75".format(p)))
 
-        for i,p in zip([4,6,8,10,12,14],[5,4,3,2,1,0]):
+        for i,p in zip([6,8,10,12,14],[4,3,2,1,0]):
             if int(dna[i])==0:
                 if int(dna[i+1])==0:
                     query += "(prev_{}<={}) & ".format(p,self.change_down_q50)
@@ -162,13 +212,40 @@ class DNAv3(object):
 
     @staticmethod
     def to_dna(record):
-        return 0
+        self = __class__
+        dna = list("0"*16)
+        for i,p in zip([0,1],[20,10]):
+            if record['trend_{}'.format(p)] == 0:
+                dna[i]=str(0)
+            if record['trend_{}'.format(p)] == 1:
+                dna[i]=str(1)
+        for i,p in zip([2,4],[30,10]):
+            if record["amp_{}".format(p)]<eval("self.amp_{}_q25".format(p)):
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q25".format(p)) and record["amp_{}".format(p)]<eval("self.amp_{}_q50".format(p)):
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q50".format(p)) and record["amp_{}".format(p)]<eval("self.amp_{}_q75".format(p)):
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q75".format(p)):
+                dna[i],dna[i+1]=str(1),str(1)
+        for i,p in zip([6,8,10,12,14],[4,3,2,1,0]):
+            if record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        return "".join(dna)
 
 class DNAv4(object):
     '''
     观察视角：3日超细分短线 + 2日细分短线 + 3日涨跌
     1 1 1 11 11 111 111 111
     '''
+    name = 'v4'
+
     amp_20_q25 = 13.83     # dataset['amp_20'].quantile(0.25)
     amp_20_q50 = 20.31     # dataset['amp_20'].quantile(0.50)
     amp_20_q75 = 30.52     # dataset['amp_20'].quantile(0.75)
@@ -217,18 +294,51 @@ class DNAv4(object):
                 if int(dna[i+1])==0 and int(dna[i+2])==0:
                     query += "(prev_{}>0 & prev_{}<={}) & ".format(p,p,self.change_up_q25)
                 if int(dna[i+1])==0 and int(dna[i+2])==1:
-                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_down_q25, p, self.change_down_q50)
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_up_q25, p, self.change_up_q50)
                 if int(dna[i+1])==1 and int(dna[i+2])==0:
-                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_down_q50, p, self.change_down_q75)
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_up_q50, p, self.change_up_q75)
                 if int(dna[i+1])==1 and int(dna[i+2])==1:
-                    query += "(prev_{}>{}) & ".format(p,self.change_down_q75)
+                    query += "(prev_{}>{}) & ".format(p,self.change_up_q75)
         query = query[:-2]
 
         return query
 
     @staticmethod
     def to_dna(record):
-        return 0
+        self = __class__
+        dna = list("0"*16)
+        for i,p in zip([0,1,2],[7,6,5]):
+            if record['prev_{}'.format(p)] <= 0:
+                dna[i]=str(0)
+            if record['prev_{}'.format(p)] > 0:
+                dna[i]=str(1)
+        for i,p in zip([3,5],[4,3]):
+            if record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        for i,p in zip([7,10,13],[2,1,0]):
+            if record["prev_{}".format(p)]<=self.change_down_q75:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(0),str(0)
+            if record["prev_{}".format(p)]>self.change_down_q75 and record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(0),str(1)
+            if record["prev_{}".format(p)]>self.change_down_q50 and record["prev_{}".format(p)]<=self.change_down_q25:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_down_q25 and record["prev_{}".format(p)]<=0:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(1),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q25:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(0),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q25 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(0),str(1)
+            if record["prev_{}".format(p)]>self.change_up_q50 and record["prev_{}".format(p)]<=self.change_up_q75:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q75:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(1),str(1)
+        return "".join(dna)
 
 class DNAv5(object):
     '''
@@ -239,6 +349,8 @@ class DNAv5(object):
 
     1 1 1 11 11 111 111 111
     '''
+    name = 'v5'
+
     amp_10_q50 = 9.09
     amp_20_q50 = 15.23
     amp_30_q50 = 20.33     # dataset['amp_20'].quantile(0.50)
@@ -290,4 +402,35 @@ class DNAv5(object):
 
     @staticmethod
     def to_dna(record):
-        return 0
+        self = __class__
+        dna = list("0"*16)
+        for i,p in zip([0,1,2,3,4],[30,20,10,5,3]):
+            if record['trend_{}'.format(p)] == 0:
+                dna[i]=str(0)
+            if record['trend_{}'.format(p)] == 1:
+                dna[i]=str(1)
+        for i,p in zip([5,6],[60,10]):
+            if record["amp_{}".format(p)]<eval("self.amp_{}_q50".format(p)):
+                dna[i]=str(0)
+            if record["amp_{}".format(p)]>=eval("self.amp_{}_q50".format(p)):
+                dna[i]=str(1)
+        for i,p in zip([7,8,9,10,11],[30,20,10,5,3]):
+            if record["pos_{}".format(p)]<50:
+                dna[i]=str(0)
+            if record["pos_{}".format(p)]>=50:
+                dna[i]=str(1)
+        for i,p in zip([12,13],[2,1]):
+            if record["prev_{}".format(p)]<=0:
+                dna[i]=str(0)
+            if record["prev_{}".format(p)]>0:
+                dna[i]=str(1)
+        for i,p in zip([14],[0]):
+            if record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        return "".join(dna)

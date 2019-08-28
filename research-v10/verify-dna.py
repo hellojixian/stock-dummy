@@ -13,14 +13,18 @@ filename = 'data/dataset-labeled-min.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename)
 
+cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6]
 for i in range(len(dataset)):
     record = dataset.iloc[i]
-    for core in [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5]:
+    r = []
+    for core in cores:
         dna = core.to_dna(record)
         query = core.to_query(dna)
         subset = pd.DataFrame([record])
         if subset[subset.eval(query)].shape[0]==1:
-            print("{:04d}\t{}\t{}\t{}".format(i,dna, core.name,'verified'))
+            r.append(dna)
         else:
-            print("{:04d}\t{}\t{}\t{}".format(i,dna, core.name,'mismatched'))
+            print("{:05d}\t{}\t{}\t{}".format(i,dna, core.name,'mismatched'))
         assert(subset[subset.eval(query)].shape[0]==1)
+
+    print("{:05d}\t{}\t{}".format(i,' '.join(r), 'verified'))

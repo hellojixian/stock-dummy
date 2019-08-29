@@ -24,7 +24,9 @@ for i in range(len(dataset)):
         if subset[subset.eval(query)].shape[0]==1:
             r.append(dna)
         else:
-            print("{:05d}\t{}\t{}\t{}".format(i,dna, core.name,'mismatched'))
+            print(">> {:05d}\t{}\t{}\t{}".format(i,dna, core.name,'mismatched'))
+            print(query)
+            print(record)
         assert(subset[subset.eval(query)].shape[0]==1)
 
     print("{:05d}\t{}\t{}".format(i,' '.join(r), 'verified'))

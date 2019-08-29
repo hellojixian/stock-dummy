@@ -1,49 +1,70 @@
 class DNAv5(object):
     '''
     观察视角：
-        5 bits - trend
-        4 bits - amp
-        7 bits - pos
+        1bit   prev_3       [x]
 
-    1 1 1 11 11 111 111 111
+        1bit   prev_2       [x]
+        1bit   prev_vol_2   [x]
+
+        1bit   prev_1       [x]
+        2bits  prev_vol_1   [x]
+
+        2bits  pos_10       [x]
+        2bits  pos_ma5      [x]
+        2bits  prev_0       [x]
+        2bits  pos_vol_0    [x]
+        2bits  prev_vol_0   [x]
+
     '''
     name = 'v5'
-
-    amp_10_q50 = 9.09
-    amp_20_q50 = 15.23
-    amp_30_q50 = 20.33     # dataset['amp_20'].quantile(0.50)
-    amp_60_q50 = 32.88     # dataset['amp_20'].quantile(0.50)
 
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
 
+    vol_change_up_q50=29.79
+    vol_change_down_q50=-26.33
+
+    pos_ma5_up_q50 = 1.75
+    pos_ma5_down_q50 = -1.66
+
+    pos_10_q25=11.9
+    pos_10_q50=50.38
+    pos_10_q75=89.29
+
+    pos_vol_10_q20=4.61
+    pos_vol_10_q50=29.14
+    pos_vol_10_q80=70.9
+    
+    close_q50 = 7.73
+
     @staticmethod
     def to_query(dna):
         self = __class__
-        query="(trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & (trend_3=={}) & ".format(
-                dna[0],dna[1],dna[2],dna[3],dna[4])
+        query=""
 
-        for i,p in zip([5,6],[60,10]):
-            if int(dna[i]) == 0:
-                query += "(amp_{}<{}) & ".format(p,
-                    eval("self.amp_{}_q50".format(p)))
-            if int(dna[i]) == 1:
-                query += "(amp_{}>={}) & ".format(p,
-                    eval("self.amp_{}_q50".format(p)))
-
-
-        for i,p in zip([7,8,9,10,11],[30,20,10,5,3]):
-            if int(dna[i]) == 0:
-                query += "(pos_{}< {}) & ".format(p,50)
-            if int(dna[i]) == 1:
-                query += "(pos_{}>={}) & ".format(p,50)
-
-        for i,p in zip([12,13],[2,1]):
+        for i,p in zip([0,1,2],[3,2,1]):
             op='<='
             if int(dna[i])==1: op='>'
-            query += "(prev_{}{}0) & ".format(p,op)
+            query += "(prev_{}{}{}) & ".format(p,op,0)
 
-        for i,p in zip([14],[0]):
+        for i,p in zip([3],[2]):
+            op='<='
+            if int(dna[i])==1: op='>'
+            query += "(prev_vol_{}{}{}) & ".format(p,op,0)
+
+        for i,p in zip([4,6],[1,0]):
+            if int(dna[i])==0:
+                if int(dna[i+1])==0:
+                    query += "(prev_vol_{}<={}) & ".format(p,self.vol_change_down_q50)
+                if int(dna[i+1])==1:
+                    query += "(prev_vol_{}<=0 & prev_vol_{}>{}) & ".format(p,p,self.vol_change_down_q50)
+            if int(dna[i])==1:
+                if int(dna[i+1])==0:
+                    query += "(prev_vol_{}>0 & prev_vol_{}<={}) & ".format(p,p,self.vol_change_up_q50)
+                if int(dna[i+1])==1:
+                    query += "(prev_vol_{}>{}) & ".format(p,self.vol_change_up_q50)
+
+        for i,p in zip([8],[0]):
             if int(dna[i])==0:
                 if int(dna[i+1])==0:
                     query += "(prev_{}<={}) & ".format(p,self.change_down_q50)
@@ -55,6 +76,42 @@ class DNAv5(object):
                 if int(dna[i+1])==1:
                     query += "(prev_{}>{}) & ".format(p,self.change_up_q50)
 
+        for i,p in zip([10],[10]):
+            if int(dna[i])==0:
+                query += "(pos_ma_{}<={}) & ".format(p,0)
+            if int(dna[i])==1:
+                query += "(pos_ma_{}>{}) & ".format(p,0)
+
+        for i,p in zip([11],[0]):
+            if int(dna[i]) == 0:
+                query += "(close<{}) & ".format(self.close_q50)
+            if int(dna[i]) == 1:
+                query += "(close>={}) & ".format(self.close_q50)
+
+        for i,p in zip([12],[10]):
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0:
+                    query += "(pos_{}<{}) & ".format(p,self.pos_10_q25)
+                if int(dna[i+1])==1:
+                    query += "(pos_{}>={} & pos_{}<{}) & ".format(p,self.pos_10_q25, p,self.pos_10_q50)
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0:
+                    query += "(pos_{}>={} & pos_{}<{}) & ".format(p,self.pos_10_q50, p,self.pos_10_q75)
+                if int(dna[i+1])==1:
+                    query += ("(pos_{}>={}) & ").format(p,self.pos_10_q75)
+
+        for i,p in zip([14],[10]):
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0:
+                    query += "(pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q20)
+                if int(dna[i+1])==1:
+                    query += "(pos_vol_{}>={} & pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q20, p,self.pos_vol_10_q50)
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0:
+                    query += "(pos_vol_{}>={} & pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q50, p,self.pos_vol_10_q80)
+                if int(dna[i+1])==1:
+                    query += ("(pos_vol_{}>={}) & ").format(p,self.pos_vol_10_q80)
+
         query = query[:-2]
         return query
 
@@ -62,33 +119,5 @@ class DNAv5(object):
     def to_dna(record):
         self = __class__
         dna = list("0"*16)
-        for i,p in zip([0,1,2,3,4],[30,20,10,5,3]):
-            if record['trend_{}'.format(p)] == 0:
-                dna[i]=str(0)
-            if record['trend_{}'.format(p)] == 1:
-                dna[i]=str(1)
-        for i,p in zip([5,6],[60,10]):
-            if record["amp_{}".format(p)]<eval("self.amp_{}_q50".format(p)):
-                dna[i]=str(0)
-            if record["amp_{}".format(p)]>=eval("self.amp_{}_q50".format(p)):
-                dna[i]=str(1)
-        for i,p in zip([7,8,9,10,11],[30,20,10,5,3]):
-            if record["pos_{}".format(p)]<50:
-                dna[i]=str(0)
-            if record["pos_{}".format(p)]>=50:
-                dna[i]=str(1)
-        for i,p in zip([12,13],[2,1]):
-            if record["prev_{}".format(p)]<=0:
-                dna[i]=str(0)
-            if record["prev_{}".format(p)]>0:
-                dna[i]=str(1)
-        for i,p in zip([14],[0]):
-            if record["prev_{}".format(p)]<=self.change_down_q50:
-                dna[i],dna[i+1]=str(0),str(0)
-            if record["prev_{}".format(p)]<=0 and record["prev_{}".format(p)]>self.change_down_q50:
-                dna[i],dna[i+1]=str(0),str(1)
-            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q50:
-                dna[i],dna[i+1]=str(1),str(0)
-            if record["prev_{}".format(p)]>self.change_up_q50:
-                dna[i],dna[i+1]=str(1),str(1)
+
         return "".join(dna)

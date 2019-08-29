@@ -42,13 +42,16 @@ class DNAv8(object):
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
 
+    vol_change_up_q50=40.86
+    vol_change_down_q50=-26.33
+
     @staticmethod
     def to_query(dna):
         self = __class__
         query="(trend_10=={}) & (trend_5=={}) & ".format(
                 dna[0],dna[1])
 
-        for i,p in zip([2,3],[10]):
+        for i,p in zip([2],[10]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     query += "(pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q20)
@@ -60,7 +63,7 @@ class DNAv8(object):
                 if int(dna[i+1])==1:
                     query += ("(pos_vol_{}>={}) & ").format(p,self.pos_vol_10_q80)
 
-        for i,p in zip([4,5],[0]):
+        for i,p in zip([4],[0]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     # q0-25
@@ -81,59 +84,18 @@ class DNAv8(object):
             if int(dna[i])==1: op='>'
             query += "(amp_{}{}{}) & ".format(p,op,eval("self.amp_{}_q50".format(p)))
 
-        for i,p in zip([7],[60]):
-            if int(dna[i]) == 0:
-                if int(dna[i+1])==0:
-                    # q0-25
-                    query += "(amp_{}<{}) & ".format(p,
-                        eval("self.amp_{}_q25".format(p)))
-                if int(dna[i+1])==1:
-                    # q25-50
-                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
-                        p,eval("self.amp_{}_q25".format(p)),p,eval("self.amp_{}_q50".format(p)))
-            if int(dna[i]) == 1:
-                if int(dna[i+1])==0:
-                    # q50-75
-                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
-                        p,eval("self.amp_{}_q50".format(p)),p,eval("self.amp_{}_q75".format(p)))
-                if int(dna[i+1])==1:
-                    # q75-100
-                    query += ("(amp_{}>={}) & ").format(
-                        p,eval("self.amp_{}_q75".format(p)))
 
-        for i,p in zip([9],[5]):
+        for i,p in zip([7,8],[60,5]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(pos_ma_{}{}{}) & ".format(p,op,eval("self.pos_ma_{}_q50".format(p)))
 
-
-        for i,p in zip([10],[60]):
-            if int(dna[i]) == 0:
-                if int(dna[i+1])==0:
-                    # q0-25
-                    query += "(amp_{}<{}) & ".format(p,
-                        eval("self.amp_{}_q25".format(p)))
-                if int(dna[i+1])==1:
-                    # q25-50
-                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
-                        p,eval("self.amp_{}_q25".format(p)),p,eval("self.amp_{}_q50".format(p)))
-            if int(dna[i]) == 1:
-                if int(dna[i+1])==0:
-                    # q50-75
-                    query += "(amp_{}>={} & amp_{}<{}) & ".format(
-                        p,eval("self.amp_{}_q50".format(p)),p,eval("self.amp_{}_q75".format(p)))
-                if int(dna[i+1])==1:
-                    # q75-100
-                    query += ("(amp_{}>={}) & ").format(
-                        p,eval("self.amp_{}_q75".format(p)))
-
-        for i,p in zip([12,13],[1,0]):
+        for i,p in zip([9,10],[2,1]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(prev_{}{}{}) & ".format(p,op,0)
 
-
-        for i,p in zip([14],[0]):
+        for i,p in zip([11],[0]):
             if int(dna[i])==0:
                 if int(dna[i+1])==0:
                     query += "(prev_{}<={}) & ".format(p,self.change_down_q50)
@@ -144,6 +106,23 @@ class DNAv8(object):
                     query += "(prev_{}>0 & prev_{}<={}) & ".format(p,p,self.change_up_q50)
                 if int(dna[i+1])==1:
                     query += "(prev_{}>{}) & ".format(p,self.change_up_q50)
+
+        for i,p in zip([13],[1]):
+            op='<='
+            if int(dna[i])==1: op='>'
+            query += "(prev_vol_{}{}{}) & ".format(p,op,0)
+
+        for i,p in zip([14],[0]):
+            if int(dna[i])==0:
+                if int(dna[i+1])==0:
+                    query += "(prev_vol_{}<={}) & ".format(p,self.vol_change_down_q50)
+                if int(dna[i+1])==1:
+                    query += "(prev_vol_{}<=0 & prev_vol_{}>{}) & ".format(p,p,self.vol_change_down_q50)
+            if int(dna[i])==1:
+                if int(dna[i+1])==0:
+                    query += "(prev_vol_{}>0 & prev_vol_{}<={}) & ".format(p,p,self.vol_change_up_q50)
+                if int(dna[i+1])==1:
+                    query += "(prev_vol_{}>{}) & ".format(p,self.vol_change_up_q50)
 
         query = query[:-2]
 

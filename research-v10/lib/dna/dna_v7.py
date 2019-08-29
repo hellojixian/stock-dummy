@@ -45,7 +45,7 @@ class DNAv7(object):
         query="(trend_60=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
                 dna[0],dna[1],dna[2],dna[3])
 
-        for i,p in zip([4,5],[0]):
+        for i,p in zip([4],[0]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     # q0-25

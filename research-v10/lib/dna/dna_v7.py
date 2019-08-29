@@ -54,10 +54,10 @@ class DNAv7(object):
             if int(dna[i]) == 1:
                 if int(dna[i+1])==0:
                     # q50-75
-                    query += "(close>={} & close<{}) & ".format(self.close_50, self.close_q75)
+                    query += "(close>={} & close<{}) & ".format(self.close_q50, self.close_q75)
                 if int(dna[i+1])==1:
                     # q75-100
-                    query += ("(close>={}) & ").format(self.close_q75)                    
+                    query += ("(close>={}) & ").format(self.close_q75)
 
         for i,p in zip([6],[10]):
             op='<='

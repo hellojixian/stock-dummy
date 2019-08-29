@@ -61,8 +61,12 @@ def do_work(v):
     for i in [60,30,20,10,5]:
         history['pos_ma_{}'.format(i)] = history['close'].rolling(window=i).apply(find_ma_pos,raw=True)
 
-    for i in [120,60,20,10]:
+    for i in [10]:
         history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
+
+    for i in range(0,5):
+        history['prev_vol_{}'.format(i)] = (history['volume'].shift(periods=i) - history['volume'].shift(periods=i+1) )/history['volume'].shift(periods=i+1)
+        history['prev_vol_{}'.format(i)] = np.round(history['prev_vol_{}'.format(i)]*100,2)
 
 
     history.drop(columns=['high','low','volume','money'])

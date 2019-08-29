@@ -4,7 +4,6 @@ class DNAv7(object):
     16bits
 
     6bits   trends
-    2bits   amp_60
     1bits   amp_10
     2bits   ma60_bias
     1bits   ma5_bias
@@ -21,10 +20,6 @@ class DNAv7(object):
     amp_10_q25 = 5.98     # dataset['amp_10'].quantile(0.25)
     amp_10_q50 = 9.08     # dataset['amp_10'].quantile(0.50)
     amp_10_q75 = 13.97    # dataset['amp_10'].quantile(0.75)
-
-    amp_60_q25 = 22.65    # dataset['amp_60'].quantile(0.25)
-    amp_60_q50 = 32.88    # dataset['amp_60'].quantile(0.50)
-    amp_60_q75 = 49.67    # dataset['amp_60'].quantile(0.75)
 
     pos_ma_60_q25=-6.53
     pos_ma_60_q50=1.11

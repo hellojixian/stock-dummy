@@ -42,7 +42,7 @@ class DNAv8(object):
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
 
-    vol_change_up_q50=40.86
+    vol_change_up_q50=29.79
     vol_change_down_q50=-26.33
 
     @staticmethod

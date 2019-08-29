@@ -86,7 +86,9 @@ qtable = pd.DataFrame()
 
 m = mp.Manager()
 l = m.Lock()
-pool = mp.Pool(processes=mp.cpu_count())
+p = mp.cpu_count()
+if mp.cpu_count()>4: p = mp.cpu_count()-1
+pool = mp.Pool(processes=p)
 res = pool.imap(do_work,DNAset)
 pool.close()
 pool.join()

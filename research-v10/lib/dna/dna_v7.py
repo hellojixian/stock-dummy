@@ -14,7 +14,9 @@ class DNAv7(object):
     '''
     name = 'v7'
 
+    close_q25 = 4.84
     close_q50 = 7.73
+    close_q75 = 12.66
 
     amp_10_q25 = 5.98     # dataset['amp_10'].quantile(0.25)
     amp_10_q50 = 9.08     # dataset['amp_10'].quantile(0.50)
@@ -38,13 +40,24 @@ class DNAv7(object):
     @staticmethod
     def to_query(dna):
         self = __class__
-        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
-                dna[0],dna[1],dna[2],dna[3],dna[4])
+        query="(trend_60=={}) & (trend_20=={}) & (trend_10=={}) & (trend_5=={}) & ".format(
+                dna[0],dna[1],dna[2],dna[3])
 
-        for i,p in zip([5],[0]):
-            op='<='
-            if int(dna[i])==1: op='>'
-            query += "(close{}{}) & ".format(p,op,eval("self.close_q50".format(p)))
+        for i,p in zip([4,5],[0]):
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0:
+                    # q0-25
+                    query += "(close<{}) & ".format(self.close_q25)
+                if int(dna[i+1])==1:
+                    # q25-50
+                    query += "(close>={} & close<{}) & ".format(self.close_q25, self.close_q50)
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0:
+                    # q50-75
+                    query += "(close>={} & close<{}) & ".format(self.close_50, self.close_q75)
+                if int(dna[i+1])==1:
+                    # q75-100
+                    query += ("(close>={}) & ").format(self.close_q75)                    
 
         for i,p in zip([6],[10]):
             op='<='

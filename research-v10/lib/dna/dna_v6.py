@@ -35,13 +35,22 @@ class DNAv6(object):
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
 
+    pos_vol_10_q20=4.61
+    pos_vol_10_q50=29.14
+    pos_vol_10_q80=70.9
+
     @staticmethod
     def to_query(dna):
         self = __class__
-        query="(trend_60=={}) & (trend_30=={}) & (trend_20=={}) & (trend_10=={}) & ".format(
-                dna[0],dna[1],dna[2],dna[3])
+        query="(trend_60=={}) & (trend_30=={}) & (trend_10=={}) & ".format(
+                dna[0],dna[1],dna[2])
 
-        for i,p in zip([4,6,8],[60,20,5]):
+        for i,p in zip([3],[0]):
+            op='<='
+            if int(dna[i])==1: op='>'
+            query += "(prev_vol_{}{}{}) & ".format(p,op,0)
+
+        for i,p in zip([4,6],[60,20]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     # q0-25
@@ -60,6 +69,18 @@ class DNAv6(object):
                     # q75-100
                     query += ("(pos_ma_{}>={}) & ").format(
                         p,eval("self.pos_ma_{}_q75".format(p)))
+
+        for i,p in zip([8],[10]):
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0:
+                    query += "(pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q20)
+                if int(dna[i+1])==1:
+                    query += "(pos_vol_{}>={} & pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q20, p,self.pos_vol_10_q50)
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0:
+                    query += "(pos_vol_{}>={} & pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q50, p,self.pos_vol_10_q80)
+                if int(dna[i+1])==1:
+                    query += ("(pos_vol_{}>={}) & ").format(p,self.pos_vol_10_q80)
 
         for i,p in zip([10,12,14],[2,1,0]):
             if int(dna[i])==0:

@@ -83,7 +83,9 @@ def do_work(v):
 m = mp.Manager()
 l = m.Lock()
 if os.path.isfile(filename): os.remove(filename)
-pool = mp.Pool(processes=mp.cpu_count())
+p = mp.cpu_count()
+if mp.cpu_count()>4: p = mp.cpu_count()-1
+pool = mp.Pool(processes=p)
 do_work((0,security_list.iloc[0]))
 pool.map(do_work,security_list[1:].iterrows())
 pool.close()

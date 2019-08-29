@@ -13,7 +13,7 @@ filename = 'data/dataset-labeled-min.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename)
 
-cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6]
+cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
 for i in range(len(dataset)):
     record = dataset.iloc[i]
     r = []

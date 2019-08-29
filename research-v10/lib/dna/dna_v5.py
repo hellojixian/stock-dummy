@@ -108,7 +108,7 @@ class DNAv5(object):
                 if int(dna[i+1])==0:
                     query += "(pos_{}>={} & pos_{}<{}) & ".format(p,self.pos_10_q50, p,self.pos_10_q75)
                 if int(dna[i+1])==1:
-                    query += ("(pos_{}>={}) & ").format(p,self.pos_10_q75)
+                    query += "(pos_{}>={}) & ".format(p,self.pos_10_q75)
 
         for i,p in zip([14],[10]):
             if int(dna[i]) == 0:
@@ -120,7 +120,7 @@ class DNAv5(object):
                 if int(dna[i+1])==0:
                     query += "(pos_vol_{}>={} & pos_vol_{}<{}) & ".format(p,self.pos_vol_10_q50, p,self.pos_vol_10_q80)
                 if int(dna[i+1])==1:
-                    query += ("(pos_vol_{}>={}) & ").format(p,self.pos_vol_10_q80)
+                    query += "(pos_vol_{}>={}) & ".format(p,self.pos_vol_10_q80)
 
         query = query[:-2]
         return query
@@ -129,5 +129,64 @@ class DNAv5(object):
     def to_dna(record):
         self = __class__
         dna = list("0"*16)
+        for i,p in zip([0,1,2],[3,2,1]):
+            if record['prev_{}'.format(p)] <= 0:
+                dna[i]=str(0)
+            if record['prev_{}'.format(p)] > 0:
+                dna[i]=str(1)
+        for i,p in zip([3],[2]):
+            if record['prev_vol_{}'.format(p)] <= 0:
+                dna[i]=str(0)
+            if record['prev_vol_{}'.format(p)] > 0:
+                dna[i]=str(1)
+        for i,p in zip([4,6],[1,0]):
+            if record["prev_vol_{}".format(p)]<=self.vol_change_down_q50:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["prev_vol_{}".format(p)]<=0 and record["prev_vol_{}".format(p)]>self.vol_change_down_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["prev_vol_{}".format(p)]>0 and record["prev_vol_{}".format(p)]<=self.vol_change_up_q50:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["prev_vol_{}".format(p)]>self.vol_change_up_q50:
+                dna[i],dna[i+1]=str(1),str(1)
+        for i,p in zip([8],[0]):
+            if record["prev_{}".format(p)]<=self.change_down_q75:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(0),str(0)
+            if record["prev_{}".format(p)]>self.change_down_q75 and record["prev_{}".format(p)]<=self.change_down_q50:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(0),str(1)
+            if record["prev_{}".format(p)]>self.change_down_q50 and record["prev_{}".format(p)]<=self.change_down_q25:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_down_q25 and record["prev_{}".format(p)]<=0:
+                dna[i],dna[i+1],dna[i+2]=str(0),str(1),str(1)
+            if record["prev_{}".format(p)]>0 and record["prev_{}".format(p)]<=self.change_up_q25:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(0),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q25 and record["prev_{}".format(p)]<=self.change_up_q50:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(0),str(1)
+            if record["prev_{}".format(p)]>self.change_up_q50 and record["prev_{}".format(p)]<=self.change_up_q75:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(1),str(0)
+            if record["prev_{}".format(p)]>self.change_up_q75:
+                dna[i],dna[i+1],dna[i+2]=str(1),str(1),str(1)
+        for i,p in zip([11],[10]):
+            if record['pos_ma_{}'.format(p)] <= 0:
+                dna[i]=str(0)
+            if record['pos_ma_{}'.format(p)] > 0:
+                dna[i]=str(1)
+        for i,p in zip([12],[10]):
+            if record["pos_{}".format(p)]<self.pos_10_q25:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["pos_{}".format(p)]>=self.pos_10_q25 and record["pos_{}".format(p)]<self.pos_10_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["pos_{}".format(p)]>=self.pos_10_q50 and record["pos_{}".format(p)]<self.pos_10_q75:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["pos_{}".format(p)]>=self.pos_10_q75:
+                dna[i],dna[i+1]=str(1),str(1)
+        for i,p in zip([14],[10]):
+            if record["pos_vol_{}".format(p)]<self.pos_vol_10_q20:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q20 and record["pos_vol_{}".format(p)]<self.pos_vol_10_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q50 and record["pos_vol_{}".format(p)]<self.pos_vol_10_q80:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q80:
+                dna[i],dna[i+1]=str(1),str(1)
 
         return "".join(dna)

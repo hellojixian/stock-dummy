@@ -50,7 +50,7 @@ class DNAv6(object):
             if int(dna[i])==1: op='>'
             query += "(prev_vol_{}{}{}) & ".format(p,op,0)
 
-        for i,p in zip([4,6],[60,20]):
+        for i,p in zip([4,6],[60,10]):
             if int(dna[i]) == 0:
                 if int(dna[i+1])==0:
                     # q0-25
@@ -95,7 +95,6 @@ class DNAv6(object):
                     query += "(prev_{}>{}) & ".format(p,self.change_up_q50)
 
         query = query[:-2]
-
         return query
 
     @staticmethod
@@ -103,13 +102,19 @@ class DNAv6(object):
         self = __class__
         dna = list("0"*16)
 
-        for i,p in zip([0,1,2,3],[60,30,20,10]):
+        for i,p in zip([0,1],[60,10]):
             if record['trend_{}'.format(p)] == 0:
                 dna[i]=str(0)
             if record['trend_{}'.format(p)] == 1:
                 dna[i]=str(1)
 
-        for i,p in zip([4,6,8],[60,20,5]):
+        for i,p in zip([2,3],[1,0]):
+            if record['prev_vol_{}'.format(p)] <= 0:
+                dna[i]=str(0)
+            if record['prev_vol_{}'.format(p)] > 0:
+                dna[i]=str(1)
+
+        for i,p in zip([4,6],[60,10]):
             if record["pos_ma_{}".format(p)]<eval("self.pos_ma_{}_q25".format(p)):
                 dna[i],dna[i+1]=str(0),str(0)
             if record["pos_ma_{}".format(p)]>=eval("self.pos_ma_{}_q25".format(p)) and record["pos_ma_{}".format(p)]<eval("self.pos_ma_{}_q50".format(p)):
@@ -117,6 +122,16 @@ class DNAv6(object):
             if record["pos_ma_{}".format(p)]>=eval("self.pos_ma_{}_q50".format(p)) and record["pos_ma_{}".format(p)]<eval("self.pos_ma_{}_q75".format(p)):
                 dna[i],dna[i+1]=str(1),str(0)
             if record["pos_ma_{}".format(p)]>=eval("self.pos_ma_{}_q75".format(p)):
+                dna[i],dna[i+1]=str(1),str(1)
+
+        for i,p in zip([8],[10]):
+            if record["pos_vol_{}".format(p)]<self.pos_vol_10_q20:
+                dna[i],dna[i+1]=str(0),str(0)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q20 and record["pos_vol_{}".format(p)]<self.pos_vol_10_q50:
+                dna[i],dna[i+1]=str(0),str(1)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q50 and record["pos_vol_{}".format(p)]<self.pos_vol_10_q80:
+                dna[i],dna[i+1]=str(1),str(0)
+            if record["pos_vol_{}".format(p)]>=self.pos_vol_10_q80:
                 dna[i],dna[i+1]=str(1),str(1)
 
         for i,p in zip([10,12,14],[2,1,0]):

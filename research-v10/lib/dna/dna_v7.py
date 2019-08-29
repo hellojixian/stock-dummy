@@ -61,25 +61,26 @@ class DNAv7(object):
                     # q75-100
                     query += ("(close>={}) & ").format(self.close_q75)
 
-        for i,p in zip([6,7],[60,10]):
+        for i,p in zip([6],[10]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(amp_{}{}{}) & ".format(p,op,eval("self.amp_{}_q50".format(p)))
 
-        for i,p in zip([8],[10]):
+        for i,p in zip([7],[10]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(pos_vol_{}{}{}) & ".format(p,op,eval("self.pos_vol_{}_q50".format(p)))
 
-        for i,p in zip([9,10],[5,60]):
+        for i,p in zip([8],[5]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(pos_ma_{}{}{}) & ".format(p,op,eval("self.pos_ma_{}_q50".format(p)))
 
-        for i,p in zip([11],[0]):
+        for i,p in zip([9,10,11],[2,1,0]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(prev_vol_{}{}{}) & ".format(p,op,0)
+
 
         for i,p in zip([12,13],[2,1]):
             op='<='
@@ -98,6 +99,7 @@ class DNAv7(object):
                     query += "(prev_{}>0 & prev_{}<={}) & ".format(p,p,self.change_up_q50)
                 if int(dna[i+1])==1:
                     query += "(prev_{}>{}) & ".format(p,self.change_up_q50)
+
 
         query = query[:-2]
 

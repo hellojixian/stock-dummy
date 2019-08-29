@@ -42,10 +42,10 @@ class DNAv6(object):
     @staticmethod
     def to_query(dna):
         self = __class__
-        query="(trend_60=={}) & (trend_30=={}) & (trend_10=={}) & ".format(
-                dna[0],dna[1],dna[2])
+        query="(trend_60=={})  & (trend_10=={}) & ".format(
+                dna[0],dna[1])
 
-        for i,p in zip([3],[0]):
+        for i,p in zip([2,3],[1,0]):
             op='<='
             if int(dna[i])==1: op='>'
             query += "(prev_vol_{}{}{}) & ".format(p,op,0)

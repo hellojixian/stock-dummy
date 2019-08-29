@@ -21,6 +21,14 @@ class DNAv5(object):
     change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
     change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
 
+    change_up_q75   = 2.93    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.75)
+    change_up_q50   = 1.52    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.5)
+    change_up_q25   = 0.71    # dataset[dataset.prev_0>0]['prev_0'].quantile(0.25)
+
+    change_down_q25 = -0.75
+    change_down_q50 = -1.59   # dataset[dataset.prev_0<0]['prev_0'].quantile(0.5)
+    change_down_q75 = -2.99
+
     vol_change_up_q50=29.79
     vol_change_down_q50=-26.33
 
@@ -34,7 +42,7 @@ class DNAv5(object):
     pos_vol_10_q20=4.61
     pos_vol_10_q50=29.14
     pos_vol_10_q80=70.9
-    
+
     close_q50 = 7.73
 
     @staticmethod
@@ -65,28 +73,30 @@ class DNAv5(object):
                     query += "(prev_vol_{}>{}) & ".format(p,self.vol_change_up_q50)
 
         for i,p in zip([8],[0]):
-            if int(dna[i])==0:
-                if int(dna[i+1])==0:
-                    query += "(prev_{}<={}) & ".format(p,self.change_down_q50)
-                if int(dna[i+1])==1:
-                    query += "(prev_{}<=0 & prev_{}>{}) & ".format(p,p,self.change_down_q50)
-            if int(dna[i])==1:
-                if int(dna[i+1])==0:
-                    query += "(prev_{}>0 & prev_{}<={}) & ".format(p,p,self.change_up_q50)
-                if int(dna[i+1])==1:
-                    query += "(prev_{}>{}) & ".format(p,self.change_up_q50)
+            if int(dna[i]) == 0:
+                if int(dna[i+1])==0 and int(dna[i+2])==0:
+                    query += "(prev_{}<={}) & ".format(p,self.change_down_q75)
+                if int(dna[i+1])==0 and int(dna[i+2])==1:
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_down_q75, p, self.change_down_q50)
+                if int(dna[i+1])==1 and int(dna[i+2])==0:
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_down_q50, p, self.change_down_q25)
+                if int(dna[i+1])==1 and int(dna[i+2])==1:
+                    query += "(prev_{}>{} & prev_{}<=0) & ".format(p,self.change_down_q25,p)
+            if int(dna[i]) == 1:
+                if int(dna[i+1])==0 and int(dna[i+2])==0:
+                    query += "(prev_{}>0 & prev_{}<={}) & ".format(p,p,self.change_up_q25)
+                if int(dna[i+1])==0 and int(dna[i+2])==1:
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_up_q25, p, self.change_up_q50)
+                if int(dna[i+1])==1 and int(dna[i+2])==0:
+                    query += "(prev_{}>{} & prev_{}<={}) & ".format(p,self.change_up_q50, p, self.change_up_q75)
+                if int(dna[i+1])==1 and int(dna[i+2])==1:
+                    query += "(prev_{}>{}) & ".format(p,self.change_up_q75)
 
-        for i,p in zip([10],[10]):
+        for i,p in zip([11],[10]):
             if int(dna[i])==0:
                 query += "(pos_ma_{}<={}) & ".format(p,0)
             if int(dna[i])==1:
                 query += "(pos_ma_{}>{}) & ".format(p,0)
-
-        for i,p in zip([11],[0]):
-            if int(dna[i]) == 0:
-                query += "(close<{}) & ".format(self.close_q50)
-            if int(dna[i]) == 1:
-                query += "(close>={}) & ".format(self.close_q50)
 
         for i,p in zip([12],[10]):
             if int(dna[i]) == 0:

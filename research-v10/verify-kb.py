@@ -78,8 +78,6 @@ for trading_date in trading_dates:
     rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']
     today_wr = rs[rs.prev_0>0].shape[0] / rs.shape[0]
 
-
-    rs = rs[(rs.prev_0<0)]
     rs = rs.sort_values(by=['prev_past'],ascending=True)
     rs = rs[:15]
     rs = rs.sort_values(by=['prev_0'],ascending=True)

@@ -85,7 +85,7 @@ for trading_date in trading_dates:
 
 
     # if today_wr>0.7:
-    rs = rs.sort_values(by=['prev_2'],ascending=True)
+    rs = rs.sort_values(by=['prev_2'],ascending=False)
     rs = rs[:15]
     rs = rs.sort_values(by=['today'],ascending=False)
     rs = rs[:7]

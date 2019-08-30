@@ -76,6 +76,11 @@ for trading_date in trading_dates:
     print("="*100)
     print(rs)
     print("="*100)
-    print("Date: {}\t Profit: {:.2f}%\t Score_mean: {:.3f}".format(
-            trading_date,rs['fu_1'].mean(),score_mean))
+
+    if score_mean<=4:
+        print("Date: {}\t Score_mean: {:.3f} - Ignored".format(trading_date,score_mean))
+    else:
+        print("Date: {}\t Profit: {:.2f}%\t Score_mean: {:.3f}".format(
+                trading_date,rs['fu_1'].mean(),score_mean))
+                
     print("\n")

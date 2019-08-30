@@ -83,7 +83,7 @@ for trading_date in trading_dates:
     print(rs)
     print("="*100)
 
-    if score_mean<=4:
+    if score_mean<=8:
         print("Date: {}\t Profit: {:.2f}%\t Score(50/95): {:.3f}/{:.3f} - Ignored".format(
                 trading_date,rs['fu_1'].mean(),score_mean,score_q95))
     else:

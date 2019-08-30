@@ -68,6 +68,7 @@ for trading_date in trading_dates:
 
     rs = pd.DataFrame(res)
     rs = rs.sort_values(by=['score'],ascending=False)
+    score_mean=rs['score'].mean()
     rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','score','fu_1']]
@@ -75,5 +76,6 @@ for trading_date in trading_dates:
     print("="*100)
     print(rs)
     print("="*100)
-    print("date:{} profit: {:.2f}%".format(trading_date,rs['fu_1'].mean()))
+    print("Date:{}\tProfit:\t{:.2f}%\tScore_mean:".format(
+            trading_date,rs['fu_1'].mean(),score_mean))
     print("\n")

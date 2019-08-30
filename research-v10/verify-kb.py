@@ -26,7 +26,6 @@ cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
 
 for trading_date in trading_dates:
     subset = dataset[dataset.index==trading_date]
-    print(trading_date, subset.shape)
 
     finished = mp.Value('i', 0)
     def do_work(v):
@@ -69,6 +68,7 @@ for trading_date in trading_dates:
     rs = pd.DataFrame(res)
     rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
+    score_q75=rs['score'].quantile(0.75)
     rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','score','fu_1']]
@@ -78,9 +78,9 @@ for trading_date in trading_dates:
     print("="*100)
 
     if score_mean<=4:
-        print("Date: {}\t Score_mean: {:.3f} - Ignored".format(trading_date,score_mean))
+        print("Date: {}\t Score(50/75): {:.3f}/{:.3f} - Ignored".format(trading_date,score_mean,score_q75))
     else:
-        print("Date: {}\t Profit: {:.2f}%\t Score_mean: {:.3f}".format(
-                trading_date,rs['fu_1'].mean(),score_mean))
-                
+        print("Date: {}\t Profit: {:.2f}%\t Score(50/75): {:.3f}/{:.3f}".format(
+                trading_date,rs['fu_1'].mean(),score_mean,score_q75))
+
     print("\n")

@@ -14,7 +14,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-filename = 'data/dataset-labeled-min.csv'
+filename = 'data/dataset-labeled-2.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename,index_col=0)
 print('Data loaded')

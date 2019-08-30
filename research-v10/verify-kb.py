@@ -76,6 +76,6 @@ for trading_date in trading_dates:
     print("="*100)
     print(rs)
     print("="*100)
-    print("Date:{}\tProfit:\t{:.2f}%\tScore_mean:".format(
+    print("Date:{}\tProfit:\t{:.2f}%\tScore_mean:{:.3f}".format(
             trading_date,rs['fu_1'].mean(),score_mean))
     print("\n")

@@ -80,9 +80,9 @@ for trading_date in trading_dates:
     # rs = rs[(rs.score>=10)]
     rs = rs.sort_values(by=['score'],ascending=False)
     rs = rs[:10]
-    rs = rs.sort_values(by=['prev_2'],ascending=False)
+    rs = rs.sort_values(by=['prev_2'],ascending=True)
     rs = rs[:4]
-    
+
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3','fu_4']]
     print("\n")

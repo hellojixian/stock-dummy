@@ -14,7 +14,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-filename = 'data/dataset-labeled-2.csv'
+filename = 'data/dataset-labeled-min.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename,index_col=0)
 print('Data loaded')
@@ -23,8 +23,12 @@ print('Trading dates loaded')
 
 kb = load_kb()
 cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
+total_profit = 1
 
 for trading_date in trading_dates:
+    date_i = trading_dates.index(trading_date)
+    if date_i<=50:continue
+
     subset = dataset[dataset.index==trading_date]
     subset = subset[(subset.prev_0<9.5) & (subset.prev_0>-9.5)]
     finished = mp.Value('i', 0)
@@ -83,11 +87,12 @@ for trading_date in trading_dates:
     print(rs)
     print("="*100)
 
+    total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
     if score_mean<=8:
-        print("Date: {}\t Profit: {:.2f}%\t Score(50/95): {:.3f}/{:.3f} - Ignored".format(
-                trading_date,rs['fu_1'].mean(),score_mean,score_q95))
+        print("{:06}\tDate: {}\t Profit: {:.2f}%\t{:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} - Ignored".format(
+                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95))
     else:
-        print("Date: {}\t Profit: {:.2f}%\t Score(50/95): {:.3f}/{:.3f}".format(
-                trading_date,rs['fu_1'].mean(),score_mean,score_q95))
+        print("{:06}\tDate: {}\t Profit: {:.2f}%\t{:.2f}%\t\t Score(50/95): {:.3f}/{:.3f}".format(
+                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95))
 
     print("\n")

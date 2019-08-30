@@ -39,9 +39,9 @@ for trading_date in trading_dates:
             q="(dna=='{}') & (ver=='{}')".format(dna,core.name)
             k = kb[kb.eval(q)]
             if k.shape[0]==0:
-                score += 0.5
+                score += 0.5 + 0.5
             else:
-                score += k.iloc[0]['wr_f1']
+                score += (k.iloc[0]['wr_f1'] + k.iloc[0]['wr_f2'])
 
         l.acquire()
         finished.value+=1

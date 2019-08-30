@@ -40,7 +40,7 @@ for trading_date in trading_dates:
             if k.shape[0]==0:
                 score += 0.5
             else:
-                score += k.iloc[0]['wr_f1']+k.iloc[0]['wr_f2']
+                score += k.iloc[0]['wr_f1']+k.iloc[0]['wr_f2']++k.iloc[0]['wr_f3']
 
         l.acquire()
         finished.value+=1

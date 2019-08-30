@@ -54,7 +54,10 @@ for trading_date in trading_dates:
             'prev_2':(record.prev_0+record.prev_1+record.prev_2),
             'today':record.prev_0,
             'score':score,
-            'fu_1':record['fu_1']
+            'fu_1':record['fu_1'],
+            'fu_2':record['fu_2'],
+            'fu_3':record['fu_3'],
+            'fu_4':record['fu_4'],
         }
 
     bar = progressbar.ProgressBar(max_value=len(subset))
@@ -74,7 +77,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['prev_2','today'],ascending=True)
     rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)
-    rs = rs[['date','security','close','prev_2','today','score','fu_1']]
+    rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3']]
     print("\n")
     print("="*100)
     print(rs)

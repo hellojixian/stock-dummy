@@ -99,12 +99,10 @@ for trading_date in trading_dates:
     print(rs)
     print("="*100)
 
-
-    total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
-    # if (today_wr<0.75 and today_wr>0.45) or (today_wr<0.1) or (today_wr>0.9):
-    #     total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
-    # else:
-    #     print('Ignored')
+    if rs.shape[0]>0:
+        total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
+    else:
+        print('Ignored')
 
     print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}".format(
                 date_i,trading_date,rs['fu_1'].mean(),total_profit*100,today_wr))

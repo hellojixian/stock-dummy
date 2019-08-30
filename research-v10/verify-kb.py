@@ -83,10 +83,10 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['score'],ascending=False)
     rs = rs[:10]
 
-    if rs['prev_2'].mean()>0:
-        rs = rs.sort_values(by=['today'],ascending=False)
-    else:
+    if today_wr>0.7:
         rs = rs.sort_values(by=['today'],ascending=True)
+    else:
+        rs = rs.sort_values(by=['today'],ascending=False)
     rs = rs[:4]
 
     rs['score'] = np.round(rs['score'],3)

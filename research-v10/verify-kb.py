@@ -81,7 +81,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['prev_past'],ascending=True)
     rs = rs[:15]
     rs = rs.sort_values(by=['prev_0'],ascending=True)
-    rs = rs[:4]
+    rs = rs[:7]
 
 
 

@@ -75,10 +75,13 @@ for trading_date in trading_dates:
 
     rs = pd.DataFrame(res)
     today_wr = rs[rs.today>0].shape[0] / rs.shape[0]
-    # rs = rs.sort_values(by=['score'],ascending=False)
+
     score_mean=rs['score'].mean()
     score_q65=rs['score'].quantile(0.95)
     rs =  rs[(rs.score>=score_q65)]
+
+    rs = rs.sort_values(by=['score'],ascending=False)
+    rs = rs[:10]
 
     if rs['prev_2'].mean()>0:
         rs = rs.sort_values(by=['today'],ascending=True)

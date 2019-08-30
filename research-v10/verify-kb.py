@@ -40,7 +40,7 @@ for trading_date in trading_dates:
             if k.shape[0]==0:
                 score += 0.5
             else:
-                score += k.iloc[0]['wr_f1']+k.iloc[0]['wr_f2']++k.iloc[0]['wr_f3']
+                score += k.iloc[0]['wr_f1']+k.iloc[0]['wr_f2']
 
         l.acquire()
         finished.value+=1
@@ -51,7 +51,7 @@ for trading_date in trading_dates:
             'date':record.name,
             'security':record.security,
             'close':record.close,
-            'prev_2':(record.prev_0+record.prev_1),
+            'prev_2':(record.prev_0+record.prev_1+record.prev_2),
             'today':record.prev_0,
             'score':score,
             'fu_1':record['fu_1']

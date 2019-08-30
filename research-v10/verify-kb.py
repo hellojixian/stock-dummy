@@ -74,6 +74,7 @@ for trading_date in trading_dates:
     pool.join()
 
     rs = pd.DataFrame(res)
+    today_wr = rs[rs.close>0].shape[0] / rs.shape[0]
     # rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
     score_q95=rs['score'].quantile(0.95)
@@ -95,10 +96,10 @@ for trading_date in trading_dates:
 
     total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
     if score_mean<=8:
-        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} - Ignored".format(
-                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95))
+        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} wr: {.3f} - Ignored".format(
+                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95,today_wr))
     else:
-        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f}".format(
-                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95))
+        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} wr: {.3f}".format(
+                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95,today_wr))
 
     print("\n")

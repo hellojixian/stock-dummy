@@ -69,7 +69,7 @@ for trading_date in trading_dates:
     # rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
     score_q95=rs['score'].quantile(0.95)
-    rs = rs[rs.score>=score_q90]
+    rs = rs[rs.score>=score_q95]
     rs = rs.sort_values(by=['today_change'],ascending=True)
     rs = rs[:10]
     rs['score'] = np.round(rs['score'],3)
@@ -81,9 +81,9 @@ for trading_date in trading_dates:
 
     if score_mean<=4:
         print("Date: {}\t Profit: {:.2f}%\t Score(50/95): {:.3f}/{:.3f} - Ignored".format(
-                trading_date,rs['fu_1'].mean(),score_mean,score_q90))
+                trading_date,rs['fu_1'].mean(),score_mean,score_q95))
     else:
         print("Date: {}\t Profit: {:.2f}%\t Score(50/95): {:.3f}/{:.3f}".format(
-                trading_date,rs['fu_1'].mean(),score_mean,score_q90))
+                trading_date,rs['fu_1'].mean(),score_mean,score_q95))
 
     print("\n")

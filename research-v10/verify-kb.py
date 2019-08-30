@@ -81,13 +81,14 @@ for trading_date in trading_dates:
     rs =  rs[(rs.score>=score_q65)]
 
     rs = rs.sort_values(by=['score'],ascending=False)
-    rs = rs[:10]
+    rs = rs[:20]
 
     # rs = rs.sort_values(by=['today'],ascending=False)
     # if today_wr>0.7:
-    #     rs = rs.sort_values(by=['today'],ascending=False)
+    rs = rs.sort_values(by=['today'],ascending=False)
+    rs = rs[:7]
     # else:
-    #     rs = rs.sort_values(by=['today'],ascending=True)
+        # rs = rs.sort_values(by=['today'],ascending=True)
     if rs.shape[0]>=4:
         rs = rs.sample(4)
 

@@ -75,17 +75,11 @@ for trading_date in trading_dates:
     # rs = pd.DataFrame(res)
     rs = subset
 
-    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']+rs['prev_4']
+    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']+rs['prev_4']+rs['prev_5']
     today_wr = rs[rs.prev_0>0].shape[0] / rs.shape[0]
 
-    # score_mean=rs['score'].mean()
-    # score_q65=rs['score'].quantile(0.95)
-    # rs =  rs[(rs.score>=score_q65)]
-    # rs = rs.sort_values(by=['score'],ascending=False)
-    # rs = rs[:20]
 
-
-    rs = rs[(rs.prev_0<0) & (rs.prev_1<0) & (rs.prev_past<-10)]
+    rs = rs[(rs.prev_0<0) & (rs.prev_1<0) & (rs.prev_1<0) ]
     rs = rs.sort_values(by=['prev_past'],ascending=True)
     rs = rs[:15]
     rs = rs.sort_values(by=['prev_0'],ascending=True)

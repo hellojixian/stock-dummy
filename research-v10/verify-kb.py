@@ -22,7 +22,7 @@ trading_dates = dataset['security'].groupby(dataset.index).count().index.tolist(
 print('Trading dates loaded')
 
 kb = load_kb()
-cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
+cores = [DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
 total_profit = 1
 
 for trading_date in trading_dates:
@@ -95,7 +95,7 @@ for trading_date in trading_dates:
     print("="*100)
 
 
-    if today_wr<0.7 and today_wr>0.3:
+    if today_wr<0.8 and today_wr>0.3:
         total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
     else:
         print('Ignored')

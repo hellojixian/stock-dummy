@@ -85,14 +85,11 @@ for trading_date in trading_dates:
 
 
     # if today_wr>0.7:
-    rs = rs.sort_values(by=['prev_2'],ascending=False)
+    rs = rs.sort_values(by=['prev_2'],ascending=True)
     rs = rs[:15]
-    rs = rs.sort_values(by=['today'],ascending=False)
+    rs = rs.sort_values(by=['today'],ascending=True)
     rs = rs[:7]
-    # else:
-        # rs = rs.sort_values(by=['today'],ascending=True)
-    if rs.shape[0]>=4:
-        rs = rs.sample(4)
+
 
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3','fu_4']]

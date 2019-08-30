@@ -26,7 +26,7 @@ cores = [DNAv1, DNAv2, DNAv3, DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
 
 for trading_date in trading_dates:
     subset = dataset[dataset.index==trading_date]
-
+    subset = subset[(subset.prev_0<9.5) & (subset.prev_0>-9.5)]
     finished = mp.Value('i', 0)
     def do_work(v):
         global rs

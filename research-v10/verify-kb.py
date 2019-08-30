@@ -14,89 +14,68 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-filename = 'data/dataset-labeled-2.csv'
+filename = 'data/dataset-labeled-min.csv'
 np.random.seed(0)
 dataset = pd.read_csv(filename,index_col=0)
 print('Data loaded')
 trading_dates = dataset['security'].groupby(dataset.index).count().index.tolist()
 print('Trading dates loaded')
 
-kb = load_kb()
-cores = [DNAv4, DNAv5, DNAv6, DNAv7, DNAv8]
+
 total_profit = 1
+cw,cwp = 0,0
+cl,clp = 0,0
+prev_rr = 0
+dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
 
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
     if date_i<=50:continue
+    # if date_i>62:break
 
     subset = dataset[dataset.index==trading_date]
-    subset = subset[(subset.prev_0<9.5) & (subset.prev_0>-9.5)]
-    finished = mp.Value('i', 0)
-    def do_work(v):
-        global rs
-        score = 0
-        i = v[0]
-        record = v[1]
-        for core in cores:
-            dna = core.to_dna(record)
-            q="(dna=='{}') & (ver=='{}')".format(dna,core.name)
-            k = kb[kb.eval(q)]
-            if k.shape[0]==0:
-                score += 0.5
-            else:
-                score += k.iloc[0]['wr_f1']
+    total = subset.shape[0]
+    today_wr = subset[subset.prev_0>0].shape[0] / total
+    today_rr = subset[subset.trend_10==1].shape[0] / total
 
-        l.acquire()
-        finished.value+=1
-        bar.update(finished.value)
-        l.release()
+    query = "(prev_0<9.5) & (prev_0>-9.5) & prev_changes>=-17 & trend_10==0"
+    subset = subset[subset.eval(query)]
 
-        return {
-            'date':record.name,
-            'security':record.security,
-            'close':record.close,
-            'prev_2':(record.prev_0+record.prev_1+record.prev_2+record.prev_2),
-            'today':record.prev_0,
-            'score':score,
-            'fu_1':record['fu_1'],
-            'fu_2':record['fu_2'],
-            'fu_3':record['fu_3'],
-            'fu_4':record['fu_4'],
-        }
-
-    bar = progressbar.ProgressBar(max_value=len(subset))
-    m = mp.Manager()
-    l = m.Lock()
-    p = mp.cpu_count()
-    # pool = mp.Pool(processes=p)
-    # res = pool.map(do_work,subset.iterrows())
-    # pool.close()
-    # pool.join()
-    # rs = pd.DataFrame(res)
     rs = subset
-
-    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']+rs['prev_4']
-    today_wr = rs[rs.prev_0>0].shape[0] / rs.shape[0]
-
-    rs = rs.sort_values(by=['prev_past'],ascending=True)
-    rs = rs[:15]
-    rs = rs.sort_values(by=['prev_0'],ascending=True)
+    rs = rs.sort_values(by=['prev_changes'],ascending=True)
+    rs = rs[:20]
+    rs = rs.sort_values(by=['pos_60'],ascending=True)
     rs = rs[:7]
 
+    rs = rs[['security','close','prev_changes','prev_0','fu_1']]
+
+    if rs.shape[0]>2 :
+        print("="*120)
+        print(rs)
+        print("="*120)
 
 
-    rs = rs[['security','close','prev_past','prev_0','fu_1','fu_2','fu_3','fu_3','fu_4']]
-    print("\n")
-    print("="*100)
-    print(rs)
-    print("="*100)
+        if today_rr>prev_rr or today_rr>0.9: # clp>-2.5 or cl>4 or clp<-8.5:
+            profit = rs['fu_1'].mean()
+            total_profit = total_profit*(1+(profit/100))
+            print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}\t rr: {:.3f}\tcw/l: {:.2f}\t{:.2f}".format(
+                        date_i,trading_date,profit,total_profit*100,today_wr, today_rr, cl, clp))
+        else:
+            print("{:06}\tDate: {}\t rr: {:.3f} - Ignored".format(date_i,trading_date,today_rr))
 
-    if rs.shape[0]>0:
-        total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
+        prev_rr = today_rr
+        profit = rs['fu_1'].mean()
+        if profit>=0:
+            cwp+=profit
+            cl=0
+            clp=0
+        else:
+            cw=0
+            cwp=0
+            cl+=1
+            clp +=profit
+
     else:
-        print('Ignored')
-
-    print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}".format(
-                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,today_wr))
+        print("{:06}\tDate: {}\t rr: {:.3f} - Ignored".format(date_i,trading_date,today_rr))
 
     print("\n")

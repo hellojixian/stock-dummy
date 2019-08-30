@@ -68,31 +68,32 @@ for trading_date in trading_dates:
     m = mp.Manager()
     l = m.Lock()
     p = mp.cpu_count()
-    pool = mp.Pool(processes=p)
-    res = pool.map(do_work,subset.iterrows())
-    pool.close()
-    pool.join()
+    # pool = mp.Pool(processes=p)
+    # res = pool.map(do_work,subset.iterrows())
+    # pool.close()
+    # pool.join()
+    # rs = pd.DataFrame(res)
+    rs = subset
 
-    rs = pd.DataFrame(res)
-    today_wr = rs[rs.today>0].shape[0] / rs.shape[0]
+    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']
+    today_wr = rs[rs.prev_0>0].shape[0] / rs.shape[0]
 
-    score_mean=rs['score'].mean()
-    score_q65=rs['score'].quantile(0.95)
-    rs =  rs[(rs.score>=score_q65)]
-
-    rs = rs.sort_values(by=['score'],ascending=False)
-    rs = rs[:20]
+    # score_mean=rs['score'].mean()
+    # score_q65=rs['score'].quantile(0.95)
+    # rs =  rs[(rs.score>=score_q65)]
+    # rs = rs.sort_values(by=['score'],ascending=False)
+    # rs = rs[:20]
 
 
     # if today_wr>0.7:
-    rs = rs.sort_values(by=['prev_2'],ascending=True)
+    rs = rs.sort_values(by=['prev_past'],ascending=True)
     rs = rs[:15]
-    rs = rs.sort_values(by=['today'],ascending=True)
+    rs = rs.sort_values(by=['prev_0'],ascending=True)
     rs = rs[:7]
 
 
-    rs['score'] = np.round(rs['score'],3)
-    rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3','fu_4']]
+
+    rs = rs[['security','close','prev_past','prev_0','fu_1','fu_2','fu_3','fu_3','fu_4']]
     print("\n")
     print("="*100)
     print(rs)
@@ -105,7 +106,7 @@ for trading_date in trading_dates:
     # else:
     #     print('Ignored')
 
-    print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50): {:.3f}\t wr: {:.3f}".format(
-                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,today_wr))
+    print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}".format(
+                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,today_wr))
 
     print("\n")

@@ -71,7 +71,7 @@ for trading_date in trading_dates:
     score_q95=rs['score'].quantile(0.95)
     rs = rs[rs.score>=score_q95]
     rs = rs.sort_values(by=['today_change'],ascending=True)
-    rs = rs[:10]
+    rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','close','today_change','score','fu_1']]
     print("\n")

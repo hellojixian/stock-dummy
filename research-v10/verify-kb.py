@@ -70,7 +70,7 @@ for trading_date in trading_dates:
     # rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
     score_q95=rs['score'].quantile(0.95)
-    rs = rs[rs.score>=score_q95]
+    rs = rs[rs.score>=5]
     rs = rs.sort_values(by=['prev_2'],ascending=True)
     rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)

@@ -77,7 +77,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['prev_2','today'],ascending=True)
     rs = rs[:5]
     rs['score'] = np.round(rs['score'],3)
-    rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3']]
+    rs = rs[['date','security','close','prev_2','today','score','fu_1','fu_2','fu_3','fu_3','fu_4']]
     print("\n")
     print("="*100)
     print(rs)

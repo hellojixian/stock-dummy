@@ -75,7 +75,7 @@ for trading_date in trading_dates:
     # rs = pd.DataFrame(res)
     rs = subset
 
-    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']+rs['prev_4']+rs['prev_5']
+    rs['prev_past'] = rs['prev_0']+rs['prev_1']+rs['prev_2']+rs['prev_3']
     today_wr = rs[rs.prev_0>0].shape[0] / rs.shape[0]
 
 

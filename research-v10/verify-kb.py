@@ -66,9 +66,11 @@ for trading_date in trading_dates:
     pool.join()
 
     rs = pd.DataFrame(res)
-    rs = rs.sort_values(by=['score'],ascending=False)
+    # rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
     score_q90=rs['score'].quantile(0.90)
+    rs = rs[rs.score>=4.8]
+    rs = rs.sort_values(by=['today_change'],ascending=True)
     rs = rs[:10]
     rs['score'] = np.round(rs['score'],3)
     rs = rs[['date','security','close','today_change','score','fu_1']]

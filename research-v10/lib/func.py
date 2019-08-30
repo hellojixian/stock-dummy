@@ -124,3 +124,19 @@ def find_ma_pos(values):
     pos = (close - v_mean) / v_mean * 100
     pos = np.round(pos,2)
     return pos
+
+def load_kb():
+    kb = pd.DataFrame()
+    data_folder = 'data'
+    for root, dirs, files in os.walk(data_folder):
+        for file in files:
+            if file[:5] == 'dna_v' and file[-4:]=='.csv':
+                subset = pd.read_csv(os.path.join(data_folder,file),index_col=0,dtype=str)
+                print('Load {} records from {}'.format( subset.shape[0], file ))
+                kb = kb.append(subset)
+    kb = kb.reset_index()
+    kb = kb.drop(columns=['index'])
+    for col in kb.columns:
+        if col[:3]=='wr_':
+            kb[col] = kb[col].astype(float)
+    return kb

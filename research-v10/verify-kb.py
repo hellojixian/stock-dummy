@@ -68,19 +68,20 @@ for trading_date in trading_dates:
     rs = pd.DataFrame(res)
     rs = rs.sort_values(by=['score'],ascending=False)
     score_mean=rs['score'].mean()
-    score_q75=rs['score'].quantile(0.75)
-    rs = rs[:5]
+    score_q90=rs['score'].quantile(0.90)
+    rs = rs[:10]
     rs['score'] = np.round(rs['score'],3)
-    rs = rs[['date','security','score','fu_1']]
+    rs = rs[['date','security','close','today_change','score','fu_1']]
     print("\n")
     print("="*100)
     print(rs)
     print("="*100)
 
     if score_mean<=4:
-        print("Date: {}\t Score(50/75): {:.3f}/{:.3f} - Ignored".format(trading_date,score_mean,score_q75))
+        print("Date: {}\t Profit: {:.2f}%\t Score(50/90): {:.3f}/{:.3f} - Ignored".format(
+                trading_date,rs['fu_1'].mean(),score_mean,score_q90))
     else:
-        print("Date: {}\t Profit: {:.2f}%\t Score(50/75): {:.3f}/{:.3f}".format(
-                trading_date,rs['fu_1'].mean(),score_mean,score_q75))
+        print("Date: {}\t Profit: {:.2f}%\t Score(50/90): {:.3f}/{:.3f}".format(
+                trading_date,rs['fu_1'].mean(),score_mean,score_q90))
 
     print("\n")

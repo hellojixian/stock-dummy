@@ -94,12 +94,13 @@ for trading_date in trading_dates:
     print(rs)
     print("="*100)
 
-    total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
-    if score_mean<=8:
-        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} wr: {.3f} - Ignored".format(
-                date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95,today_wr))
+
+    if wr<0.7 and wr>0.3:
+        print('Ignored')
     else:
-        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} wr: {.3f}".format(
+        total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
+
+    print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50/95): {:.3f}/{:.3f} wr: {:.3f}".format(
                 date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,score_q95,today_wr))
 
     print("\n")

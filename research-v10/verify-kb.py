@@ -80,7 +80,7 @@ for trading_date in trading_dates:
     score_q95=rs['score'].quantile(0.95)
     # rs = rs[(rs.score>=10)]
     rs = rs.sort_values(by=['score'],ascending=False)
-    rs = rs[:10]
+    rs = rs[:7]
     if rs['prev_2'].mean()>0:
         rs = rs.sort_values(by=['prev_2'],ascending=False)
     else:
@@ -95,10 +95,11 @@ for trading_date in trading_dates:
     print("="*100)
 
 
-    if (today_wr<0.75 and today_wr>0.4) or (today_wr<0.1):
-        total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
-    else:
-        print('Ignored')
+    total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
+    # if (today_wr<0.75 and today_wr>0.45) or (today_wr<0.1) or (today_wr>0.9):
+    #     total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
+    # else:
+    #     print('Ignored')
 
     print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t Score(50): {:.3f}\t wr: {:.3f}".format(
                 date_i,trading_date,rs['fu_1'].mean(),total_profit*100,score_mean,today_wr))

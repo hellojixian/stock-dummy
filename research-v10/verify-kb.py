@@ -51,7 +51,7 @@ for trading_date in trading_dates:
             'date':record.name,
             'security':record.security,
             'close':record.close,
-            'prev_2':(record.prev_0+record.prev_1+record.prev_2),
+            'prev_2':(record.prev_0+record.prev_1+record.prev_2+record.prev_3),
             'today':record.prev_0,
             'score':score,
             'fu_1':record['fu_1']

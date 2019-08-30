@@ -95,7 +95,7 @@ for trading_date in trading_dates:
     print("="*100)
 
 
-    if today_wr<0.8 and today_wr>0.3:
+    if (today_wr<0.75 and today_wr>0.4) or (today_wr<0.1):
         total_profit = total_profit*(1+(rs['fu_1'].mean()/100))
     else:
         print('Ignored')

@@ -25,7 +25,7 @@ print('Trading dates loaded')
 total_profit = 1
 cw,cwp = 0,0
 cl,clp = 0,0
-prev_rr = 0
+prev_rr,prev_rr_2 = 0,0
 dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
 
 for trading_date in trading_dates:
@@ -35,17 +35,17 @@ for trading_date in trading_dates:
 
     subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
-    today_wr = subset[subset.prev_0>0].shape[0] / total
-    today_rr = subset[subset.trend_10==1].shape[0] / total
+    wr = subset[subset.prev_0>0].shape[0] / total
+    today_rr = subset[subset.pos_60<=20].shape[0] / total
 
-    query = "(prev_0<9.5) & (prev_0>-9.5) & prev_changes>=-17 & trend_10==0"
+    query = "(prev_0<9.5) & (prev_0>-9.5) & prev_changes>=-20 & trend_10==0"
     subset = subset[subset.eval(query)]
 
     rs = subset
     rs = rs.sort_values(by=['prev_changes'],ascending=True)
     rs = rs[:20]
-    rs = rs.sort_values(by=['pos_60'],ascending=True)
-    rs = rs[:7]
+    rs = rs.sort_values(by=['pos_90'],ascending=True)
+    rs = rs[:10]
 
     rs = rs[['security','close','prev_changes','prev_0','fu_1']]
 
@@ -55,15 +55,18 @@ for trading_date in trading_dates:
         print("="*120)
 
 
-        if today_rr>prev_rr or today_rr>0.9: # clp>-2.5 or cl>4 or clp<-8.5:
+        profit = rs['fu_1'].mean()
+        if ((prev_rr>today_rr or prev_rr_2 > today_rr) or today_rr<0.1): # clp>-2.5 or cl>4 or clp<-8.5:
             profit = rs['fu_1'].mean()
             total_profit = total_profit*(1+(profit/100))
-            print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}\t rr: {:.3f}\tcw/l: {:.2f}\t{:.2f}".format(
-                        date_i,trading_date,profit,total_profit*100,today_wr, today_rr, cl, clp))
         else:
-            print("{:06}\tDate: {}\t rr: {:.3f} - Ignored".format(date_i,trading_date,today_rr))
+            print("skipped")
+
+        print("{:06}\tDate: {}\t Profit: {:.2f}%\t Total: {:.2f}%\t\t wr: {:.3f}\t rr: {:.3f}\tcw/l: {:.2f}\t{:.2f}".format(
+                    date_i,trading_date,profit,total_profit*100,wr, today_rr, cl, clp))
 
         prev_rr = today_rr
+        prev_rr_2 =prev_rr
         profit = rs['fu_1'].mean()
         if profit>=0:
             cwp+=profit
@@ -75,6 +78,10 @@ for trading_date in trading_dates:
             cl+=1
             clp +=profit
 
+        if (profit<-5):
+            print(">"*100)
+            print("<"*100)
+            print("\n\n")
     else:
         print("{:06}\tDate: {}\t rr: {:.3f} - Ignored".format(date_i,trading_date,today_rr))
 

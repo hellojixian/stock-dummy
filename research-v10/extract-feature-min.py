@@ -48,15 +48,18 @@ def do_work(v):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
-    for i in [10]:
+    for i in [60,30,10]:
         history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()
         history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)]*100,2)
 
     for i in [60,30,20,10,5]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
-    for i in [60,20,10,5]:
+    for i in [90,60,20,10,5]:
         history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
+
+    for i in range(0,3):
+        history['prev_pos20_{}'.format(i)] = history['pos_20'].shift(periods=i)
 
     for i in [10]:
         history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)

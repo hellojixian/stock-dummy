@@ -37,11 +37,6 @@ for trading_date in trading_dates:
     subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
 
-    # subset = subset.sort_values(by=['close'],ascending=True)
-    # close_ma = subset[100:400]['close'].mean()
-
-    wr = subset[subset.prev_0>0].shape[0] / total
-
     query = "trend_10==0 &  (prev_0<=9 & prev_0>-4)"
     subset = subset[subset.eval(query)]
 
@@ -66,8 +61,6 @@ for trading_date in trading_dates:
 
         profit = rs['fu_1'].mean()
         profits.append({'id':date_i,'date':trading_date,'profit':profit})
-
-        temp = temp[-8:]
         temp.append(profit)
 
         if skip_days>0:
@@ -77,12 +70,16 @@ for trading_date in trading_dates:
 
 
         print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}\t secs:{:.2f}".format(
-                    date_i,trading_date,profit,total_profit*100,wr, skip_days, total))
+                    date_i,trading_date,profit,total_profit*100, skip_days, total))
 
         if skip_days==0:
-            if np.sum(temp[-6:])>=18: skip_days = 10
+            if np.sum(temp[-6:])>=18: skip_days = 20
             if np.sum(temp[-2:])>=11: skip_days = 3
-            if temp[-1]<0 and temp[-2]>0 and temp[-3]<0 and temp[-4]>0: skip_days = 1
+            if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
+            if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
+            if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
+            if np.where(np.array(temp[-7:])<=0)[0].shape[0]==7: skip_days=1
+            if np.where(np.array(temp[-10:])<=0)[0].shape[0]==9: skip_days=13
         else:
             if np.sum(temp[-2:])<=-12: skip_days =0
             pass

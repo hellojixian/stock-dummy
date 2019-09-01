@@ -39,13 +39,6 @@ for trading_date in trading_dates:
     # subset = subset.sort_values(by=['close'],ascending=True)
     # close_ma = subset[100:400]['close'].mean()
 
-    temp = temp[-4:]
-    temp.append(today_change)
-    change_ma = np.sum(temp)
-    if change_ma>2:
-        skip = True
-    if change_ma<-15 or today_change>0:
-        skip = False
 
     wr = subset[subset.prev_0>0].shape[0] / total
 
@@ -79,8 +72,17 @@ for trading_date in trading_dates:
         'date_i':date_i,
         'date':trading_date,
         'profit':profit})
+
         # if ((prev_rr>today_rr or prev_rr_2 > today_rr) or today_rr<0.1): # 最高收益185倍
         # ma_diff>0 or close_ma-prev_close_ma>=0 or today_rr<0.3:
+
+        temp = temp[-4:]
+        temp.append(today_change)
+        change_ma = np.sum(temp)
+        if change_ma>2:
+            skip = True
+        if change_ma<-15 or today_change>0:
+            skip = False
         if not skip:
             total_profit = total_profit*(1+(profit/100))
         print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t rr: {:.3f}\t skip:{}".format(

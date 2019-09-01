@@ -76,7 +76,7 @@ for trading_date in trading_dates:
         # if ((prev_rr>today_rr or prev_rr_2 > today_rr) or today_rr<0.1): # 最高收益185倍
         # ma_diff>0 or close_ma-prev_close_ma>=0 or today_rr<0.3:
 
-        temp = temp[-4:]
+        temp = temp[-8:]
         temp.append(profit)
         change_ma = np.sum(temp)
         if change_ma>2:
@@ -85,8 +85,8 @@ for trading_date in trading_dates:
             skip = False
         if not skip:
             total_profit = total_profit*(1+(profit/100))
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t rr: {:.3f}\t skip:{}".format(
-                    date_i,trading_date,profit,total_profit*100,wr, pos90_ma, skip_days))
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}".format(
+                    date_i,trading_date,profit,total_profit*100,wr, skip_days))
 
     print("\n")
 profits = pd.DataFrame(profits)

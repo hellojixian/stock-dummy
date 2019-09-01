@@ -20,7 +20,7 @@ for i,row in dataset.iterrows():
     profit = 1+today_change/100
     total_profit *= profit
 
-    temp = temp[-4:]
+    temp = temp[-8:]
     temp.append(today_change)
     change_ma = np.sum(temp)
     # print ("{:5.2f}".format(np.round(change_ma,2)))

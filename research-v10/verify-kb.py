@@ -80,8 +80,8 @@ for trading_date in trading_dates:
                     date_i,trading_date,profit,total_profit*100,wr, skip_days, total))
 
         if skip_days==0:
-            if np.sum(temp[-6:])>=17: skip_days = 10
-            if np.sum(temp[-2:])>=12: skip_days = 3
+            if np.sum(temp[-6:])>=18: skip_days = 10
+            if np.sum(temp[-2:])>=11: skip_days = 3
             if temp[-1]<0 and temp[-2]>0 and temp[-3]<0 and temp[-4]>0: skip_days = 1
         else:
             if np.sum(temp[-2:])<=-12: skip_days =0

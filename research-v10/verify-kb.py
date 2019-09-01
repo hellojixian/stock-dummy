@@ -24,13 +24,14 @@ print('Trading dates loaded')
 
 total_profit = 1
 
-prev_close_ma,prev_close_ma2,prev_close_ma3 = 0,0,0
 skip_days = 0
 high_risk=0
 dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
 profits = []
 temp = []
-skip_days = 4
+skip_days = 8
+
+history = pd.DataFrame()
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
     subset = dataset[dataset.index==trading_date]
@@ -39,10 +40,9 @@ for trading_date in trading_dates:
     # subset = subset.sort_values(by=['close'],ascending=True)
     # close_ma = subset[100:400]['close'].mean()
 
-
     wr = subset[subset.prev_0>0].shape[0] / total
 
-    query = "trend_10==0 &  (prev_0<=9 & prev_0>=-4)"
+    query = "trend_10==0 &  (prev_0<=9 & prev_0>-4)"
     subset = subset[subset.eval(query)]
 
     rs = subset
@@ -57,24 +57,17 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['pos_90'],ascending=True)
     rs = rs[:15]
 
-    rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1']]
+
+    rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1','fu_2','fu_3','fu_4','fu_5']]
+
 
     if rs.shape[0]>4 :
         print("="*120)
         print(rs)
         print("="*120)
 
-        # ma_p0 = (close_ma+prev_close_ma)/2
-        # ma_p1 = (prev_close_ma+prev_close_ma2)/2
-        # ma_diff = ma_p0-ma_p1
         profit = rs['fu_1'].mean()
-        profits.append({
-        'date_i':date_i,
-        'date':trading_date,
-        'profit':profit})
-
-        # if ((prev_rr>today_rr or prev_rr_2 > today_rr) or today_rr<0.1): # 最高收益185倍
-        # ma_diff>0 or close_ma-prev_close_ma>=0 or today_rr<0.3:
+        profits.append({'id':date_i,'date':trading_date,'profit':profit})
 
         temp = temp[-8:]
         temp.append(profit)
@@ -83,8 +76,10 @@ for trading_date in trading_dates:
             skip_days-=1
         else:
             total_profit = total_profit*(1+(profit/100))
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}".format(
-                    date_i,trading_date,profit,total_profit*100,wr, skip_days))
+
+
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}\t down_limit:{:.2f}".format(
+                    date_i,trading_date,profit,total_profit*100,wr, skip_days, down_limit))
 
         if skip_days==0:
             if np.sum(temp[-6:])>=17: skip_days = 10
@@ -97,3 +92,4 @@ for trading_date in trading_dates:
     print("\n")
 profits = pd.DataFrame(profits)
 profits.to_csv('profit_changes.csv')
+history.to_csv('buy_history.csv')

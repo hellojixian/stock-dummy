@@ -26,21 +26,28 @@ total_profit = 1
 
 prev_close_ma,prev_close_ma2,prev_close_ma3 = 0,0,0
 skip_days = 0
+high_risk=0
 dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
-
+profits = []
+temp = []
+skip = False
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
-    if date_i<=50:continue
-    # if date_i>62:break
-
     subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
 
-    subset = subset.sort_values(by=['close'],ascending=True)
-    close_ma = subset[100:400]['close'].mean()
+    # subset = subset.sort_values(by=['close'],ascending=True)
+    # close_ma = subset[100:400]['close'].mean()
+
+    temp = temp[-4:]
+    temp.append(today_change)
+    change_ma = np.sum(temp)
+    if change_ma>2:
+        skip = True
+    if change_ma<-15 or today_change>0:
+        skip = False
+
     wr = subset[subset.prev_0>0].shape[0] / total
-    today_rr = subset[subset.pos_60<=20].shape[0] / total
-    today_rrh = subset[subset.pos_20>=80].shape[0] / total
 
     query = "trend_10==0 &  (prev_0<=9 & prev_0>=-4)"
     subset = subset[subset.eval(query)]
@@ -64,38 +71,21 @@ for trading_date in trading_dates:
         print(rs)
         print("="*120)
 
-        ma_p0 = (close_ma+prev_close_ma)/2
-        ma_p1 = (prev_close_ma+prev_close_ma2)/2
-        ma_diff = ma_p0-ma_p1
+        # ma_p0 = (close_ma+prev_close_ma)/2
+        # ma_p1 = (prev_close_ma+prev_close_ma2)/2
+        # ma_diff = ma_p0-ma_p1
         profit = rs['fu_1'].mean()
+        profits.append({
+        'date_i':date_i,
+        'date':trading_date,
+        'profit':profit})
         # if ((prev_rr>today_rr or prev_rr_2 > today_rr) or today_rr<0.1): # 最高收益185倍
-        if  close_ma-prev_close_ma>=0:
+        # ma_diff>0 or close_ma-prev_close_ma>=0 or today_rr<0.3:
+        if not skip:
+            total_profit = total_profit*(1+(profit/100))
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t rr: {:.3f}\t skip:{}".format(
+                    date_i,trading_date,profit,total_profit*100,wr, pos90_ma, skip_days))
 
-            if skip_days>0:
-                skip_days-=1
-                print(">>"*20,"skipped","<<"*20)
-            else:
-                profit = rs['fu_1'].mean()
-                total_profit = total_profit*(1+(profit/100))
-        else:
-            print(">>"*20,"skipped","<<"*20)
-
-
-        sign = "+" if ma_diff>0 else ""
-        profit = rs['fu_1'].mean()
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t rr: {:.3f}\tclose_ma: {:.2f} ({}{:.2f})\t skip:{}".format(
-                    date_i,trading_date,profit,total_profit*100,wr, today_rr, close_ma, sign,ma_diff,skip_days))
-
-        prev_close_ma = close_ma
-        prev_close_ma2 = prev_close_ma
-        prev_close_ma3 = prev_close_ma2
-
-
-        if (profit<-5):
-            print(">"*100)
-            print("<"*100)
-            print("\n\n")
-    else:
-        if skip_days==0: skip_days = 3
-        print(">>>>>>BIG SKIP<<<<<<")
     print("\n")
+profits = pd.DataFrame(profits)
+profits.to_csv('profit_changes.csv')

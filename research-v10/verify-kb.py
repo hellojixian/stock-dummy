@@ -37,21 +37,23 @@ for trading_date in trading_dates:
     subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
 
-    query = "trend_10==0 &  (prev_0<=9 & prev_0>-4)"
+    query = "(prev_0<=9 & prev_0>-4)"
     subset = subset[subset.eval(query)]
 
+    factor1 = 'money'
+    factor2 = 'prev_changes_6'
     rs = subset
-    rs = rs.sort_values(by=['money'],ascending=True)
+    rs = rs.sort_values(by=[factor1],ascending=True)
     rs = rs[:200]
-    rs = rs.sort_values(by=['prev_changes'],ascending=True)
-    rs = rs[:20]
+    rs = rs.sort_values(by=[factor2],ascending=True)
+    rs = rs[:15]
     # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
     # rs = rs[:15]
-    rs = rs.sort_values(by=['pos_90'],ascending=True)
-    rs = rs[:15]
+    # rs = rs.sort_values(by=['pos_90'],ascending=True)
+    # rs = rs[:15]
 
 
-    rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1']]
+    rs = rs[['security','close',factor2,'prev_1','prev_0','fu_1']]
 
 
     if rs.shape[0]>4 :

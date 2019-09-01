@@ -47,18 +47,16 @@ for trading_date in trading_dates:
 
     rs = subset
     rs = rs.sort_values(by=['money'],ascending=True)
-    rs = rs[:500]
-    rs = rs.sort_values(by=['close'],ascending=True)
     rs = rs[:200]
     rs = rs.sort_values(by=['prev_changes'],ascending=True)
-    rs = rs[:100]
-    rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
     rs = rs[:20]
+    # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
+    # rs = rs[:20]
     rs = rs.sort_values(by=['pos_90'],ascending=True)
     rs = rs[:15]
 
 
-    rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1','fu_2','fu_3','fu_4','fu_5']]
+    rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1']]
 
 
     if rs.shape[0]>4 :

@@ -53,7 +53,12 @@ def do_work(v):
 
     for i in [90]:
         history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
-    
+
+    # for i in [10]:
+    #     history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
+
+    history['prev_changes'] = history['prev_0'].rolling(window=5).apply(calc_changes,raw=True)
+
     history.drop(columns=['high','low','volume','money'])
     history=history.dropna()
 

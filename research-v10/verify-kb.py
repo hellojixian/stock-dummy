@@ -26,7 +26,7 @@ total_profit = 1
 
 skip_days = 0
 high_risk=0
-dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
+
 profits = []
 temp = []
 skip_days = 8
@@ -46,7 +46,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['prev_changes'],ascending=True)
     rs = rs[:20]
     # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
-    # rs = rs[:20]
+    # rs = rs[:15]
     rs = rs.sort_values(by=['pos_90'],ascending=True)
     rs = rs[:15]
 
@@ -69,7 +69,7 @@ for trading_date in trading_dates:
             total_profit = total_profit*(1+(profit/100))
 
 
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}\t secs:{:.2f}".format(
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t skip:{}\t secs:{:.2f}".format(
                     date_i,trading_date,profit,total_profit*100, skip_days, total))
 
         if skip_days==0:

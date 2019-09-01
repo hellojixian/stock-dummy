@@ -125,6 +125,14 @@ def find_ma_pos(values):
     pos = np.round(pos,2)
     return pos
 
+def calc_changes(values):
+    values = list(values)
+    p = 1
+    for v in values:
+        p *= (1+v/100)
+    c = np.round((p-1)*100,2)
+    return c
+
 def load_kb():
     kb = pd.DataFrame()
     data_folder = 'data'

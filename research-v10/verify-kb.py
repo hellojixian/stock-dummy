@@ -78,8 +78,8 @@ for trading_date in trading_dates:
             total_profit = total_profit*(1+(profit/100))
 
 
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}\t down_limit:{:.2f}".format(
-                    date_i,trading_date,profit,total_profit*100,wr, skip_days, down_limit))
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t wr: {:.3f}\t skip:{}\t secs:{:.2f}".format(
+                    date_i,trading_date,profit,total_profit*100,wr, skip_days, total))
 
         if skip_days==0:
             if np.sum(temp[-6:])>=17: skip_days = 10

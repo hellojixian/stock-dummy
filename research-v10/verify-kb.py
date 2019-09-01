@@ -41,7 +41,7 @@ for trading_date in trading_dates:
     subset = subset[subset.eval(query)]
 
     factor1 = 'money'
-    factor2 = 'prev_changes_6'
+    factor2 = 'prev_changes_7'
     rs = subset
     rs = rs.sort_values(by=[factor1],ascending=True)
     rs = rs[:200]
@@ -80,7 +80,6 @@ for trading_date in trading_dates:
             if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
-            if np.where(np.array(temp[-7:])<=0)[0].shape[0]==7: skip_days=1
             if np.where(np.array(temp[-10:])<=0)[0].shape[0]==9: skip_days=13
         else:
             if np.sum(temp[-2:])<=-12: skip_days =0

@@ -13,8 +13,9 @@ from lib.dna import *
 total_profit = 1
 strategy_profit = 1
 dataset = pd.read_csv('profit_changes.csv')
-temp = []
-skip = False
+# dataset = pd.read_csv('profit_changes_bak.csv')
+temp = [0]
+skip_days = 3
 for i,row in dataset.iterrows():
     today_change = row['profit']
     profit = 1+today_change/100
@@ -22,13 +23,22 @@ for i,row in dataset.iterrows():
 
     temp = temp[-8:]
     temp.append(today_change)
-    change_ma = np.sum(temp)
-    # print ("{:5.2f}".format(np.round(change_ma,2)))
-    if change_ma>2:
-        skip = True
-    if change_ma<-15 or today_change>0:
-        skip = False
 
-    if not skip: strategy_profit *= profit
-    print("{:06d}\t profit: {:5.2f}%\t\ttotal: {:.2f}%\t strategy: {:.2f}%".format(
-        i,today_change,total_profit*100,strategy_profit*100))
+    # print ("{} {:5.2f}".format(row['date'], np.round(today_change,2)))
+
+    if skip_days>0:
+        skip_days-=1
+    else:
+        strategy_profit *= profit
+
+
+    if skip_days==0:
+        if np.sum(temp[-6:])>=20: skip_days = 10
+        if np.sum(temp[-2:])>=12: skip_days = 3
+        if temp[-1]<0 and temp[-2]>0 and temp[-3]<0 and temp[-4]>0: skip_days = 1
+    else:
+        if np.sum(temp[-2:])<=-12: skip_days =0
+        pass
+
+    print("{:06d}\t profit: {:5.2f}%\t\ttotal: {:.2f}%\t strategy: {:.2f}%\t skip: {}".format(
+        i,today_change,total_profit*100,strategy_profit*100, skip_days))

@@ -30,7 +30,7 @@ high_risk=0
 dataset['prev_changes'] = dataset['prev_0']+dataset['prev_1']+dataset['prev_2']+dataset['prev_3']+dataset['prev_4']
 profits = []
 temp = []
-skip_days = 3
+skip_days = 4
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
     subset = dataset[dataset.index==trading_date]
@@ -42,7 +42,7 @@ for trading_date in trading_dates:
 
     wr = subset[subset.prev_0>0].shape[0] / total
 
-    query = "trend_10==0 &  (prev_0<=9 & prev_0>=-9)"
+    query = "trend_10==0 &  (prev_0<=9 & prev_0>=-4)"
     subset = subset[subset.eval(query)]
 
     rs = subset
@@ -55,7 +55,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
     rs = rs[:20]
     rs = rs.sort_values(by=['pos_90'],ascending=True)
-    rs = rs[:10]
+    rs = rs[:15]
 
     rs = rs[['security','close','prev_changes','prev_1','prev_0','fu_1']]
 
@@ -87,7 +87,7 @@ for trading_date in trading_dates:
                     date_i,trading_date,profit,total_profit*100,wr, skip_days))
 
         if skip_days==0:
-            if np.sum(temp[-6:])>=20: skip_days = 10
+            if np.sum(temp[-6:])>=17: skip_days = 10
             if np.sum(temp[-2:])>=12: skip_days = 3
             if temp[-1]<0 and temp[-2]>0 and temp[-3]<0 and temp[-4]>0: skip_days = 1
         else:

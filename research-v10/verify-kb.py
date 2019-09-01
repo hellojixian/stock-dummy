@@ -77,11 +77,11 @@ for trading_date in trading_dates:
         # ma_diff>0 or close_ma-prev_close_ma>=0 or today_rr<0.3:
 
         temp = temp[-4:]
-        temp.append(today_change)
+        temp.append(profit)
         change_ma = np.sum(temp)
         if change_ma>2:
             skip = True
-        if change_ma<-15 or today_change>0:
+        if change_ma<-15 or profit>0:
             skip = False
         if not skip:
             total_profit = total_profit*(1+(profit/100))

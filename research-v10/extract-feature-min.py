@@ -51,18 +51,21 @@ def do_work(v):
     for i in [10]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
-    # for i in [90]:
-    #     history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
-    #
+    for i in [10,20,30,60,90]:
+        history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
+        for j in range(1,4):
+            history['prev_pos_{}_{}'.format(i,j)] = history['pos_{}'.format(i)].shift(periods=j)
+
+
     for i in [4,5,6,7,8]:
         history['prev_changes_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_changes,raw=True)
 
-    for i in [60]:
-        history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
-
-    for i in range(0,5):
-        history['prev_vol_{}'.format(i)] = (history['volume'].shift(periods=i) - history['volume'].shift(periods=i+1) )/history['volume'].shift(periods=i+1)
-        history['prev_vol_{}'.format(i)] = np.round(history['prev_vol_{}'.format(i)]*100,2)
+    # for i in [60]:
+    #     history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
+    #
+    # for i in range(0,5):
+    #     history['prev_vol_{}'.format(i)] = (history['volume'].shift(periods=i) - history['volume'].shift(periods=i+1) )/history['volume'].shift(periods=i+1)
+    #     history['prev_vol_{}'.format(i)] = np.round(history['prev_vol_{}'.format(i)]*100,2)
 
 
 

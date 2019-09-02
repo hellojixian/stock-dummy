@@ -44,7 +44,7 @@ def do_work(v):
         history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)
         history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)]*100,2)
 
-    for i in range(0,5):
+    for i in range(0,1):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
@@ -54,7 +54,7 @@ def do_work(v):
     # for i in [90]:
     #     history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
     #
-    for i in [5,6,7,10]:
+    for i in [4,5,6]:
         history['prev_changes_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_changes,raw=True)
 
     history.drop(columns=['high','low','volume','money'])

@@ -44,9 +44,5 @@ p60_q25=10323
 #     print(i,p)
 # print(eval("p{}_q25".format(60)))
 
-for i in range(5,10):
-    print(i,8+4-i)
-for i in range(10,16,2):
-    periods = 3+int(4-i/2)
-    print(i,periods)
-# DNAv1.test()
+for i in range(0,5):
+    print(i)

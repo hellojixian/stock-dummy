@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import datetime
 import pandas as pd
 import math, sys, os
@@ -20,25 +19,25 @@ history = pd.DataFrame()
 
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
+    # if date_i>412:break
     subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
 
-    query = "(prev_0<=9 & prev_0>-4)"
+    query = "(prev_0<=9 & prev_0>-3)"
     subset = subset[subset.eval(query)]
 
     factors = ['money','prev_changes_6']
 
     rs = subset
+
     rs = rs.sort_values(by=[factors[0]],ascending=True)
-    rs = rs[:int(total*0.05)]
-    rs = rs.sort_values(by=[factors[1]],ascending=True)
+    # rs = rs[:int(total*0.05)]
+    # rs = rs.sort_values(by=[factors[1]],ascending=True)
     rs = rs[:8]
     rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1']]
 
     if rs.shape[0]>4 :
-        print("="*120)
-        print(rs)
-        print("="*120)
+        print("="*120,'\n',rs,'\n',"="*120)
 
         profit = rs['fu_1'].mean()
         profits.append({'id':date_i,'date':trading_date,'profit':profit})
@@ -49,7 +48,7 @@ for trading_date in trading_dates:
         else:
             total_profit = total_profit*(1+(profit/100))
 
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t skip:{}\t secs:{:.2f}".format(
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t skip:{}\t secs:{:.2f}\n".format(
                     date_i,trading_date,profit,total_profit*100, skip_days, total))
 
         if skip_days==0:
@@ -58,7 +57,6 @@ for trading_date in trading_dates:
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
 
-    print("\n")
 profits = pd.DataFrame(profits)
 profits.to_csv('profit_changes.csv')
 history.to_csv('buy_history.csv')

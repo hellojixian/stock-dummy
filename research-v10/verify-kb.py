@@ -32,7 +32,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=[factors[0]],ascending=True)
     rs = rs[:int(total*0.05)]
     rs = rs.sort_values(by=[factors[1]],ascending=True)
-    rs = rs[:5]
+    rs = rs[:8]
     rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1']]
 
     if rs.shape[0]>4 :

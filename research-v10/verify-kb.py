@@ -23,7 +23,7 @@ for trading_date in trading_dates:
     subset = dataset[dataset.eval("index=='{}'".format(trading_date))]
     total = subset.shape[0]
 
-    query = "(prev_0<=9 & prev_0>-3.5)"
+    query = "(prev_0<=9 & prev_0>-4)"
     subset = subset[subset.eval(query)]
 
     factors = ['money','prev_changes_6']

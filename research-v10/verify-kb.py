@@ -20,14 +20,14 @@ history = pd.DataFrame()
 
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
-    subset = dataset[dataset.index==trading_date]
+    subset = dataset[dataset.eval("index=='{}'".format(trading_date))]
     total = subset.shape[0]
 
-    query = "(prev_0<=9 & prev_0>-4)"
+    query = "(prev_0<=9 & prev_0>-3.5)"
     subset = subset[subset.eval(query)]
 
     factors = ['money','prev_changes_6']
-        
+
     rs = subset
     rs = rs.sort_values(by=[factors[0]],ascending=True)
     rs = rs[:int(total*0.05)]

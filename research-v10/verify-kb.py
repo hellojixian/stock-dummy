@@ -20,7 +20,7 @@ history = pd.DataFrame()
 
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
-    subset = dataset[dataset.eval("index=='{}'".format(trading_date))]
+    subset = dataset[dataset.index==trading_date]
     total = subset.shape[0]
 
     query = "(prev_0<=9 & prev_0>-4)"
@@ -32,7 +32,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=[factors[0]],ascending=True)
     rs = rs[:int(total*0.05)]
     rs = rs.sort_values(by=[factors[1]],ascending=True)
-    rs = rs[:15]
+    rs = rs[:5]
     rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1']]
 
     if rs.shape[0]>4 :

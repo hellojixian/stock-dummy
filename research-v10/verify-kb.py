@@ -46,7 +46,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=[factor1],ascending=True)
     rs = rs[:int(total*0.05)]
     rs = rs.sort_values(by=[factor2],ascending=True)
-    rs = rs[:15]
+    rs = rs[:10]
     # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
     # rs = rs[:15]
     # rs = rs.sort_values(by=['pos_90'],ascending=True)

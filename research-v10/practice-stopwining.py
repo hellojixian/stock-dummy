@@ -33,7 +33,7 @@ for i,row in dataset.iterrows():
 
 
     if skip_days==0:
-        # if np.sum(temp[-6:])>=18: skip_days = 20
+        if np.sum(temp[-6:])>=18: skip_days = 2
         if np.sum(temp[-2:])>=11: skip_days = 3
         if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
         if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1

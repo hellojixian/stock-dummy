@@ -46,11 +46,7 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=[factor1],ascending=True)
     rs = rs[:int(total*0.05)]
     rs = rs.sort_values(by=[factor2],ascending=True)
-    rs = rs[:10]
-    # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)
-    # rs = rs[:15]
-    # rs = rs.sort_values(by=['pos_90'],ascending=True)
-    # rs = rs[:15]
+    rs = rs[:15]
 
 
     rs = rs[['security','close',factor2,'prev_1','prev_0','fu_1']]
@@ -75,14 +71,11 @@ for trading_date in trading_dates:
                     date_i,trading_date,profit,total_profit*100, skip_days, total))
 
         if skip_days==0:
-            if np.sum(temp[-6:])>=18: skip_days = 20
             if np.sum(temp[-2:])>=11: skip_days = 3
             if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
-            if np.where(np.array(temp[-10:])<=0)[0].shape[0]==9: skip_days=13
-        else:
-            if np.sum(temp[-2:])<=-12: skip_days =0
+        else:            
             pass
 
     print("\n")

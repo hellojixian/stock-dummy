@@ -41,10 +41,10 @@ for trading_date in trading_dates:
     subset = subset[subset.eval(query)]
 
     factor1 = 'money'
-    factor2 = 'prev_changes_7'
+    factor2 = 'prev_changes_6'
     rs = subset
     rs = rs.sort_values(by=[factor1],ascending=True)
-    rs = rs[:200]
+    rs = rs[:int(total*0.05)]
     rs = rs.sort_values(by=[factor2],ascending=True)
     rs = rs[:15]
     # rs = rs.sort_values(by=['pos_vol_10'],ascending=True)

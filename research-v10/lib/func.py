@@ -133,6 +133,11 @@ def calc_changes(values):
     c = np.round((p-1)*100,2)
     return c
 
+def calc_change_ma(values):
+    values = list(values[:-1])
+    return np.mean(np.abs(values))    
+
+
 def load_kb():
     kb = pd.DataFrame()
     data_folder = 'data'

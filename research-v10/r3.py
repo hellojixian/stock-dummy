@@ -15,7 +15,7 @@ dataset = pd.read_csv(filename,index_col=0)
 trading_dates = dataset['security'].groupby(dataset.index).count().index.tolist()
 print('Trading data loaded')
 
-total_profit = 1
+prev_total_profit,total_profit = 1,1
 profits,temp = [],[]
 skip_days = 8
 history = pd.DataFrame()

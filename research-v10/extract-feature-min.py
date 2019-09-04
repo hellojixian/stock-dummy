@@ -44,12 +44,15 @@ def do_work(v):
         history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)
         history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)]*100,2)
 
-    for i in range(0,6):
+    for i in range(0,10):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
     for i in [10]:
         history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
+
+    for i in [5,10,15]:
+        history['money_ma_{}'.format(i)] = history['money'].rolling(window=i).mean()
 
     for i in [20,15,10,7,6,5]:
         history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()
@@ -63,7 +66,7 @@ def do_work(v):
     for i in [15,10,5]:
         history['change_ma_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_change_ma,raw=True)
 
-    for i in [4,5,6,7,8]:
+    for i in [4,7,8,10,15,20,25]:
         history['prev_changes_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_changes,raw=True)
 
     for i in [10,20,60]:

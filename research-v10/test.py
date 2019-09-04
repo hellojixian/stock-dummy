@@ -35,14 +35,11 @@ class DNAv1(object):
     def test():
         self = __class__
         print(self.quantile_up)
+df1 = pd.DataFrame({'key': ['fooxx', 'bar', 'baz', 'foo'],
+                     'value': [1, 2, 3, 5]})
+df2 = pd.DataFrame({'key': ['foo', 'bar', 'bacdd', 'fofso'],
+                     'value': [5, 6, 7, 8]})
 
-p60_q25=10323
-# for i,p in zip((10,12),(60,10)):
-# for i,p in zip(range(3,6),[8,7,6,5]):
-#     print(i,p)
-# for i,p in zip([6,8],[4,3]):
-#     print(i,p)
-# print(eval("p{}_q25".format(60)))
-
-for i in range(0,5):
-    print(i)
+print(df1)
+print( df2)
+print(pd.merge(df1,df2,how='inner',on='key',suffixes=("","_y")))

@@ -44,7 +44,7 @@ def do_work(v):
         history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)
         history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)]*100,2)
 
-    for i in range(0,1):
+    for i in range(0,6):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 

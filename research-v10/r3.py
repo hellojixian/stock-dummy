@@ -19,6 +19,7 @@ total_profit = 1
 profits,temp = [],[]
 skip_days = 8
 history = pd.DataFrame()
+max_security_pool = 4
 
 for trading_date in trading_dates:
     date_i = trading_dates.index(trading_date)
@@ -36,10 +37,11 @@ for trading_date in trading_dates:
     rs = rs.sort_values(by=[factors[0]],ascending=True)
     rs = rs[:20]
     rs = rs.sort_values(by=[factors[1]],ascending=True)
-    rs = rs[:15]
-    rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1']]
+    rs_ob = rs[:10]
+    rs = rs[:4]
+    rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1','fu_2','fu_3','fu_4','fu_5','fu_6']]
 
-    if rs.shape[0]>4 :
+    if rs.shape[0]>=max_security_pool :
         print("="*120,'\n',rs,'\n',"="*120)
 
         profit = rs['fu_1'].mean()
@@ -49,7 +51,8 @@ for trading_date in trading_dates:
         if skip_days>0:
             skip_days-=1
         else:
-            total_profit = total_profit*(1+(profit/100))
+            total_profit = total_profit*(1+(profit/100)-0.0006)
+            history = history.append(rs)
 
         print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t skip:{}\t secs:{:.2f}\n".format(
                     date_i,trading_date,profit,total_profit*100, skip_days, total))
@@ -60,6 +63,7 @@ for trading_date in trading_dates:
             if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
             if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
+
 
 profits = pd.DataFrame(profits)
 profits.to_csv('profit_changes.csv')

@@ -28,7 +28,7 @@ for trading_date in trading_dates:
     total = subset.shape[0]
 
     # query = "(prev_0<=9 & prev_0>=-4) and (high!=low) and (prev_0>5.2 or prev_0<4.8)"  # 426395.76%
-    query = "(prev_0<=9 & prev_0>=-4) and (high!=low) "  # 426395.76%
+    query = "(prev_0<=9 & prev_0>0) and (high!=low) "  # 426395.76%
     subset = subset[subset.eval(query)]
 
     factors = ['money','prev_changes_7']
@@ -51,18 +51,19 @@ for trading_date in trading_dates:
         if skip_days>0:
             skip_days-=1
         else:
+            prev_total_profit = total_profit
             total_profit = total_profit*(1+(profit/100)-0.0006)
             history = history.append(rs)
 
-        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}%\t skip:{}\t secs:{:.2f}\n".format(
-                    date_i,trading_date,profit,total_profit*100, skip_days, total))
+        print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}% => {:.2f}%\t skip:{}\t secs:{:.2f}\n".format(
+                    date_i,trading_date,profit,prev_total_profit*100,total_profit*100, skip_days, total))
 
-        if skip_days==0:
-            if np.sum(temp[-6:])>=18: skip_days = 2
-            if np.sum(temp[-2:])>=11: skip_days = 3
-            if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
-            if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
-            if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
+        # if skip_days==0:
+        #     if np.sum(temp[-6:])>=18: skip_days = 2
+        #     if np.sum(temp[-2:])>=11: skip_days = 3
+        #     if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
+        #     if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
+        #     if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
 
 
 profits = pd.DataFrame(profits)

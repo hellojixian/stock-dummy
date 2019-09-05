@@ -48,8 +48,8 @@ def do_work(v):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
-    for i in [10]:
-        history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
+    # for i in [10]:
+    #     history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
     for i in [5,10,15,20,25]:
         history['money_ma_{}'.format(i)] = history['money'].rolling(window=i).mean()
@@ -63,21 +63,24 @@ def do_work(v):
         for j in range(1,4):
             history['prev_pos_{}_{}'.format(i,j)] = history['pos_{}'.format(i)].shift(periods=j)
 
-    for i in [15,10,5]:
-        history['change_ma_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_change_ma,raw=True)
+    # for i in [15,10,5]:
+    #     history['change_ma_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_change_ma,raw=True)
 
     for i in [4,7,8,10,15,20,25]:
         history['prev_changes_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_changes,raw=True)
 
+    for i in [35]:
+        history['down_trend_days'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_down_trend_days,raw=True)
+
     for i in [10,20,60]:
         history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
 
-    for i in [5,10,15]:
-        history['pos_vol_10_ma_{}'.format(i)] = history['pos_vol_10'].rolling(window=i).mean()
-
-    for i in range(0,2):
-        history['prev_vol_{}'.format(i)] = (history['volume'].shift(periods=i) - history['volume'].shift(periods=i+1) )/history['volume'].shift(periods=i+1)
-        history['prev_vol_{}'.format(i)] = np.round(history['prev_vol_{}'.format(i)]*100,2)
+    # for i in [5,10,15]:
+    #     history['pos_vol_10_ma_{}'.format(i)] = history['pos_vol_10'].rolling(window=i).mean()
+    #
+    # for i in range(0,2):
+    #     history['prev_vol_{}'.format(i)] = (history['volume'].shift(periods=i) - history['volume'].shift(periods=i+1) )/history['volume'].shift(periods=i+1)
+    #     history['prev_vol_{}'.format(i)] = np.round(history['prev_vol_{}'.format(i)]*100,2)
 
 
 

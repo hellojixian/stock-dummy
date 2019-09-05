@@ -133,9 +133,20 @@ def calc_changes(values):
     c = np.round((p-1)*100,2)
     return c
 
+def calc_down_trend_days(values):
+    values = list(values)
+    values.reverse()
+    days = 0
+    for i in range(len(values)):
+        v=values[i]
+        if v>=0.5: break
+        days+=1
+    return days
+
+
 def calc_change_ma(values):
     values = list(values[:-1])
-    return np.mean(np.abs(values))    
+    return np.mean(np.abs(values))
 
 
 def load_kb():

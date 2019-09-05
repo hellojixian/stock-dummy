@@ -32,6 +32,7 @@ for trading_date in trading_dates:
 
     if skip_days>0:
         skip_days-=1
+        print("skiped days:{}".format(skip_days))
         continue
 
     security=""
@@ -67,12 +68,14 @@ for trading_date in trading_dates:
                 should_sell = True
             if days >=4  and profit>1:
                 should_sell = True
-            if days >=40:
+            if days >=5:
                 should_sell = True
             # if profit>=8:
             #     should_sell = True
-            # if profit<-3.5:
-            #     should_sell = True
+            if profit<-1.5:skip_days=1
+            if profit<-5.5:
+                should_sell = True
+                skip_days=3
             # if change<-7:should_sell = False
 
             position = position.append(rec)
@@ -85,13 +88,16 @@ for trading_date in trading_dates:
 
     # 如果空仓就选股
     if len(position)==0:
-        query = "(prev_0<2 & prev_0>-0.5) and (high!=low) and security!='{}' ".format(security)
+        query = "(prev_0<4 & prev_0>-2) and (high!=low) and security!='{}' ".format(security)
         subset = subset[subset.eval(query)]
         factors = ['pos_5','prev_changes_25','money']
         rs_f1 = subset.sort_values(by=[factors[0]],ascending=True)[:30]
         rs_f2 = subset.sort_values(by=[factors[1]],ascending=True)[:10]
         rs = pd.merge(rs_f1,rs_f2,how='inner',on='security',suffixes=("","_y"))
         rs = rs.sort_values(by=[factors[2]],ascending=True)
+        if len(rs)==0:
+            rs = subset.sort_values(by=[factors[0]],ascending=True)[:30]
+            rs = rs.sort_values(by=[factors[2]],ascending=True)
         rs = rs[:1]
         rs = rs[['security','close','prev_0']]
         if len(rs)>0:

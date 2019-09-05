@@ -40,40 +40,48 @@ def do_work(v):
     history = get_price(security, start_date=start_date, end_date=end_date,
                             skip_paused=True)
 
-    for i in range(0,10):
+    for i in range(0,3):
         history['prev_{}'.format(i)] = (history['close'].shift(periods=i) - history['close'].shift(periods=i+1) )/history['close'].shift(periods=i+1)
         history['prev_{}'.format(i)] = np.round(history['prev_{}'.format(i)]*100,2)
 
-    for i in range(0,10):
+    for i in range(0,1):
         history['fu_{}'.format(i+1)] = (history['close'].shift(periods=-i-1) - history['close'].shift(periods=0) )/history['close'].shift(periods=0)
         history['fu_{}'.format(i+1)] = np.round(history['fu_{}'.format(i+1)]*100,2)
 
     # for i in [10]:
     #     history['trend_{}'.format(i)] = history['close'].rolling(window=i).apply(find_trend,raw=True)
 
-    for i in [5,10,15,20,25]:
-        history['money_ma_{}'.format(i)] = history['money'].rolling(window=i).mean()
-
-    for i in [20,15,10,7,6,5]:
-        history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()
-        history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)]*100,2)
-
-    for i in [5,6,7,8,10,60,90,120]:
-        history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
-        for j in range(1,4):
-            history['prev_pos_{}_{}'.format(i,j)] = history['pos_{}'.format(i)].shift(periods=j)
-
-    # for i in [15,10,5]:
+    # for i in [5,10,15,20,25]:
+    #     history['money_ma_{}'.format(i)] = history['money'].rolling(window=i).mean()
+    #
+    # for i in [20,15,10,7,6,5]:
+    #     history['amp_{}'.format(i)] = (history['close'].rolling(window=i).max() - history['close'].rolling(window=i).min()) / history['close'].rolling(window=i).min()
+    #     history['amp_{}'.format(i)] = np.round(history['amp_{}'.format(i)]*100,2)
+    #
+    # for i in [5,6,7,8,10,60,90,120]:
+    #     history['pos_{}'.format(i)] = history['close'].rolling(window=i).apply(find_pos,raw=True)
+    #     for j in range(1,4):
+    #         history['prev_pos_{}_{}'.format(i,j)] = history['pos_{}'.format(i)].shift(periods=j)
+    #
+    # # for i in [15,10,5]:
     #     history['change_ma_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_change_ma,raw=True)
 
-    for i in [4,7,8,10,15,20,25]:
+    for i in [25]:
         history['prev_changes_{}'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_changes,raw=True)
 
-    for i in [35]:
-        history['down_trend_days'.format(i)] = history['prev_0'].rolling(window=i).apply(calc_down_trend_days,raw=True)
+    for i in [120]:
+        history['down_rate'.format(i)] = history['close'].rolling(window=i).apply(calc_down_rate,raw=True)
+        history['up_rate'.format(i)] = history['close'].rolling(window=i).apply(calc_up_rate,raw=True)
 
-    for i in [10,20,60]:
-        history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
+    for i in [3]:
+        history['down_rate_ma'.format(i)] = history['down_rate'].rolling(window=i).mean()
+    # for i in range(0,3):
+    #     history['down_rate_ma_{}'.format(i)] = history['down_rate_ma'].shift(periods=i)
+    for i in range(0,3):
+        history['prev_down_rate_{}'.format(i)] = history['down_rate'].shift(periods=i)
+
+    # for i in [10,20,60]:
+    #     history['pos_vol_{}'.format(i)] = history['volume'].rolling(window=i).apply(find_pos,raw=True)
 
     # for i in [5,10,15]:
     #     history['pos_vol_10_ma_{}'.format(i)] = history['pos_vol_10'].rolling(window=i).mean()

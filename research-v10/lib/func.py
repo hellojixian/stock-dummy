@@ -143,6 +143,18 @@ def calc_down_trend_days(values):
         days+=1
     return days
 
+def calc_up_rate(values):
+    values = list(values)
+    v_min = np.min(values)
+    last = values[-1]
+    return (last - v_min) / v_min
+
+def calc_down_rate(values):
+    values = list(values)
+    v_max = np.max(values)
+    last = values[-1]
+    rate = (v_max - last) / v_max
+    return rate
 
 def calc_change_ma(values):
     values = list(values[:-1])

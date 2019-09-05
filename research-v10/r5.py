@@ -30,10 +30,10 @@ for trading_date in trading_dates:
     wr = subset[subset.prev_0>0].shape[0]/total
 
     # query = "(prev_0<=9 & prev_0>=-4) and (high!=low) and (prev_0>5.2 or prev_0<4.8)"  # 426395.76%
-    query = " (prev_0<4 & prev_0>-4) and (high!=low) and pos_10<=20"
+    query = " (prev_0<9 & prev_0>-9) and (high!=low)"
     subset = subset[subset.eval(query)]
 
-    factors = ['money_ma_5','money']
+    factors = ['pos_vol_10_ma_5','pos_vol_60']
 
     rs = subset
     # rs = rs.sort_values(by=['prev_changes_15'],ascending=True)

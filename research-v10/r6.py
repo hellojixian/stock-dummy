@@ -29,23 +29,24 @@ for trading_date in trading_dates:
     total = subset.shape[0]
 
     # query = "(prev_0<=9 & prev_0>=-4) and (high!=low) and (prev_0>5.2 or prev_0<4.8)"  # 426395.76%
-    query = "(prev_0<=9 & prev_0>0) and (high!=low) "  # 426395.76%
+    query = "(prev_0<0 & prev_0>-4) and (high!=low) "  # 426395.76%
     subset = subset[subset.eval(query)]
 
-    factors = ['money_ma_15','prev_changes_7']
+    # factors = ['pos_vol_10_ma_5','prev_changes_7']
+    factors = ['pos_vol_60','pos_vol_10_ma_5']
 
     rs = subset
-    rs_f1 = subset.sort_values(by=[factors[0]],ascending=True)[:20]
-    rs_f2 = rs.sort_values(by=[factors[1]],ascending=True)[:150]
-    rs = pd.merge(rs_f1,rs_f2,how='inner',on='security',suffixes=("","_y"))
+    rs = subset.sort_values(by=[factors[0]],ascending=True)[:20]
+    # rs_f2 = rs.sort_values(by=[factors[1]],ascending=True)[:150]
+    # rs = pd.merge(rs_f1,rs_f2,how='inner',on='security',suffixes=("","_y"))
     print(len(rs))
     rs= rs[:4]
-    rs = rs[['security','close',factors[1],'prev_1','prev_0','fu_1','fu_2','fu_3','fu_4','fu_5','fu_6']]
+    rs = rs[['security','close',factors[0],'prev_1','prev_0','fu_1','fu_2','fu_3','fu_4','fu_5','fu_6']]
 
     if rs.shape[0]>=min_security_pool :
         print("="*120,'\n',rs,'\n',"="*120)
 
-        profit = rs['fu_1'].mean()
+        profit = rs['fu_2'].mean()
         profits.append({'id':date_i,'date':trading_date,'profit':profit})
         temp.append(profit)
 
@@ -55,6 +56,7 @@ for trading_date in trading_dates:
             prev_total_profit = total_profit
             total_profit = total_profit*(1+(profit/100)-0.0006)
             history = history.append(rs)
+            skip_days=1
 
         print("{:06}\t{}\t Profit: {:.2f}%\t Total: {:.2f}% => {:.2f}%\t skip:{}\t secs:{:.2f}\n".format(
                     date_i,trading_date,profit,prev_total_profit*100,total_profit*100, skip_days, total))

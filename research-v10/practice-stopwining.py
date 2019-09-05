@@ -19,7 +19,7 @@ skip_days = 5
 h1,h2=0,0
 for i,row in dataset.iterrows():
     today_change = row['profit']
-    profit = 1+today_change/100
+    profit = 1+today_change/100-0.0015
     total_profit *= profit
 
     temp.append(today_change)
@@ -31,18 +31,18 @@ for i,row in dataset.iterrows():
     else:
         strategy_profit *= profit
 
-
-    if skip_days==0:
-        if np.sum(temp[-6:])>=18: skip_days = 2
-        if np.sum(temp[-2:])>=11: skip_days = 3
-        if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
-        if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
-        if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
-        # if np.where(np.array(temp[-7:])<=0)[0].shape[0]==7: skip_days=1
-        # if np.where(np.array(temp[-10:])<=0)[0].shape[0]==9: skip_days=1
-    else:
-        # if np.sum(temp[-2:])<=-12: skip_days =0
-        pass
+    #
+    # if skip_days==0:
+    #     if np.sum(temp[-6:])>=18: skip_days = 2
+    #     if np.sum(temp[-2:])>=11: skip_days = 3
+    #     if temp[-1]<=0 and temp[-2]>=0 and temp[-3]<=0 and temp[-4]>=0 and temp[-5]>=0: skip_days = 1
+    #     if temp[-1]<=0 and temp[-2]<=0 and temp[-3]>=0 and temp[-4]<=0 and temp[-5]<=0: skip_days = 1
+    #     if temp[-1]<=0 and temp[-2]<=0 and temp[-3]<=0 and temp[-4]<=0 and temp[-5]>=0: skip_days = 1
+    #     # if np.where(np.array(temp[-7:])<=0)[0].shape[0]==7: skip_days=1
+    #     # if np.where(np.array(temp[-10:])<=0)[0].shape[0]==9: skip_days=1
+    # else:
+    #     # if np.sum(temp[-2:])<=-12: skip_days =0
+    #     pass
 
 
     print("{:06d}\t {}\t profit: {:5.2f}%\t\ttotal: {:.2f}%\t strategy: {:.2f}%\t skip: {}".format(

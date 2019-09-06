@@ -4,7 +4,7 @@ import pandas as pd
 import math, sys, os
 
 from lib.jqdata import *
-from lib.func import *
+# from lib.func import *
 
 debug = 'OFF'
 
@@ -37,16 +37,14 @@ should_buy, should_sell = False, False
 fund = init_fund
 trading_dates = get_all_trading_dates()
 
-def calc_down_trend_days(values):
-    print(values)
-    assert(False)
+def _calc_down_days(values):
     values = list(values)
     values.reverse()
 
     days = 0
     for i in range(len(values)):
         v=values[i]
-        if v>=0.5: break
+        if v>0: break
         days+=1
     return days
 
@@ -55,11 +53,12 @@ i=0
 for trading_date in trading_dates:
     i+=1
     # if i< 770:continue
-    backlook = 7
+    backlook = 8
     history = get_price(security, end_date=trading_date, count=backlook, skip_paused=True)
     if history.shape[0]<backlook: continue
     history['change'] = (history['close'].shift(periods=0) - history['close'].shift(periods=1) )/history['close'].shift(periods=1)*100
-    history['down_days'] = history['change'].rolling(window=backlook).apply(calc_down_trend_days,raw=True)
+    history['down_days'] = history['change'].rolling(window=7).apply(_calc_down_days,raw=True)
+
     close = history.iloc[-1]['close']
     last_change = history.iloc[-1]['change']
     down_days = history.iloc[-1]['down_days']
@@ -75,8 +74,7 @@ for trading_date in trading_dates:
 
     profit = (close - bought_price)/bought_price*100
     if position == 'full':
-        if profit>0 or\
-            last_change > 0 :
+        if profit>15 or hold_days>50:
             should_sell=True
 
     print("{:03d}\t{}\t p1:{:.2f}\t p2:{:.2f}\t close:{}".format(

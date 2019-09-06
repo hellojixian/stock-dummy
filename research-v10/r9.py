@@ -24,8 +24,9 @@ pd.set_option('display.width', 1000)
 print('start testing')
 
 security_list = get_all_securites().sample(SAMPLE_SIZE)
-row = security_list.iloc[29]
+# row = security_list.iloc[29]
 # row = security_list.iloc[113]
+row = security_list.iloc[121]
 security = row['security']
 
 init_fund = 100000
@@ -79,7 +80,10 @@ for trading_date in trading_dates:
         if downline>=2 and downline<5 and last_change<0 and last_change>-9:
             should_buy_close=True
 
-        if last_change>=0.5 and (prev_change<=last_change):
+        if last_change>=0.5 and (prev_change<=last_change) \
+            and prev_change>-8.5 \
+            and last_change<9:
+
             should_buy_close=True
 
     if position == 'full':

@@ -76,3 +76,15 @@ def get_all_securites():
         securities = pd.DataFrame(securities, columns=["security"])
         securities.to_csv(cache_file, index=False)
     return securities
+
+
+def get_all_trading_dates():
+    cache_file = "data/cache/trading_dates.csv"
+    if os.path.isfile(cache_file):
+        dates = pd.read_csv(cache_file)
+    else:
+        dataset = pd.read_csv(DATABASE_FILE,index_col=0)
+        dates = dataset['security'].groupby(dataset.index).count().index.tolist()
+        dates = pd.DataFrame(dates,columns=['date'])
+        dates.to_csv(cache_file, index=False)
+    return dates['date'].tolist()

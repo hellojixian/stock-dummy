@@ -134,8 +134,11 @@ def calc_changes(values):
     return c
 
 def calc_down_trend_days(values):
+    print(values)
+    assert(False)
     values = list(values)
     values.reverse()
+
     days = 0
     for i in range(len(values)):
         v=values[i]

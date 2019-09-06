@@ -25,6 +25,7 @@ print('start testing')
 
 security_list = get_all_securites().sample(SAMPLE_SIZE)
 row = security_list.iloc[29]
+# row = security_list.iloc[113]
 security = row['security']
 
 init_fund = 100000
@@ -32,7 +33,7 @@ skip_days = 0
 hold_days = 0
 bought_amount,bought_price = 0,0
 position = 'empty'
-should_buy, should_sell = False, False
+should_buy_close, should_sell = False, False
 should_buy_open = False
 
 fund = init_fund
@@ -58,53 +59,54 @@ for trading_date in trading_dates:
     history = get_price(security, end_date=trading_date, count=backlook, skip_paused=True)
     if history.shape[0]<backlook: continue
     history['open_jump'] = (history['open'].shift(periods=0) - history['close'].shift(periods=1) )/history['close'].shift(periods=1)*100
+    history['downline'] = (history['close'].shift(periods=0) - history['low'].shift(periods=0) )/history['low'].shift(periods=0)*100
     history['change'] = (history['close'].shift(periods=0) - history['close'].shift(periods=1) )/history['close'].shift(periods=1)*100
     history['down_days'] = history['change'].rolling(window=7).apply(_calc_down_days,raw=True)
 
-    open_jump = history.iloc[-1]['open_jump']
-    open = history.iloc[-1]['open']
-    close = history.iloc[-1]['close']
-    last_change = history.iloc[-1]['change']
-    prev_change = history.iloc[-2]['change']
-    down_days = history.iloc[-1]['down_days']
+    downline        = history.iloc[-1]['downline']
+    open_jump       = history.iloc[-1]['open_jump']
+    open            = history.iloc[-1]['open']
+    close           = history.iloc[-1]['close']
+    last_change     = history.iloc[-1]['change']
+    prev_change     = history.iloc[-2]['change']
+    down_days       = history.iloc[-1]['down_days']
 
 
     if position == 'empty':
-        if (open_jump>=2 and open_jump<=8):
+        if (open_jump>=2 and open_jump<=7):
             should_buy_open = True
-        # if open_jump<=-2 and open_jump>=-9:
-        #     should_buy_open = True
 
-        if last_change>=0.5 and prev_change<last_change:
-            should_buy=True
+        if downline>=2 and downline<5 and last_change<0 and last_change>-9:
+            should_buy_close=True
 
-        # if up_days>=4 and last_change<=0:
-        #     should_buy=True
+        if last_change>=0.5 and (prev_change<=last_change):
+            should_buy_close=True
 
-
-    profit = (close - bought_price)/bought_price*100
     if position == 'full':
+        profit = (close - bought_price)/bought_price*100
         if profit>=12 or hold_days>=4 or last_change<1.5:
             should_sell=True
+    else:
+        profit =0
 
-    print("{:03d}\t{}\t p1:{:6.2f}\t p2:{:6.2f}\t profit:{:6.2f}\t close:{}".format(
-        i,trading_date,open_jump,profit,last_change, close), end="")
+    print("{:03d}\t{}\t p1:{:6.2f}\t p2:{:6.2f}\t p3:{:6.2f}\t profit:{:6.2f}\t close:{:5.2f}".format(
+        i,trading_date,open_jump,last_change, downline,profit, close), end="")
 
     if skip_days>0:
         skip_days-=1
-        should_buy,should_buy_open=False,False
+        should_buy_close,should_buy_open=False,False
     else:
         if position == 'empty':
-            if should_buy:
+            if should_buy_close:
                 bought_price = close
             if should_buy_open:
                 bought_price = open
 
-            if should_buy or should_buy_open:
+            if should_buy_close or should_buy_open:
                 bought_amount = fund / close
                 fund -= bought_amount*close
                 position = 'full'
-                should_buy = False
+                should_buy_close = False
                 should_buy_open = False
 
 
@@ -118,5 +120,5 @@ for trading_date in trading_dates:
                 should_sell = False
 
     profit = ((fund + bought_amount*close - init_fund) / init_fund) * 100
-    print("\tdays:{:03d}\t profit: {:6.2f}%".format(hold_days, profit))
+    print("\tdays:{:02d}\t profit: {:6.2f}%".format(hold_days, profit))
 print(security)

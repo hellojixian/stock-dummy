@@ -32,11 +32,14 @@ security = row['security']
 init_fund = 100000
 skip_days = 0
 hold_days = 0
+skip_until = 0
 bought_amount,bought_price = 0,0
 position = 'empty'
 should_buy_close, should_sell = False, False
 should_buy_open = False
 
+total_session = 1
+win_session=0
 fund = init_fund
 trading_dates = get_all_trading_dates()
 
@@ -83,23 +86,26 @@ for trading_date in trading_dates:
         if last_change>=0.5 and (prev_change<=last_change) \
             and prev_change>-8.5 \
             and last_change<9:
-
             should_buy_close=True
 
     if position == 'full':
         profit = (close - bought_price)/bought_price*100
         if profit>=12 or hold_days>=4 or last_change<1.5:
             should_sell=True
+        if last_change<-9.5:
+            should_sell=False
     else:
         profit =0
 
     print("{:03d}\t{}\t p1:{:6.2f}\t p2:{:6.2f}\t p3:{:6.2f}\t profit:{:6.2f}\t close:{:5.2f}".format(
         i,trading_date,open_jump,last_change, downline,profit, close), end="")
 
-    if skip_days>0:
+    if skip_days>0 :
         skip_days-=1
         should_buy_close,should_buy_open=False,False
     else:
+        skip_until = 0
+        action =""
         if position == 'empty':
             if should_buy_close:
                 bought_price = close
@@ -112,6 +118,7 @@ for trading_date in trading_dates:
                 position = 'full'
                 should_buy_close = False
                 should_buy_open = False
+                action="bought"
 
 
         if position == 'full':
@@ -122,7 +129,12 @@ for trading_date in trading_dates:
                 fund += bought_amount*close
                 bought_amount = 0
                 should_sell = False
+                action="sold"
+                total_session+=1
+                if profit>0: win_session+=1
 
     profit = ((fund + bought_amount*close - init_fund) / init_fund) * 100
-    print("\tdays:{:02d}\t profit: {:6.2f}%".format(hold_days, profit))
+    print("\tdays:{:02d}\t profit: {:6.2f}%\t wr:{:5.2f}%\t {}".format(hold_days, profit,win_session/total_session*100,action))
+    action =""
 print(security)
+print("win: {}\t totol:{}\t".format(win_session,total_session))

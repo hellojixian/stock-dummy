@@ -30,6 +30,27 @@ history = pd.read_csv(data_file)
 history = history[columns]
 history = history.sort_values(by=['date'])
 
+# transform
+history = history.drop(columns=['money'])
+history['turnover'] = np.round(history['turnover']*100,2)
+history['change'] = np.round(history['change']*100,2)
+history['bar'] = np.round((history['close'] - history['open']) / history['close'].shift(periods=1)*100,2)
+history['open_jump'] = np.round((history['open']-history['close'].shift(periods=1)) / history['close'].shift(periods=1)*100,2)
+history['amp'] = np.round((history['high']-history['low']) / history['close'].shift(periods=1)*100,2)
+history['upline'] = np.round((history['high']-history['open']) / history['close'].shift(periods=1)*100,2)
+history['downline'] = np.round((history['open']-history['low']) / history['close'].shift(periods=1)*100,2)
+
+slices=10
+for i in range(0,slices):
+    print("{:3d}  amp:{}\t bar:{}\t chg:{}\t open:{}\t  turnover:{}\t".format(i,
+        np.round(history['amp'].quantile(i/slices),2),
+        np.round(history['bar'].quantile(i/slices),2),
+        np.round(history['change'].quantile(i/slices),2),
+        np.round(history['open_jump'].quantile(i/slices),2),
+        np.round(history['turnover'].quantile(i/slices),2),
+        ))
+assert(False)
+
 lookback_size = 60
 init_fund = 100000
 skip_days = 0
@@ -49,18 +70,19 @@ drop_rate = 0
 for i in range(1330, len(history)):
 # for i in range(60, len(history)):
     should_buy_close = False
-    subset = history[['date','open','high','low','close','change']][i-lookback_size:i]
+    subset = history[i-lookback_size:i]
     trading_date = subset['date'].iloc[-1]
     close   = subset['close'].iloc[-1]
     open    = subset['open'].iloc[-1]
     low     = subset['low'].iloc[-1]
     high    = subset['high'].iloc[-1]
     last_change = subset['change'].iloc[-1]*100
+    turnover = subset['turnover'].iloc[-1]
 
     prev_change = subset['change'].iloc[-2]*100
     prev_close = subset['close'].iloc[-2]
 
-
+    r = last_change/turnover
 
     if position == 'empty':
         if subset['change'].iloc[-1]>=0.015 \
@@ -81,7 +103,7 @@ for i in range(1330, len(history)):
 
             if lowest_since_days>=5:
                 should_buy_close = True
-                should_max_hold_days = 10
+                should_max_hold_days = 3
 
     if position == 'full':
         profit = (close - bought_price)/bought_price*100
@@ -93,8 +115,8 @@ for i in range(1330, len(history)):
     else:
         profit =0
 
-    print("{}\t chg:{:6.2f}\t pft:{:6.2f}\t low:{:5.2f}\t close:{:5.2f}".format(
-        trading_date,last_change,profit, low, close), end="")
+    print("{}\t chg:{:6.2f}\t pft:{:6.2f}\t r:{:5.2f}\t close:{:5.2f}".format(
+        trading_date,last_change,profit, r, close), end="")
 
     if skip_days>0 :
         skip_days-=1

@@ -20,6 +20,12 @@ W底部匹配
     吃到红柱就出来
 
 
+训练模式
+    入口点是 fitting()
+    用基因算法动态微调参数 然后决定去留
+
+生产模式
+    入口点就是 should_buy()
 '''
 
 class strategy(object):
@@ -35,7 +41,7 @@ class strategy(object):
         return
 
     def fitting(dataset):
-        
+
         pass
 
     def _update(self, dataset):

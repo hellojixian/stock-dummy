@@ -2,7 +2,7 @@
 import datetime
 import pandas as pd
 import numpy as np
-import math, sys, os
+import math, sys, os, glob
 import json
 
 '''
@@ -37,11 +37,12 @@ class strategy(object):
         self.validation_set = None
         self.settings = {}
         self.settings_filename = os.path.join('settings',"cfg_"+self.__class__.__name__ + '.json')
+        self.pop = []
         self.load()
         self.pop_size = 100
         self.n_kids = 50
         self.mut_strength = 4
-        self.pop = self.gen_DNAset()
+        if len(self.pop)==0: self.pop = self.gen_DNAset()
         return
 
     def gen_DNAset(self):
@@ -90,14 +91,26 @@ class strategy(object):
     def get_fitness(self, dna_series):
         v = np.zeros(len(dna_series))
         for i in range(len(dna_series)):
-            score = self.evaluate_dna(dna_series[i])['score']
+            score = self.evaluate_dna(dna_series[i])
             v[i]=score
         return v
 
     def evaluate_dna(self,DNA):
         setting = self.parseDNA(DNA)
-        report = self.backtest(self.training_set, setting)
-        return report
+        scores = []
+        for dataset in self.training_set:
+            report = self.backtest(dataset, setting)
+            scores.append(report['score'])
+        return np.mean(scores)
+
+    def parseDNA(self, DNA):
+        setting = {}
+        i = 0
+        for s in self.settings_range:
+            key = list(s.keys())[0]
+            setting[key] = DNA[i]
+            i+=1
+        return setting
 
     def evolve(self,training_set,validation_set=None):
         # 生成一批新的DNA，然后逐个回测，保留最优解
@@ -106,7 +119,6 @@ class strategy(object):
         self.kill_bad(self.make_kids())
         self.settings = self.pop[-1]
         return
-
 
     def should_buy(dataset):
         decision = False
@@ -117,22 +129,26 @@ class strategy(object):
     def load(self):
         if os.path.isfile(self.settings_filename):
             with open(self.settings_filename) as json_file:
-                self.settings = json.load(json_file)
+                data = json.load(json_file)
+                self.settings = data['settings']
+                self.pop = data['pop']
         return
 
     def save(self):
+        data = { "settings":self.settings,
+                 "pop":self.pop }
         with open(self.settings_filename, 'w') as outfile:
-            json.dump(self.settings, outfile)
+            json.dump(data, outfile)
         return
 
 
 
 class ZhuiZhangStg(strategy):
     '''
-        追涨策略
+        追涨策略思路
             红柱之后3日高位十字星
             吃到红柱就出来
-            高位：N日不破掉最近M日涨幅的40%
+            高位：N日不破掉最近M日涨幅的X%
         超参数：
             min_days_after_high - 创新高后最少震荡了几日
             max_drop_after_high - 创新高后最大回撤了多少
@@ -153,34 +169,35 @@ class ZhuiZhangStg(strategy):
         super().__init__()
         return
 
-    def parseDNA(self, DNA):
-        setting = {}
-        i = 0
-        for s in self.settings_range:
-            key = list(s.keys())[0]
-            setting[key] = DNA[i]
-            i+=1
-        return setting
 
     def backtest(self, dataset, settings=None):
-        report = {
-            "win_rate": 0,
-            "profit": 0,
-            "max_drawback":0,
-            "alpha": 0,
-            "score": 0
-        }
+        print(dataset[:10])
+        print(dataset.shape)
+        assert(False)
+        report = {  "win_rate": 0,
+                    "profit": 0,
+                    "max_drawback":0,
+                    "alpha": 0,
+                    "score": 0 }
         return report
 
 
-SECURITY = 'sz000001'
-columns = ['date','open','high','low','close','change']
-data_file = 'data/stock_data/{}.csv'.format(SECURITY)
-history = pd.read_csv(data_file)
-history = history[columns]
-history = history.sort_values(by=['date'])
-history = history[1000:]
+def fetch_dataset(quantity=1):
+    dataset = []
+    path = 'data/stock_data/'
+    columns = ['date','open','high','low','close','change']
+    files = [f for f in glob.glob(path + "*.csv", recursive=False)]
+    selected_files = np.random.choice(files, size=quantity)
 
+    for data_file in selected_files:
+        history = pd.read_csv(data_file)
+        history = history[columns]
+        history = history.sort_values(by=['date'])
+        dataset.append(history)
+    return dataset
+
+
+train_ds = fetch_dataset(quantity=5)
+val_ds = fetch_dataset(quantity=2)
 stg = ZhuiZhangStg()
-stg.gen_DNAset()
-stg.evolve(training_set=history, validation_set=history)
+stg.evolve(training_set=train_ds, validation_set=val_ds)

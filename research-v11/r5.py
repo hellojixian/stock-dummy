@@ -184,13 +184,14 @@ class ZhuiZhangStg(strategy):
     def should_buy(self, subset, settings=None):
         decision = False
         close = subset['close'].iloc[-1]
-        if np.random.randint(0,2) == 1: decision = True
+        print(settings)
+        # if np.random.randint(0,2) == 1: decision = True
         return decision
 
     def should_sell(self, subset, settings=None):
         decision = False
         close = subset['close'].iloc[-1]
-        if np.random.randint(0,2) == 1: decision = True
+        # if np.random.randint(0,2) == 1: decision = True
 
         return decision
 

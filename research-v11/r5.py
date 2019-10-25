@@ -46,6 +46,11 @@ class strategy(object):
         self.n_kids = 50
         self.mut_strength = 4
         if len(self.pop)==0: self.pop = self.gen_DNAset()
+
+        self.fund = 100000
+        self.holding_days = 0
+        self.bought_price = None
+        self.bought_amount = 0
         return
 
     def gen_DNAset(self):
@@ -170,22 +175,50 @@ class ZhuiZhangStg(strategy):
             {"stop_win_rate" : [1,15,0.5]},
             {"stop_loss_rate" : [-10,-1,0.5]}
         ]
+        self.lookback_size = 90
         super().__init__()
         return
 
 
-    def should_buy(dataset):
+    def should_buy(self, dataset, settings=None):
         decision = False
         return
-    def should_sell(self, dataset):
+    def should_sell(self, dataset, settings=None):
         return
 
     def backtest(self, dataset, settings=None):
-        print(dataset[:10])
-        print(dataset.shape)
+        self.fund = 100000
+        sessions = pd.DataFrame()
+
+        for i in range(dataset.shape[0]):
+            if i<=self.lookback_size: continue
+            subset = dataset.iloc[(i-self.lookback_size):i]
+            close = subset['close'].iloc[-1]
+
+            if self.bought_amount > 0:
+                self.holding_days += 1
+                if self.should_sell(subset):
+                    total_sessions +=1
+                    self.bought_price = 0
+                    self.fund += self.bought_amount*close
+                    self.bought_amount = 0
+                    self.holding_days = 0
+                    stat = {
+                        'holding_days':  self.holding_days,
+                        'session_profit': (close-self.bought_price)/self.bought_price
+                    }
+                    sessions = sessions.append(pd.Series(stat))
+
+            if self.bought_amount == 0:
+                if self.should_buy(subset, settings):
+                    self.bought_price = close
+                    self.holding_days = 0
+                    self.bought_amount = int(self.fund / close)
+                    self.fund -= self.bought_amount * close
+
+            print(subset['date'].iloc[0], subset['date'].iloc[-1])
+
         assert(False)
-
-
 
         report = {  "win_rate": 0,
                     "profit": 0,

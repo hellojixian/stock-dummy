@@ -180,11 +180,18 @@ class ZhuiZhangStg(strategy):
         return
 
 
-    def should_buy(self, dataset, settings=None):
+    def should_buy(self, subset, settings=None):
         decision = False
-        return
-    def should_sell(self, dataset, settings=None):
-        return
+        close = subset['close'].iloc[-1]
+        # if np.random.randint(0,2) == 1: decision = True
+        return decision
+
+    def should_sell(self, subset, settings=None):
+        decision = False
+        close = subset['close'].iloc[-1]
+        # if np.random.randint(0,2) == 1: decision = True
+
+        return decision
 
     def backtest(self, dataset, settings=None):
         self.fund = 100000
@@ -194,32 +201,38 @@ class ZhuiZhangStg(strategy):
             if i<=self.lookback_size: continue
             subset = dataset.iloc[(i-self.lookback_size):i]
             close = subset['close'].iloc[-1]
+            date = subset['date'].iloc[-1]
 
             if self.bought_amount > 0:
                 self.holding_days += 1
                 if self.should_sell(subset):
-                    total_sessions +=1
-                    self.bought_price = 0
-                    self.fund += self.bought_amount*close
-                    self.bought_amount = 0
-                    self.holding_days = 0
                     stat = {
+                        'bought_date':self.bought_date,
+                        'sold_date':date,
                         'holding_days':  self.holding_days,
                         'session_profit': (close-self.bought_price)/self.bought_price
                     }
-                    sessions = sessions.append(pd.Series(stat))
+                    self.bought_price = 0
+                    self.fund += self.bought_amount*close
+                    self.bought_amount = 0
+                    self.bought_date = None
+                    self.holding_days = 0
+                    sessions = sessions.append(pd.Series(stat),ignore_index=True)
+                    print('fund',self.fund)
 
             if self.bought_amount == 0:
                 if self.should_buy(subset, settings):
+                    self.bought_date = date
                     self.bought_price = close
                     self.holding_days = 0
-                    self.bought_amount = int(self.fund / close)
+                    self.bought_amount = int(self.fund / (close *100))*100
                     self.fund -= self.bought_amount * close
 
-            print(subset['date'].iloc[0], subset['date'].iloc[-1])
-
+        self.fund += self.bought_amount*close
+        self.bought_amount = 0
+        print(sessions)
+        print(self.fund)
         assert(False)
-
         report = {  "win_rate": 0,
                     "profit": 0,
                     "max_drawback":0,

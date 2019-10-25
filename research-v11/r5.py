@@ -47,7 +47,8 @@ class strategy(object):
         self.mut_strength = 4
         if len(self.pop)==0: self.pop = self.gen_DNAset()
 
-        self.fund = 100000
+        self.init_fund = 100000
+        self.fund = 0
         self.holding_days = 0
         self.bought_price = None
         self.bought_amount = 0
@@ -183,13 +184,13 @@ class ZhuiZhangStg(strategy):
     def should_buy(self, subset, settings=None):
         decision = False
         close = subset['close'].iloc[-1]
-        # if np.random.randint(0,2) == 1: decision = True
+        if np.random.randint(0,2) == 1: decision = True
         return decision
 
     def should_sell(self, subset, settings=None):
         decision = False
         close = subset['close'].iloc[-1]
-        # if np.random.randint(0,2) == 1: decision = True
+        if np.random.randint(0,2) == 1: decision = True
 
         return decision
 
@@ -231,13 +232,27 @@ class ZhuiZhangStg(strategy):
         self.fund += self.bought_amount*close
         self.bought_amount = 0
         print(sessions)
-        print(self.fund)
-        assert(False)
-        report = {  "win_rate": 0,
-                    "profit": 0,
-                    "max_drawback":0,
-                    "alpha": 0,
+
+        if sessions.shape[0]>0:
+            profit = (self.fund - self.init_fund) / self.init_fund
+            win_rate = sessions[sessions.eval('session_profit>0')].shape[0] / sessions.shape[0]
+            baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
+            holding_days = sessions['holding_days'].sum()
+            profit_per_day = profit / holding_days
+            profit_per_session = profit / sessions.shape[0]
+
+        report = {  "win_rate": win_rate,
+                    "profit": profit,
+                    "baseline_profit": baseline_profit,
+                    "sessions": sessions.shape[0],
+                    "profit_per_day": profit_per_day,
+                    "profit_per_session": profit_per_session,
+                    "trading_days": dataset.shape[0],
+                    "holding_days": holding_days,
                     "score": 0 }
+
+        print(report)
+        assert(False)
         return report
 
 

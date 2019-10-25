@@ -5,6 +5,9 @@ import numpy as np
 import math, sys, os, glob
 import json
 
+np.random.seed(0)
+
+
 '''
 每种策略应该都对应自己的风险控制，由于买入原则不同 风险控制机制也应该不同
 可以单独被训练
@@ -118,6 +121,7 @@ class strategy(object):
         self.validation_set = validation_set
         self.kill_bad(self.make_kids())
         self.settings = self.pop[-1]
+        self.save()
         return
 
     def should_buy(dataset):
@@ -170,10 +174,19 @@ class ZhuiZhangStg(strategy):
         return
 
 
+    def should_buy(dataset):
+        decision = False
+        return
+    def should_sell(self, dataset):
+        return
+
     def backtest(self, dataset, settings=None):
         print(dataset[:10])
         print(dataset.shape)
         assert(False)
+
+
+
         report = {  "win_rate": 0,
                     "profit": 0,
                     "max_drawback":0,
@@ -195,7 +208,6 @@ def fetch_dataset(quantity=1):
         history = history.sort_values(by=['date'])
         dataset.append(history)
     return dataset
-
 
 train_ds = fetch_dataset(quantity=5)
 val_ds = fetch_dataset(quantity=2)

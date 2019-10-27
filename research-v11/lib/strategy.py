@@ -118,7 +118,7 @@ class strategy(object):
             improving = new_result['score'] - old_result['score']
 
         pprint.pprint({
-            'setting':self.settings,
+            'setting':new_settings,
             'result':new_result,
             'improving':improving })
 

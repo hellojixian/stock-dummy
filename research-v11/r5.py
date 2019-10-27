@@ -4,8 +4,11 @@ import pandas as pd
 import numpy as np
 import math, sys, os, glob
 import json
+import pprint
 
-np.random.seed(0)
+from lib.strategy import strategy
+
+np.random.seed(10)
 
 
 '''
@@ -30,128 +33,6 @@ W底部匹配
 生产模式
 '''
 
-class strategy(object):
-
-    def __init__(self,dataset=None):
-        self.stop_winning = None
-        self.stop_lossing = None
-        self.max_holding_days = None
-        self.training_set = None
-        self.validation_set = None
-        self.settings = {}
-        self.settings_filename = os.path.join('settings',"cfg_"+self.__class__.__name__ + '.json')
-        self.pop = []
-        self.load()
-        self.pop_size = 100
-        self.n_kids = 50
-        self.mut_strength = 4
-        if len(self.pop)==0: self.pop = self.gen_DNAset()
-
-        self.init_fund = 100000
-        self.fund = 0
-        self.holding_days = 0
-        self.bought_price = None
-        self.bought_amount = 0
-        return
-
-    def gen_DNAset(self):
-        dna_list = []
-        for i in range(self.pop_size):
-            dna = []
-            for setting in self.settings_range:
-                settings = list(setting.values())[0]
-                vmin,vmax,step = settings[0],settings[1],settings[2]
-                vlimit = (vmax-vmin)/step
-                value = np.random.randint(0, vlimit+1)*step+vmin
-                dna.append(value)
-            dna_list.append(dna)
-        dna_list = np.array(dna_list)
-        return dna_list
-
-    def make_kids(self):
-        dna_size = len(self.pop[0])
-        kids = np.empty((self.n_kids, dna_size))
-        for kid in kids:
-            p1, p2 = np.random.choice(np.arange(len(self.pop)), size=2, replace=False)
-            cp = np.random.randint(0, 2, dna_size, dtype=np.bool)
-
-            kid[cp] = self.pop[p1, cp]
-            kid[~cp] = self.pop[p2, ~cp]
-
-            # mutation
-            i = 0
-            for setting in self.settings_range:
-                settings = list(setting.values())[0]
-                vmin,vmax,step = settings[0],settings[1],settings[2]
-                mut = int(np.random.uniform(-self.mut_strength,self.mut_strength))
-                v = kid[i] + step*mut
-                kid[i] = np.clip(v, vmin, vmax)
-                i+=1
-        return kids
-
-    def kill_bad(self, kids):
-        self.pop = np.vstack((self.pop, kids))
-        fitness = self.get_fitness(self.pop)            # calculate global fitness
-        idx = np.arange(self.pop.shape[0])
-        good_idx = idx[fitness.argsort()][-self.pop_size:]   # selected by fitness ranking (not value)
-        self.pop = self.pop[good_idx]
-        return
-
-    def get_fitness(self, dna_series):
-        v = np.zeros(len(dna_series))
-        for i in range(len(dna_series)):
-            score = self.evaluate_dna(dna_series[i])
-            v[i]=score
-        return v
-
-    def evaluate_dna(self,DNA):
-        setting = self.parseDNA(DNA)
-        scores = []
-        for dataset in self.training_set:
-            report = self.backtest(dataset, setting)
-            scores.append(report['score'])
-        return np.mean(scores)
-
-    def parseDNA(self, DNA):
-        setting = {}
-        i = 0
-        for s in self.settings_range:
-            key = list(s.keys())[0]
-            setting[key] = DNA[i]
-            i+=1
-        return setting
-
-    def evolve(self,training_set,validation_set=None):
-        # 生成一批新的DNA，然后逐个回测，保留最优解
-        self.training_set = training_set
-        self.validation_set = validation_set
-        self.kill_bad(self.make_kids())
-        self.settings = self.pop[-1]
-        self.save()
-        return
-
-    def should_buy(dataset):
-        decision = False
-        return
-    def should_sell(self, dataset):
-        return
-
-    def load(self):
-        if os.path.isfile(self.settings_filename):
-            with open(self.settings_filename) as json_file:
-                data = json.load(json_file)
-                self.settings = data['settings']
-                self.pop = data['pop']
-        return
-
-    def save(self):
-        data = { "settings":self.settings,
-                 "pop":self.pop }
-        with open(self.settings_filename, 'w') as outfile:
-            json.dump(data, outfile)
-        return
-
-
 
 class ZhuiZhangStg(strategy):
     '''
@@ -170,91 +51,101 @@ class ZhuiZhangStg(strategy):
 
     def __init__(self,dataset=None):
         self.settings_range = [
-            {"min_days_after_high" : [2,10,1]},
+            {"max_safe_zone" :      [0.35,1,0.05]},
+            {"max_holding_days" :   [5,15,1]},
+            {"min_days_after_high" :[2,10,1]},
             {"max_droprate_after_high" : [1,5,0.5]},
-            {"min_days_high" : [5,15,1]},
-            {"stop_win_rate" : [1,15,0.5]},
-            {"stop_loss_rate" : [-10,-1,0.5]}
+            {"min_days_high" :      [5,15,1]},
+            {"early_stop_win_rate": [1.5,9.5,0.25]},
+            {"stop_win_rate" :      [1,15,0.5]},
+            {"stop_loss_rate" :     [-10,-1,0.5]}
         ]
         self.lookback_size = 90
         super().__init__()
+
+        self.should_buy_cond_1 = False
+        self.should_buy_days_after_high = None
+        self.should_buy_last_high = None
         return
 
 
     def should_buy(self, subset, settings=None):
         decision = False
+        if settings is None: settings = self.settings
         close = subset['close'].iloc[-1]
-        print(settings)
+        last_close = subset['close'].iloc[-2]
+        change = (close - last_close) / last_close
+
+        # 涨停禁止买入
+        if change>=0.092 \
+            or (change>=0.045 and change<=0.055) :
+            return False
+
+        min_days_high = int(settings['min_days_high'])
+        last_high = subset['high'].iloc[-1]
+        high = subset['high'][-min_days_high:].max()
+        low = subset['high'][-90:].min()
+
+        # 判断是否属于安全区域
+        max_safe_zone = settings['max_safe_zone']
+        if (close - low) / low <= max_safe_zone:
+            # 首先要先创N日新高
+            if last_high == high:
+                self.should_buy_cond_1=True
+                self.should_buy_last_high = last_high
+                self.should_buy_days_after_high =0
+
+        # 如果创过新高了 继续观察N日
+        min_days_after_high = int(settings['min_days_after_high'])
+        max_droprate_after_high = settings['max_droprate_after_high']
+        if self.should_buy_cond_1==True:
+            self.should_buy_days_after_high +=1
+            if last_high < high \
+                and self.should_buy_days_after_high >= min_days_after_high \
+                and close >= self.should_buy_last_high*(1-max_droprate_after_high*0.01):
+                decision = True
+                stop_win_rate = settings['stop_win_rate']
+                stop_loss_rate = settings['stop_loss_rate']
+                self.stop_winning = close*(1+stop_win_rate*0.01)
+                self.stop_lossing = close*(1-stop_loss_rate*0.01)
+
         # if np.random.randint(0,2) == 1: decision = True
+        # reset state
+        if decision == True:
+            self.should_buy_cond_1 = False
+            self.should_buy_days_after_high = None
+            self.should_buy_last_high = None
+
         return decision
 
     def should_sell(self, subset, settings=None):
         decision = False
+        if settings is None: settings = self.settings
         close = subset['close'].iloc[-1]
-        # if np.random.randint(0,2) == 1: decision = True
+        last_close = subset['close'].iloc[-2]
+        change = (close - last_close) / last_close
 
+        # 跌停禁止卖出
+        if change<=-0.092 \
+            or (change<=-0.045 and change>=-0.055) :
+            return False
+
+        max_holding_days = int(settings['max_holding_days'])
+        early_stop_win_rate = settings['early_stop_win_rate']
+        if close >= self.stop_winning:
+            decision = True
+        elif close <= self.stop_lossing:
+            decision = True
+        elif change >= early_stop_win_rate:
+            decision = True
+        elif self.holding_days >= max_holding_days:
+            decision = True
+
+        if decision == True:
+            self.stop_winning = None
+            self.stop_lossing = None
         return decision
 
-    def backtest(self, dataset, settings=None):
-        self.fund = 100000
-        sessions = pd.DataFrame()
-
-        for i in range(dataset.shape[0]):
-            if i<=self.lookback_size: continue
-            subset = dataset.iloc[(i-self.lookback_size):i]
-            close = subset['close'].iloc[-1]
-            date = subset['date'].iloc[-1]
-
-            if self.bought_amount > 0:
-                self.holding_days += 1
-                if self.should_sell(subset):
-                    stat = {
-                        'bought_date':self.bought_date,
-                        'sold_date':date,
-                        'holding_days':  self.holding_days,
-                        'session_profit': (close-self.bought_price)/self.bought_price
-                    }
-                    self.bought_price = 0
-                    self.fund += self.bought_amount*close
-                    self.bought_amount = 0
-                    self.bought_date = None
-                    self.holding_days = 0
-                    sessions = sessions.append(pd.Series(stat),ignore_index=True)
-                    print('fund',self.fund)
-
-            if self.bought_amount == 0:
-                if self.should_buy(subset, settings):
-                    self.bought_date = date
-                    self.bought_price = close
-                    self.holding_days = 0
-                    self.bought_amount = int(self.fund / (close *100))*100
-                    self.fund -= self.bought_amount * close
-
-        self.fund += self.bought_amount*close
-        self.bought_amount = 0
-        print(sessions)
-
-        if sessions.shape[0]>0:
-            profit = (self.fund - self.init_fund) / self.init_fund
-            win_rate = sessions[sessions.eval('session_profit>0')].shape[0] / sessions.shape[0]
-            baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
-            holding_days = sessions['holding_days'].sum()
-            profit_per_day = profit / holding_days
-            profit_per_session = profit / sessions.shape[0]
-
-        report = {  "win_rate": win_rate,
-                    "profit": profit,
-                    "baseline_profit": baseline_profit,
-                    "sessions": sessions.shape[0],
-                    "profit_per_day": profit_per_day,
-                    "profit_per_session": profit_per_session,
-                    "trading_days": dataset.shape[0],
-                    "holding_days": holding_days,
-                    "score": 0 }
-
-        print(report)
-        assert(False)
-        return report
 
 
 def fetch_dataset(quantity=1):
@@ -271,7 +162,8 @@ def fetch_dataset(quantity=1):
         dataset.append(history)
     return dataset
 
-train_ds = fetch_dataset(quantity=5)
+train_ds = fetch_dataset(quantity=1)
 val_ds = fetch_dataset(quantity=2)
 stg = ZhuiZhangStg()
-stg.evolve(training_set=train_ds, validation_set=val_ds)
+for i in range(100):
+    stg.evolve(training_set=train_ds, validation_set=val_ds)

@@ -8,7 +8,7 @@ import pprint
 
 from lib.strategy import strategy
 
-np.random.seed(10)
+np.random.seed(2)
 
 
 '''
@@ -51,14 +51,14 @@ class ZhuiZhangStg(strategy):
 
     def __init__(self,dataset=None):
         self.settings_range = [
+            {"max_holding_days" :   [3,15,1]},
+            {"min_days_after_high" :[1,10,1]},
+            {"min_days_high" :      [3,25,1]},
+            {"max_droprate_after_high" : [1,10,0.5]},
             {"max_safe_zone" :      [0.35,1,0.05]},
-            {"max_holding_days" :   [5,15,1]},
-            {"min_days_after_high" :[2,10,1]},
-            {"max_droprate_after_high" : [1,5,0.5]},
-            {"min_days_high" :      [5,15,1]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
-            {"stop_win_rate" :      [1,15,0.5]},
-            {"stop_loss_rate" :     [-10,-1,0.5]}
+            {"stop_win_rate" :      [1,25,0.5]},
+            {"stop_loss_rate" :     [-10,1,0.5]}
         ]
         self.lookback_size = 90
         super().__init__()

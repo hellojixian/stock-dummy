@@ -7,6 +7,7 @@ import json
 import pprint
 
 POP_SIZE = 10
+MAX_POP_SIZE = 50
 NEW_KIDS = 60
 MUT_STRENGTH = 6
 
@@ -118,14 +119,27 @@ class strategy(object):
             improving = new_result['score'] - old_result['score']
 
         pprint.pprint({
-            'setting':new_settings,
-            'result':new_result,
+            # 'old_setting':self.settings,
+            # 'old_result':old_result,
+            'new_setting':new_settings,
+            'new_result':new_result,
             'improving':improving })
 
         if improving>0:
-            self.settings = new_settings
+            self.settings = new_settings.copy()
             self.save()
             print("[saved]")
+            self.pop_size = POP_SIZE
+            self.n_kids = NEW_KIDS
+            self.mut_strength = MUT_STRENGTH
+        else:
+            # adjust pop seetings
+            if self.pop_size < MAX_POP_SIZE:
+                self.pop_size += int(POP_SIZE/2)
+                self.n_kids += int(NEW_KIDS/2)
+                self.mut_strength = MUT_STRENGTH*2
+                print("Adjusted POP_SIZE to {}".format(self.pop_size))
+
 
         print("="*100)
         return

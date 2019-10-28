@@ -19,7 +19,8 @@ class strategy(object):
         self.max_holding_days = None
         self.training_set = None
         self.validation_set = None
-        self.settings = None
+        self.current_settings = None
+        self.knowledge_base = None
         self.settings_filename = os.path.join('settings',"cfg_"+self.__class__.__name__ + '.json')
         self.pop = []
         self.load()
@@ -155,12 +156,14 @@ class strategy(object):
             with open(self.settings_filename) as json_file:
                 data = json.load(json_file)
                 self.settings = data['settings']
+                self.knowledge_base = data['knowledge_base']
                 self.pop = np.array(data['pop'])
         return
 
     def save(self):
         self.pop = np.round(self.pop,2)
         data = { "settings":self.settings,
+                 "knowledge_base":self.knowledge_base,
                  "pop":self.pop.tolist() }
         with open(self.settings_filename, 'w') as outfile:
             json.dump(data, outfile)
@@ -219,6 +222,6 @@ class strategy(object):
                     "profit_per_session": profit_per_session,
                     "trading_days": dataset.shape[0],
                     "holding_days": holding_days,
-                    "score": profit }
+                    "score": profit * win_rate }
 
         return report

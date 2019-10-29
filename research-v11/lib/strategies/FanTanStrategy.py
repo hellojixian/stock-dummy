@@ -30,7 +30,7 @@ class FanTanStrategy(strategy):
             {"min_days_low" :       [5,90,5]},
             {"min_days_after_low" : [2,5,1]},
             {"max_grow_after_low" : [1,10,0.5]},
-            {"safe_zone_start" :    [15,60,5]},
+            {"safe_zone_start" :    [10,30,5]},
             {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
             {"stop_win_rate" :      [1,25,0.5]},
@@ -66,9 +66,12 @@ class FanTanStrategy(strategy):
         safe_zone_width = settings['safe_zone_width']
         safe_zone_end = safe_zone_start+safe_zone_width
         drop_from_high = (high - close) / high
-        if drop_from_high >= safe_zone_start*0.01 and safe_zone_start<=safe_zone_end*0.01:
+        if drop_from_high >= safe_zone_start*0.01 and drop_from_high<=safe_zone_end*0.01:
             # 首先要先创N日新高
+            print(last_low, low,drop_from_high, safe_zone_start*0.01, safe_zone_end*0.01)
+
             if last_low == low:
+                # print(last_low, low,drop_from_high, safe_zone_start*0.01, safe_zone_end*0.01)
                 self.knowledge_mem[setting_id]['should_buy_cond_1']=True
                 self.knowledge_mem[setting_id]['should_buy_last_low']=last_low
                 self.knowledge_mem[setting_id]['should_buy_days_after_low']=0

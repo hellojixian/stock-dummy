@@ -153,7 +153,7 @@ class strategy(object):
                 print("Adjusted POP_SIZE to {}".format(self.pop_size))
             else:
                 # save last best settings into knowledge base
-                if new_result['new_strategy']['win_rate']>0:
+                if new_result['new_strategy']['sessions']>0:
                     kb_id = str(uuid.uuid4())
                     self.knowledge_base[kb_id] = self.latest_best_settings.copy()
                     self.save()
@@ -183,17 +183,20 @@ class strategy(object):
         if os.path.isfile(self.settings_filename):
             with open(self.settings_filename) as json_file:
                 data = json.load(json_file)
-                self.latest_best_settings = data['latest_best_settings']
-                self.knowledge_base = data['knowledge_base']
-                self.pop = np.array(data['pop'])
+                self.latest_best_settings = data['learning']['latest_best_settings']
+                self.pop = np.array(data['learning']['pop'])
+                self.knowledge_base = data['knowledge_base']                
                 print("Knowledge base loaded:  {} items".format(len(self.knowledge_base.keys())))
         return
 
     def save(self):
         self.pop = np.round(self.pop,2)
-        data = { "latest_best_settings":self.latest_best_settings,
-                 "knowledge_base":self.knowledge_base,
-                 "pop":self.pop.tolist() }
+        data = { "learning":{
+                    "latest_best_settings":self.latest_best_settings,
+                    "pop":self.pop.tolist()
+                  },
+                  "knowledge_base":self.knowledge_base,
+                  }
         with open(self.settings_filename, 'w') as outfile:
             json.dump(data, outfile, indent=2)
         return
@@ -271,7 +274,7 @@ class strategy(object):
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*3 + new_strategy_profit*1
+                    "score": new_strategy_win_rate*2 + new_strategy_profit + ns_sessions.shape[0]
                 }
 
 

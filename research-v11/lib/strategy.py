@@ -9,7 +9,7 @@ import uuid
 import progressbar
 
 POP_SIZE = 10
-MAX_POP_SIZE = 30
+MAX_POP_SIZE = 20
 NEW_KIDS = 60
 MUT_STRENGTH = 6
 MIN_WIN_RATE = 0.7

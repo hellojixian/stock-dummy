@@ -30,7 +30,7 @@ class FanTanStrategy(strategy):
             {"min_days_low" :       [5,90,5]},
             {"min_days_after_low" : [2,5,1]},
             {"max_grow_after_low" : [1,10,0.5]},
-            {"safe_zone_start" :    [10,50,5]},
+            {"safe_zone_start" :    [5,50,5]},
             {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
             {"stop_win_rate" :      [1,25,0.5]},

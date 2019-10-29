@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import math, sys, os, glob
 
-np.random.seed(2)
+np.random.seed(3)
 
 def fetch_dataset():
     dataset = []

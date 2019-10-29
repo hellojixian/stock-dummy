@@ -159,11 +159,11 @@ class strategy(object):
                     kb_id = str(uuid.uuid4())
                     self.knowledge_base[kb_id] = self.latest_best_settings.copy()
                     self.save()
-                    self.pop = self.gen_DNAset()
                     self.latest_best_settings = None
                     self.pop_size = POP_SIZE
                     self.n_kids = NEW_KIDS
                     self.mut_strength = MUT_STRENGTH
+                    self.pop = self.gen_DNAset()
                     print("Knowledge base updated:  {} items".format(len(self.knowledge_base.keys())))
                 else:
                     print('Early stop learning')

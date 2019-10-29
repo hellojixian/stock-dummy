@@ -28,13 +28,13 @@ class FanTanStrategy(strategy):
         self.settings_range = [
             {"max_holding_days" :   [1,15,1]},
             {"min_days_low" :       [5,90,5]},
-            {"min_days_after_low" : [2,5,1]},
+            {"min_days_after_low" : [0,5,1]},
             {"max_grow_after_low" : [1,10,0.5]},
             {"safe_zone_start" :    [5,50,5]},
             {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
-            {"stop_win_rate" :      [1,35,0.5]},
-            {"stop_loss_rate" :     [-15,1,0.5]}
+            {"stop_win_rate" :      [1,25,0.5]},
+            {"stop_loss_rate" :     [-10,1,0.5]}
         ]
         self.lookback_size = 90
         super().__init__()
@@ -82,8 +82,9 @@ class FanTanStrategy(strategy):
 
             if last_low > low \
                 and self.knowledge_mem[setting_id]['should_buy_days_after_low'] >= min_days_after_low \
-                and close <= self.knowledge_mem[setting_id]['should_buy_last_low']*(1-max_grow_after_low*0.01):
+                and close <= self.knowledge_mem[setting_id]['should_buy_last_low']*(1+max_grow_after_low*0.01):
                 decision = True
+                # print('hit')
                 stop_win_rate = settings['stop_win_rate']
                 stop_loss_rate = settings['stop_loss_rate']
                 self.stop_winning = close*(1+stop_win_rate*0.01)

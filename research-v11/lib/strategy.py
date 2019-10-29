@@ -14,6 +14,7 @@ NEW_KIDS = 60
 MUT_STRENGTH = 6
 MIN_WIN_RATE = 0.7
 
+STRATEGY_MIN_SESSIONS = 2 #策略最少匹配几次交易
 LINE_WIDTH=100
 
 class strategy(object):
@@ -185,7 +186,7 @@ class strategy(object):
                 data = json.load(json_file)
                 self.latest_best_settings = data['learning']['latest_best_settings']
                 self.pop = np.array(data['learning']['pop'])
-                self.knowledge_base = data['knowledge_base']                
+                self.knowledge_base = data['knowledge_base']
                 print("Knowledge base loaded:  {} items".format(len(self.knowledge_base.keys())))
         return
 
@@ -250,7 +251,7 @@ class strategy(object):
 
             ns_sessions = sessions[sessions.eval('kb_id=="_"')]
             new_strategy_profit,new_strategy_win_rate,new_strategy_holding_days=0,0,0
-            if ns_sessions.shape[0]>0:
+            if ns_sessions.shape[0]>=STRATEGY_MIN_SESSIONS:
                 new_strategy_profit = 1
                 for _, row in ns_sessions.iterrows():
                     new_strategy_profit *= (1+row['session_profit'])
@@ -274,7 +275,7 @@ class strategy(object):
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*2 + new_strategy_profit + ns_sessions.shape[0]
+                    "score": new_strategy_win_rate*2 + new_strategy_profit + ns_sessions.shape[0]/100
                 }
 
 

@@ -5,11 +5,16 @@ import numpy as np
 import math, sys, os, glob
 import json
 import pprint
+import uuid
+import progressbar
 
 POP_SIZE = 10
-MAX_POP_SIZE = 50
+MAX_POP_SIZE = 30
 NEW_KIDS = 60
 MUT_STRENGTH = 6
+MIN_WIN_RATE = 0.7
+
+LINE_WIDTH=100
 
 class strategy(object):
 
@@ -20,7 +25,9 @@ class strategy(object):
         self.training_set = None
         self.validation_set = None
         self.current_settings = None
-        self.knowledge_base = None
+        self.latest_best_settings = None
+        self.knowledge_base = {}
+        self.knowledge_mem = {}
         self.settings_filename = os.path.join('settings',"cfg_"+self.__class__.__name__ + '.json')
         self.pop = []
         self.load()
@@ -81,10 +88,13 @@ class strategy(object):
 
     def get_fitness(self, dna_series):
         v = np.zeros(len(dna_series))
+        bar = progressbar.ProgressBar(max_value=len(dna_series))
         for i in range(len(dna_series)):
-            print("progress: {:.1f}%".format(i/len(dna_series)*100),end="\r")
+            bar.update(i+1)
             score = self.evaluate_dna(dna_series[i])
             v[i]=score
+        print("")
+        print('-'*LINE_WIDTH)
         return v
 
     def evaluate_dna(self,DNA):
@@ -113,21 +123,19 @@ class strategy(object):
 
         new_settings = self.parseDNA(self.pop[-1])
         new_result = self.backtest(training_set[0], new_settings)
-        if self.settings is None:
-            improving = new_result['score']
-        else:
-            old_result = self.backtest(training_set[0], self.settings)
+        if self.latest_best_settings is not None:
+            old_result = self.backtest(training_set[0], self.latest_best_settings)
             improving = new_result['score'] - old_result['score']
+        else:
+            improving = new_result['score']
 
         pprint.pprint({
-            # 'old_setting':self.settings,
-            # 'old_result':old_result,
             'new_setting':new_settings,
             'new_result':new_result,
             'improving':improving })
 
         if improving>0:
-            self.settings = new_settings.copy()
+            self.latest_best_settings = new_settings.copy()
             self.save()
             print("[saved]")
             self.pop_size = POP_SIZE
@@ -136,37 +144,55 @@ class strategy(object):
         else:
             # adjust pop seetings
             if self.pop_size < MAX_POP_SIZE:
-                self.pop_size += int(POP_SIZE/2)
+                self.pop_size += POP_SIZE
                 self.n_kids += int(NEW_KIDS/2)
                 self.mut_strength = MUT_STRENGTH*2
                 print("Adjusted POP_SIZE to {}".format(self.pop_size))
+            else:
+                # save last best settings into knowledge base
+                if new_result['win_rate']>= MIN_WIN_RATE:
+                    kb_id = str(uuid.uuid4())
+                    self.knowledge_base[kb_id] = self.latest_best_settings.copy()
+                    self.save()
+                    self.pop = self.gen_DNAset()
+                    self.latest_best_settings = None
+                    self.pop_size = POP_SIZE
+                    self.n_kids = NEW_KIDS
+                    self.mut_strength = MUT_STRENGTH
+                    print("Knowledge base updated:  {} items".format(len(self.knowledge_base.keys())))
+                else:
+                    print('Early stop learning')
+                    return False
 
 
-        print("="*100)
-        return
+        print("="*LINE_WIDTH)
+        return True
 
     def should_buy(dataset):
         decision = False
-        return
+        return decision
+
     def should_sell(self, dataset):
-        return
+        decision = False
+        return decision
 
     def load(self):
         if os.path.isfile(self.settings_filename):
             with open(self.settings_filename) as json_file:
                 data = json.load(json_file)
-                self.settings = data['settings']
+                self.latest_best_settings = data['latest_best_settings']
                 self.knowledge_base = data['knowledge_base']
                 self.pop = np.array(data['pop'])
+                print("Knowledge base loaded:  {} items".format(len(self.knowledge_base.keys())))
         return
 
     def save(self):
         self.pop = np.round(self.pop,2)
-        data = { "settings":self.settings,
+        data = { "latest_best_settings":self.latest_best_settings,
                  "knowledge_base":self.knowledge_base,
                  "pop":self.pop.tolist() }
         with open(self.settings_filename, 'w') as outfile:
-            json.dump(data, outfile)
+            json.dump(data, outfile, indent=2)
         return
 
     def backtest(self, dataset, settings=None):
@@ -180,7 +206,7 @@ class strategy(object):
 
             if self.bought_amount > 0:
                 self.holding_days += 1
-                if self.should_sell(subset, settings):
+                if self.should_sell(subset):
                     stat = {
                         'bought_date':self.bought_date,
                         'sold_date':date,

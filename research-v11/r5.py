@@ -52,4 +52,6 @@ train_ds = fetch_dataset(quantity=1)
 val_ds = fetch_dataset(quantity=2)
 stg = ZhuiZhangStrategy()
 for i in range(100):
-    stg.evolve(training_set=train_ds, validation_set=val_ds)
+    if stg.evolve(training_set=train_ds, validation_set=val_ds) == False:
+        print("TODO: Should pick up another dataset to continue learning")
+        break

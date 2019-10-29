@@ -66,7 +66,7 @@ class FanTanStrategy(strategy):
         safe_zone_width = settings['safe_zone_width']
         safe_zone_end = safe_zone_start+safe_zone_width
         drop_from_high = (high - close) / high
-        if drop_from_high >= safe_zone_start and safe_zone_start<=safe_zone_end:
+        if drop_from_high >= safe_zone_start*0.01 and safe_zone_start<=safe_zone_end*0.01:
             # 首先要先创N日新高
             if last_low == low:
                 self.knowledge_mem[setting_id]['should_buy_cond_1']=True

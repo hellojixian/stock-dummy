@@ -20,8 +20,6 @@ class FanTanStrategy(strategy):
             early_stop_win_rate - 吃到大红后提前止盈
             stop_win_rate - 止盈比率多少    since ideal lowest
             stop_loss_rate- 止损比率是多少  since bought price
-
-
     '''
 
     def __init__(self,dataset=None):
@@ -84,13 +82,12 @@ class FanTanStrategy(strategy):
                 and self.knowledge_mem[setting_id]['should_buy_days_after_low'] >= min_days_after_low \
                 and close <= self.knowledge_mem[setting_id]['should_buy_last_low']*(1+max_grow_after_low*0.01):
                 decision = True
-                # print('hit')
+
                 stop_win_rate = settings['stop_win_rate']
                 stop_loss_rate = settings['stop_loss_rate']
                 self.stop_winning = close*(1+stop_win_rate*0.01)
                 self.stop_lossing = close*(1-stop_loss_rate*0.01)
 
-        # if np.random.randint(0,2) == 1: decision = True
         # reset state
         if decision == True:
             # after made decision, clear short term memory

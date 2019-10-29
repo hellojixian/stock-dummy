@@ -58,7 +58,7 @@ class FanTanStrategy(strategy):
 
         min_days_low = int(settings['min_days_low'])
         last_low = subset['low'].iloc[-1]
-        low = subset['low'][-min_days_high:].min()
+        low = subset['low'][-min_days_low:].min()
         high = subset['high'][-90:].max()
 
         # 判断是否属于安全区域

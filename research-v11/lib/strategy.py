@@ -330,7 +330,7 @@ class strategy(object):
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*2 + new_strategy_profit + new_strategy_session_count/100
+                    "score": new_strategy_win_rate*3 + new_strategy_profit + new_strategy_session_count/100
                 }
 
 

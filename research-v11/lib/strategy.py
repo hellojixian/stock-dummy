@@ -296,6 +296,8 @@ class strategy(object):
 
 
         win_rate, profit,profit_per_day,profit_per_session,holding_days=0,0,0,0,0
+        new_strategy_profit,new_strategy_win_rate, \
+        new_strategy_holding_days,new_strategy_session_count=0,0,0,0
         baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
         if sessions.shape[0]>0:
             profit = (self.fund - self.init_fund) / self.init_fund
@@ -303,7 +305,6 @@ class strategy(object):
             holding_days = sessions['holding_days'].sum()
 
             ns_sessions = sessions[sessions.eval('kb_id=="_"')]
-            new_strategy_profit,new_strategy_win_rate,new_strategy_holding_days=0,0,0
             if ns_sessions.shape[0]>=STRATEGY_MIN_SESSIONS:
                 new_strategy_profit = 1
                 for _, row in ns_sessions.iterrows():
@@ -311,6 +312,7 @@ class strategy(object):
                 new_strategy_profit = new_strategy_profit - 1
                 new_strategy_win_rate = ns_sessions[ns_sessions.eval('session_profit>0')].shape[0] / ns_sessions.shape[0]
                 new_strategy_holding_days = ns_sessions['holding_days'].sum()
+                new_strategy_session_count = ns_sessions.shape[0]
 
         report = {  "baseline":{
                         "baseline_profit": baseline_profit,
@@ -323,12 +325,12 @@ class strategy(object):
                         "holding_days": holding_days,
                     },
                     "new_strategy":{
-                        "sessions": ns_sessions.shape[0],
+                        "sessions": new_strategy_session_count,
                         "win_rate": new_strategy_win_rate,
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*2 + new_strategy_profit + ns_sessions.shape[0]/100
+                    "score": new_strategy_win_rate*2 + new_strategy_profit + new_strategy_session_count/100
                 }
 
 

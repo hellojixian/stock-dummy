@@ -26,7 +26,7 @@ class ZhuiZhangStrategy(strategy):
             {"min_days_after_high" :[1,10,1]},
             {"min_days_high" :      [3,25,1]},
             {"max_droprate_after_high" : [1,10,0.5]},
-            {"max_safe_zone" :      [0.35,1,0.05]},
+            {"max_safe_zone" :      [35,150,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
             {"stop_win_rate" :      [1,25,0.5]},
             {"stop_loss_rate" :     [-10,1,0.5]}
@@ -59,7 +59,7 @@ class ZhuiZhangStrategy(strategy):
         low = subset['high'][-90:].min()
 
         # 判断是否属于安全区域
-        max_safe_zone = settings['max_safe_zone']
+        max_safe_zone = settings['max_safe_zone']/100
         if (close - low) / low <= max_safe_zone:
             # 首先要先创N日新高
             if last_high == high:

@@ -8,25 +8,29 @@ import pprint
 
 class FanTanStrategy(strategy):
     '''
-        追涨策略思路
-            红柱之后3日高位十字星
-            吃到红柱就出来
-            高位：N日不破掉最近M日涨幅的X%
+        反弹策略思路
+            绿柱之后赌反弹
         超参数：
-            min_days_after_high - 创新高后最少震荡了几日
-            max_drop_after_high - 创新高后最大回撤了多少
-            min_days_high - 多少日的新高
+            min_days_low - 多少日的新低
+            min_days_after_low - 创新低后几日不在破位
+            max_grow_after_low - 创新低后最多反弹了多少
+            safe_zone_start - 跌多少以后才触发这个策略
+            safe_zone_width - 安全区域大宽度 从起点开始最多跌多少，防止那种跌吐血的
+
+            early_stop_win_rate - 吃到大红后提前止盈
             stop_win_rate - 止盈比率多少    since ideal lowest
             stop_loss_rate- 止损比率是多少  since bought price
+
     '''
 
     def __init__(self,dataset=None):
         self.settings_range = [
-            {"max_holding_days" :   [3,15,1]},
-            {"min_days_after_high" :[1,10,1]},
-            {"min_days_high" :      [3,25,1]},
-            {"max_droprate_after_high" : [1,10,0.5]},
-            {"max_safe_zone" :      [0.35,1,0.05]},
+            {"max_holding_days" :   [1,15,1]},
+            {"min_days_low" :       [5,90,1]},
+            {"min_days_after_low" : [3,25,1]},
+            {"max_grow_after_low" : [1,10,0.5]},
+            {"safe_zone_start" :    [15,60,5]},
+            {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
             {"stop_win_rate" :      [1,25,0.5]},
             {"stop_loss_rate" :     [-10,1,0.5]}

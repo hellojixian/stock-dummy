@@ -24,7 +24,6 @@ class strategy(object):
         self.stop_lossing = None
         self.max_holding_days = None
         self.training_set = None
-        self.validation_set = None
 
         self.current_settings = None
         self.current_settings_id = None
@@ -103,11 +102,14 @@ class strategy(object):
 
     def evaluate_dna(self,DNA):
         setting = self.parseDNA(DNA)
-        scores = []
-        for dataset in self.training_set:
-            report = self.backtest(dataset, setting)
-            scores.append(report['score'])
-        return np.mean(scores)
+        return self.backtest(self.training_set, setting)['score']
+
+        # 下面代码是在多组训练数据中取平均值的
+        # scores = []
+        # for dataset in self.training_set:
+        #     report = self.backtest(dataset, setting)
+        #     scores.append(report['score'])
+        # return np.mean(scores)
 
     def parseDNA(self, DNA):
         setting = {}
@@ -118,17 +120,16 @@ class strategy(object):
             i+=1
         return setting
 
-    def evolve(self,training_set,validation_set=None):
+    def evolve(self,training_set):
         # 生成一批新的DNA，然后逐个回测，保留最优解
         improving=0
         self.training_set = training_set
-        self.validation_set = validation_set
         self.kill_bad(self.make_kids())
 
         new_settings = self.parseDNA(self.pop[-1])
-        new_result = self.backtest(training_set[0], new_settings)
+        new_result = self.backtest(training_set, new_settings)
         if self.latest_best_settings is not None:
-            old_result = self.backtest(training_set[0], self.latest_best_settings)
+            old_result = self.backtest(training_set, self.latest_best_settings)
             improving = new_result['score'] - old_result['score']
         else:
             improving = new_result['score']
@@ -172,13 +173,65 @@ class strategy(object):
         print("="*LINE_WIDTH)
         return True
 
-    def should_buy(dataset):
+    def should_buy(self, subset, new_settings=None):
         decision = False
+        # loop existing knowledge base
+        for kb_id in self.knowledge_base:
+            settings = self.knowledge_base[kb_id]
+            decision = self.test_buy_setting(subset, settings, kb_id)
+            if decision == True: return decision
+
+        # try the new setting
+        if decision == False:
+            settings = new_settings
+            decision = self.test_buy_setting(subset, settings)
+            return decision
+
         return decision
 
-    def should_sell(self, dataset):
+    def should_sell(self, subset):
+        if self.forbidden_sell(subset): return False
         decision = False
+        settings = self.current_settings
+
+        close = subset['close'].iloc[-1]
+        last_close = subset['close'].iloc[-2]
+        change = (close - last_close) / last_close
+
+        max_holding_days = int(settings['max_holding_days'])
+        early_stop_win_rate = settings['early_stop_win_rate']
+        if close >= self.stop_winning:
+            decision = True
+        elif close <= self.stop_lossing:
+            decision = True
+        elif change >= early_stop_win_rate:
+            decision = True
+        elif self.holding_days >= max_holding_days:
+            decision = True
+
+        if decision == True:
+            self.stop_winning = None
+            self.stop_lossing = None
         return decision
+
+    def forbidden_buy(self, subset):
+        change = (subset['close'].iloc[-1] - subset['close'].iloc[-2]) \
+                 / subset['close'].iloc[-2]
+
+        # 涨停禁止买入
+        if change>=0.092 \
+            or (change>=0.045 and change<=0.055) :
+            return True
+        return False
+
+    def forbidden_sell(self, subset):
+        change = (subset['close'].iloc[-1] - subset['close'].iloc[-2]) \
+                / subset['close'].iloc[-2]
+        # 跌停禁止卖出
+        if change<=-0.092 \
+            or (change<=-0.045 and change>=-0.055) :
+            return True
+        return False
 
     def load(self):
         if os.path.isfile(self.settings_filename):

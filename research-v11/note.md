@@ -4,7 +4,7 @@
 
 学到什么时候停止， 按胜率最高优化
 
-卡住5步
+如果卡住5步
   if 并且胜率大约70%
     save knowledge
     re-init random DNA

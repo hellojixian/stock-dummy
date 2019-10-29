@@ -46,7 +46,6 @@ class ZhuiZhangStrategy(strategy):
             close = subset['close'].iloc[-1]
             last_close = subset['close'].iloc[-2]
             change = (close - last_close) / last_close
-            settings['kb_id'] = setting_id
 
             # 初始化临时记忆
             if setting_id not in self.knowledge_mem:
@@ -95,6 +94,7 @@ class ZhuiZhangStrategy(strategy):
                 # after made decision, clear short term memory
                 self.knowledge_mem = {}
                 self.current_settings = settings
+                self.current_settings_id = setting_id
             return decision
 
         decision = False

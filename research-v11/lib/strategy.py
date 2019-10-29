@@ -208,15 +208,17 @@ class strategy(object):
                 self.holding_days += 1
                 if self.should_sell(subset):
                     stat = {
-                        'bought_date':self.bought_date,
-                        'sold_date':date,
+                        'bought_date': self.bought_date,
+                        'sold_date': date,
                         'holding_days':  self.holding_days,
-                        'session_profit': (close-self.bought_price)/self.bought_price
+                        'session_profit': (close-self.bought_price)/self.bought_price,
+                        'kb_id': self.current_settings['kb_id']
                     }
                     self.bought_price = 0
                     self.fund += self.bought_amount*close
                     self.bought_amount = 0
                     self.bought_date = None
+                    self.current_settings = None
                     self.holding_days = 0
                     sessions = sessions.append(pd.Series(stat),ignore_index=True)
 
@@ -231,23 +233,41 @@ class strategy(object):
         self.fund += self.bought_amount*close
         self.bought_amount = 0
 
+
         win_rate, profit,profit_per_day,profit_per_session,holding_days=0,0,0,0,0
         baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
         if sessions.shape[0]>0:
             profit = (self.fund - self.init_fund) / self.init_fund
             win_rate = sessions[sessions.eval('session_profit>0')].shape[0] / sessions.shape[0]
             holding_days = sessions['holding_days'].sum()
-            profit_per_day = profit / holding_days
-            profit_per_session = profit / sessions.shape[0]
 
-        report = {  "win_rate": win_rate,
-                    "profit": profit,
-                    "baseline_profit": baseline_profit,
-                    "sessions": sessions.shape[0],
-                    "profit_per_day": profit_per_day,
-                    "profit_per_session": profit_per_session,
-                    "trading_days": dataset.shape[0],
-                    "holding_days": holding_days,
-                    "score": profit * win_rate }
+            ns_sessions = sessions[sessions.eval('kb_id=="_"')]
+            new_strategy_profit = 1
+            for _, row in ns_sessions.iterrows():
+                new_strategy_profit *= (1+row['session_profit'])
+
+            new_strategy_profit = new_strategy_profit - 1
+            new_strategy_win_rate = ns_sessions[ns_sessions.eval('session_profit>0')].shape[0] / ns_sessions.shape[0]
+            new_strategy_holding_days = ns_sessions['holding_days'].sum()
+
+        report = {  "baseline":{
+                        "baseline_profit": baseline_profit,
+                        "trading_days": dataset.shape[0],
+                    },
+                    "overall":{
+                        "sessions": sessions.shape[0],
+                        "win_rate": win_rate,
+                        "profit": profit,
+                        "holding_days": holding_days,
+                    },
+                    "new_strategy":{
+                        "sessions": ns_sessions.shape[0],
+                        "win_rate": new_strategy_win_rate,
+                        "profit": new_strategy_profit,
+                        "holding_days": new_strategy_holding_days,
+                    },
+                    "score": new_strategy_profit * new_strategy_win_rate
+                }
+
 
         return report

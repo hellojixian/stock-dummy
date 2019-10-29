@@ -9,7 +9,10 @@ import pprint
 from lib.strategies.ZhuiZhangStrategy import ZhuiZhangStrategy
 
 np.random.seed(10)
-
+# set output
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
 '''
 每种策略应该都对应自己的风险控制，由于买入原则不同 风险控制机制也应该不同

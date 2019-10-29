@@ -25,7 +25,7 @@ class FanTanStrategy(strategy):
     def __init__(self,dataset=None):
         self.settings_range = [
             {"max_holding_days" :   [1,15,1]},
-            {"min_days_low" :       [5,90,5]},
+            {"min_days_low" :       [5,120,5]},
             {"min_days_after_low" : [0,5,1]},
             {"max_grow_after_low" : [1,10,0.5]},
             {"safe_zone_start" :    [5,50,5]},

@@ -291,7 +291,7 @@ class strategy(object):
                     self.bought_amount = int(self.fund / (close *100))*100
                     self.fund -= self.bought_amount * close
 
-        self.fund += self.bought_amount*close
+        self.fund += self.bought_amount * dataset['close'].iloc[-1]
         self.bought_amount = 0
 
 

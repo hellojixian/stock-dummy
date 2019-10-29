@@ -33,8 +33,8 @@ class FanTanStrategy(strategy):
             {"safe_zone_start" :    [5,50,5]},
             {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
-            {"stop_win_rate" :      [1,25,0.5]},
-            {"stop_loss_rate" :     [-10,1,0.5]}
+            {"stop_win_rate" :      [1,35,0.5]},
+            {"stop_loss_rate" :     [-15,1,0.5]}
         ]
         self.lookback_size = 90
         super().__init__()

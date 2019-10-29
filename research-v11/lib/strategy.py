@@ -153,7 +153,7 @@ class strategy(object):
                 print("Adjusted POP_SIZE to {}".format(self.pop_size))
             else:
                 # save last best settings into knowledge base
-                if new_result['new_strategy']['win_rate']>= MIN_WIN_RATE:
+                if new_result['new_strategy']['win_rate']>0:
                     kb_id = str(uuid.uuid4())
                     self.knowledge_base[kb_id] = self.latest_best_settings.copy()
                     self.save()
@@ -246,12 +246,14 @@ class strategy(object):
             holding_days = sessions['holding_days'].sum()
 
             ns_sessions = sessions[sessions.eval('kb_id=="_"')]
-            new_strategy_profit = 1
-            for _, row in ns_sessions.iterrows():
-                new_strategy_profit *= (1+row['session_profit'])
-            new_strategy_profit = new_strategy_profit - 1
-            new_strategy_win_rate = ns_sessions[ns_sessions.eval('session_profit>0')].shape[0] / ns_sessions.shape[0]
-            new_strategy_holding_days = ns_sessions['holding_days'].sum()
+            new_strategy_profit,new_strategy_win_rate,new_strategy_holding_days=0,0,0
+            if ns_sessions.shape[0]>0:
+                new_strategy_profit = 1
+                for _, row in ns_sessions.iterrows():
+                    new_strategy_profit *= (1+row['session_profit'])
+                new_strategy_profit = new_strategy_profit - 1
+                new_strategy_win_rate = ns_sessions[ns_sessions.eval('session_profit>0')].shape[0] / ns_sessions.shape[0]
+                new_strategy_holding_days = ns_sessions['holding_days'].sum()
 
         report = {  "baseline":{
                         "baseline_profit": baseline_profit,

@@ -14,7 +14,7 @@ NEW_KIDS = 60
 MUT_STRENGTH = 6
 MIN_WIN_RATE = 0.7
 
-STRATEGY_MIN_SESSIONS = 2 #策略最少匹配几次交易
+STRATEGY_MIN_rounds = 2 #策略最少匹配几次交易
 LINE_WIDTH=100
 
 class strategy(object):
@@ -124,6 +124,8 @@ class strategy(object):
         # 生成一批新的DNA，然后逐个回测，保留最优解
         improving=0
         self.training_set = training_set
+        # pre-precess data with existing knowledge before evolve it
+        
         self.kill_bad(self.make_kids())
 
         new_settings = self.parseDNA(self.pop[-1])
@@ -146,6 +148,8 @@ class strategy(object):
             self.pop_size = POP_SIZE
             self.n_kids = NEW_KIDS
             self.mut_strength = MUT_STRENGTH
+            if self.should_save_knowledge(new_result):
+                self.save_knowledge()
         else:
             # adjust pop seetings
             if self.pop_size < MAX_POP_SIZE:
@@ -155,23 +159,36 @@ class strategy(object):
                 print("Adjusted POP_SIZE to {}".format(self.pop_size))
             else:
                 # save last best settings into knowledge base
-                if new_result['new_strategy']['sessions']>0:
-                    kb_id = str(uuid.uuid4())
-                    self.knowledge_base[kb_id] = self.latest_best_settings.copy()
-                    self.save()
-                    self.latest_best_settings = None
-                    self.pop_size = POP_SIZE
-                    self.n_kids = NEW_KIDS
-                    self.mut_strength = MUT_STRENGTH
-                    self.pop = self.gen_DNAset()
-                    print("Knowledge base updated:  {} items".format(len(self.knowledge_base.keys())))
+                if new_result['new_strategy']['rounds']>0 \
+                    and new_result['new_strategy']['win_rate']>=0.7:
+                    self.save_knowledge()
                 else:
                     print('Early stop learning')
                     return False
 
-
         print("="*LINE_WIDTH)
         return True
+
+    def should_save_knowledge(self,result):
+        decision = False
+        node = result['new_strategy']
+        if node['win_rate']==1 and node['rounds']>=2:
+            decision = True
+        if node['rounds']>0 and node['profit']/node['rounds']>0.1:
+            decision = True
+        return decision
+
+    def save_knowledge(self):
+        kb_id = str(uuid.uuid4())
+        self.knowledge_base[kb_id] = self.latest_best_settings.copy()
+        self.save()
+        self.latest_best_settings = None
+        self.pop_size = POP_SIZE
+        self.n_kids = NEW_KIDS
+        self.mut_strength = MUT_STRENGTH
+        self.pop = self.gen_DNAset()
+        print("Knowledge base updated:  {} items".format(len(self.knowledge_base.keys())))
+        return
 
     def should_buy(self, subset, new_settings=None):
         decision = False
@@ -199,12 +216,15 @@ class strategy(object):
         change = (close - last_close) / last_close
 
         max_holding_days = int(settings['max_holding_days'])
-        early_stop_win_rate = settings['early_stop_win_rate']
+        early_stop_win_rate = settings['early_stop_win_rate']*0.01
+        early_stop_lose_rate = settings['early_stop_win_rate']*0.01
         if close >= self.stop_winning:
             decision = True
         elif close <= self.stop_lossing:
             decision = True
         elif change >= early_stop_win_rate:
+            decision = True
+        elif change <= early_stop_lose_rate:
             decision = True
         elif self.holding_days >= max_holding_days:
             decision = True
@@ -257,7 +277,12 @@ class strategy(object):
 
     def backtest(self, dataset, settings=None):
         self.fund = self.init_fund
-        sessions = pd.DataFrame()
+
+        # pre-process data with existing knowledge
+        if len(self.knowledge_base)>0:
+            pass
+
+        rounds = pd.DataFrame()
         for i in range(dataset.shape[0]):
             if i<=self.lookback_size: continue
             subset = dataset.iloc[(i-self.lookback_size):i]
@@ -281,7 +306,7 @@ class strategy(object):
                     self.current_settings = None
                     self.current_settings_id = None
                     self.holding_days = 0
-                    sessions = sessions.append(pd.Series(stat),ignore_index=True)
+                    rounds = rounds.append(pd.Series(stat),ignore_index=True)
 
             if self.bought_amount == 0:
                 if self.should_buy(subset, settings):
@@ -299,38 +324,38 @@ class strategy(object):
         new_strategy_profit,new_strategy_win_rate, \
         new_strategy_holding_days,new_strategy_session_count=0,0,0,0
         baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
-        if sessions.shape[0]>0:
+        if rounds.shape[0]>0:
             profit = (self.fund - self.init_fund) / self.init_fund
-            win_rate = sessions[sessions.eval('session_profit>0')].shape[0] / sessions.shape[0]
-            holding_days = sessions['holding_days'].sum()
+            win_rate = rounds[rounds.eval('session_profit>0')].shape[0] / rounds.shape[0]
+            holding_days = rounds['holding_days'].sum()
 
-            ns_sessions = sessions[sessions.eval('kb_id=="_"')]
-            if ns_sessions.shape[0]>=STRATEGY_MIN_SESSIONS:
+            ns_rounds = rounds[rounds.eval('kb_id=="_"')]
+            if ns_rounds.shape[0]>=STRATEGY_MIN_rounds:
                 new_strategy_profit = 1
-                for _, row in ns_sessions.iterrows():
+                for _, row in ns_rounds.iterrows():
                     new_strategy_profit *= (1+row['session_profit'])
                 new_strategy_profit = new_strategy_profit - 1
-                new_strategy_win_rate = ns_sessions[ns_sessions.eval('session_profit>0')].shape[0] / ns_sessions.shape[0]
-                new_strategy_holding_days = ns_sessions['holding_days'].sum()
-                new_strategy_session_count = ns_sessions.shape[0]
+                new_strategy_win_rate = ns_rounds[ns_rounds.eval('session_profit>0')].shape[0] / ns_rounds.shape[0]
+                new_strategy_holding_days = ns_rounds['holding_days'].sum()
+                new_strategy_session_count = ns_rounds.shape[0]
 
         report = {  "baseline":{
                         "baseline_profit": baseline_profit,
                         "trading_days": dataset.shape[0],
                     },
                     "overall":{
-                        "sessions": sessions.shape[0],
+                        "rounds": rounds.shape[0],
                         "win_rate": win_rate,
                         "profit": profit,
                         "holding_days": holding_days,
                     },
                     "new_strategy":{
-                        "sessions": new_strategy_session_count,
+                        "rounds": new_strategy_session_count,
                         "win_rate": new_strategy_win_rate,
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*3 + new_strategy_profit + new_strategy_session_count/100
+                    "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_session_count/100
                 }
 
 

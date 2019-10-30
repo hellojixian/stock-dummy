@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import math, sys, os, glob
 
-np.random.seed(3)
+np.random.seed(11)
 
 def fetch_dataset():
     dataset = []
@@ -18,4 +18,7 @@ def fetch_dataset():
     history = history.sort_values(by=['date'])
     dataset = history[500:1000]
     assert(dataset.shape[0]>0)
+
+    print("File: {} \t ({} recs)".format(selected_files[0], history.shape[0]))
+    print("From: {}\nTo: {}".format(dataset['date'].iloc[0],dataset['date'].iloc[-1]))
     return dataset

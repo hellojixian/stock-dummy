@@ -202,14 +202,21 @@ class strategy(object):
         early_stop_win_rate = settings['early_stop_win_rate']*0.01
         early_stop_lose_rate = settings['early_stop_win_rate']*0.01
         if close >= self.stop_winning:
+            self.sell_reason = 'stop_winning'
             decision = True
         elif close <= self.stop_lossing:
+            profit = (close - self.bought_price )/self.bought_price
+            self.sell_reason = 'stop_lossing'
+            assert(profit<0)
             decision = True
         elif grow_from_low_after_bought >= early_stop_win_rate:
+            self.sell_reason = 'early_stop_win'
             decision = True
         elif drop_from_high_after_bought <= early_stop_lose_rate:
+            self.sell_reason = 'early_stop_lose'
             decision = True
         elif self.holding_days >= max_holding_days:
+            self.sell_reason = 'max_holding_days_exceed'
             decision = True
 
         if decision == True:
@@ -286,6 +293,7 @@ class strategy(object):
                         stat = {
                             'bought_date': self.bought_date,
                             'sold_date': date,
+                            'sold_reason': self.sell_reason,
                             'holding_days':  self.holding_days,
                             'round_profit': (close-self.bought_price)/self.bought_price,
                             'kb_id': self.current_settings_id
@@ -298,6 +306,7 @@ class strategy(object):
                         self.fund += self.bought_amount*close
                         self.bought_amount = 0
                         self.bought_date = None
+                        self.sell_reason = None
                         self.current_settings = None
                         self.current_settings_id = None
                         self.holding_days = 0
@@ -346,6 +355,7 @@ class strategy(object):
                     stat = {
                         'bought_date': self.bought_date,
                         'sold_date': date,
+                        'sold_reason': self.sell_reason,
                         'holding_days':  self.holding_days,
                         'round_profit': (close-self.bought_price)/self.bought_price,
                         'kb_id': self.current_settings_id
@@ -356,6 +366,7 @@ class strategy(object):
                     self.fund += self.bought_amount*close
                     self.bought_amount = 0
                     self.bought_date = None
+                    self.sell_reason = None
                     self.current_settings = None
                     self.current_settings_id = None
                     self.holding_days = 0

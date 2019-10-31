@@ -80,7 +80,7 @@ class ZhuiZhangStrategy(strategy):
                 stop_win_rate = settings['stop_win_rate']
                 stop_loss_rate = settings['stop_loss_rate']
                 self.stop_winning = close*(1+stop_win_rate*0.01)
-                self.stop_lossing = close*(1-stop_loss_rate*0.01)
+                self.stop_lossing = close*(1+stop_loss_rate*0.01)
 
         # reset state
         if decision == True:

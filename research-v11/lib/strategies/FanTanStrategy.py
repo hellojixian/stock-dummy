@@ -31,9 +31,9 @@ class FanTanStrategy(strategy):
             {"safe_zone_start" :    [5,50,5]},
             {"safe_zone_width" :    [1,60,5]},
             {"early_stop_win_rate": [1.5,9.5,0.25]},
-            {"early_stop_lose_rate": [-9.5,-1,0.5]},            
+            {"early_stop_lose_rate": [-9.5,-1,0.5]},
             {"stop_win_rate" :      [1,25,0.5]},
-            {"stop_loss_rate" :     [-10,1,0.5]}
+            {"stop_loss_rate" :     [-15,-1,0.5]}
         ]
         self.lookback_size = 90
         super().__init__()
@@ -87,7 +87,7 @@ class FanTanStrategy(strategy):
                 stop_win_rate = settings['stop_win_rate']
                 stop_loss_rate = settings['stop_loss_rate']
                 self.stop_winning = close*(1+stop_win_rate*0.01)
-                self.stop_lossing = close*(1-stop_loss_rate*0.01)
+                self.stop_lossing = close*(1+stop_loss_rate*0.01)
 
         # reset state
         if decision == True:

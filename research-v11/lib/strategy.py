@@ -284,6 +284,7 @@ class strategy(object):
                             'kb_id': self.current_settings_id
                         }
                         dataset.loc[idx,'round_profit'] = stat['round_profit']
+                        dataset.loc[idx,'covered'] = 0
                         self.bought_price = 0
                         self.fund += self.bought_amount*close
                         self.bought_amount = 0

@@ -102,14 +102,7 @@ class strategy(object):
 
     def evaluate_dna(self,DNA):
         setting = self.parseDNA(DNA)
-        return self.backtest(self.training_set, setting)['score']
-
-        # 下面代码是在多组训练数据中取平均值的
-        # scores = []
-        # for dataset in self.training_set:
-        #     report = self.backtest(dataset, setting)
-        #     scores.append(report['score'])
-        # return np.mean(scores)
+        return self.backtest(setting)['score']
 
     def parseDNA(self, DNA):
         setting = {}
@@ -123,15 +116,15 @@ class strategy(object):
     def evolve(self,training_set):
         # 生成一批新的DNA，然后逐个回测，保留最优解
         improving=0
-        self.training_set = training_set
-        # pre-precess data with existing knowledge before evolve it
-        
+        # pre-process data with existing knowledge before evolve it
+        self.training_set = self.preprocess_dataset(training_set)
+
         self.kill_bad(self.make_kids())
 
         new_settings = self.parseDNA(self.pop[-1])
-        new_result = self.backtest(training_set, new_settings)
+        new_result = self.backtest(new_settings)
         if self.latest_best_settings is not None:
-            old_result = self.backtest(training_set, self.latest_best_settings)
+            old_result = self.backtest(self.latest_best_settings)
             improving = new_result['score'] - old_result['score']
         else:
             improving = new_result['score']
@@ -191,20 +184,7 @@ class strategy(object):
         return
 
     def should_buy(self, subset, new_settings=None):
-        decision = False
-        # loop existing knowledge base
-        for kb_id in self.knowledge_base:
-            settings = self.knowledge_base[kb_id]
-            decision = self.test_buy_setting(subset, settings, kb_id)
-            if decision == True: return decision
-
-        # try the new setting
-        if decision == False:
-            settings = new_settings
-            decision = self.test_buy_setting(subset, settings)
-            return decision
-
-        return decision
+        return self.test_buy_setting(subset, new_settings)
 
     def should_sell(self, subset):
         if self.forbidden_sell(subset): return False
@@ -275,19 +255,74 @@ class strategy(object):
             json.dump(data, outfile, indent=2)
         return
 
-    def backtest(self, dataset, settings=None):
+    # pre-process data with existing knowledge before evolve it
+    def preprocess_dataset(self, dataset):
+        self.fund = self.init_fund
+        dataset['covered'] = 0
+        dataset['round_profit'] = 0
+        self.rounds = pd.DataFrame()
+        if len(self.knowledge_base)>0:
+            for i in range(dataset.shape[0]):
+                if i<=self.lookback_size: continue
+                idx = dataset.index[i]
+                subset = dataset.iloc[(i-self.lookback_size):i]
+                close = subset['close'].iloc[-1]
+                date = subset['date'].iloc[-1]
+
+                # update fund
+                dataset.loc[idx,'round_profit'] = 0
+                if self.bought_amount > 0:
+                    self.holding_days += 1
+                    # mark covered date
+                    dataset.loc[idx,'covered'] = 1
+                    if self.should_sell(subset):
+                        stat = {
+                            'bought_date': self.bought_date,
+                            'sold_date': date,
+                            'holding_days':  self.holding_days,
+                            'round_profit': (close-self.bought_price)/self.bought_price,
+                            'kb_id': self.current_settings_id
+                        }
+                        dataset.loc[idx,'round_profit'] = stat['round_profit']
+                        self.bought_price = 0
+                        self.fund += self.bought_amount*close
+                        self.bought_amount = 0
+                        self.bought_date = None
+                        self.current_settings = None
+                        self.current_settings_id = None
+                        self.holding_days = 0
+                        self.rounds = self.rounds.append(pd.Series(stat),ignore_index=True)
+
+                if self.bought_amount == 0:
+                    for kb_id in self.knowledge_base:
+                        settings = self.knowledge_base[kb_id]
+                        if self.should_buy(subset, settings):
+                            dataset.loc[idx,'covered'] = 1
+                            self.bought_date = date
+                            self.bought_price = close
+                            self.holding_days = 0
+                            self.bought_amount = int(self.fund / (close *100))*100
+                            self.fund -= self.bought_amount * close
+                            break
+
+            self.fund += self.bought_amount * dataset['close'].iloc[-1]
+            self.bought_amount = 0
+        return dataset
+
+    def backtest(self, settings=None):
         self.fund = self.init_fund
 
-        # pre-process data with existing knowledge
-        if len(self.knowledge_base)>0:
-            pass
-
-        rounds = pd.DataFrame()
-        for i in range(dataset.shape[0]):
+        rounds = self.rounds
+        for i in range(self.training_set.shape[0]):
             if i<=self.lookback_size: continue
-            subset = dataset.iloc[(i-self.lookback_size):i]
+            subset = self.training_set.iloc[(i-self.lookback_size):i]
             close = subset['close'].iloc[-1]
             date = subset['date'].iloc[-1]
+
+            if subset['round_profit'].iloc[-1]!=0:
+                self.fund*=(1+subset['round_profit'].iloc[-1])
+                
+            if subset['covered'].iloc[-1] == 1: continue
 
             if self.bought_amount > 0:
                 self.holding_days += 1
@@ -296,7 +331,7 @@ class strategy(object):
                         'bought_date': self.bought_date,
                         'sold_date': date,
                         'holding_days':  self.holding_days,
-                        'session_profit': (close-self.bought_price)/self.bought_price,
+                        'round_profit': (close-self.bought_price)/self.bought_price,
                         'kb_id': self.current_settings_id
                     }
                     self.bought_price = 0
@@ -316,32 +351,32 @@ class strategy(object):
                     self.bought_amount = int(self.fund / (close *100))*100
                     self.fund -= self.bought_amount * close
 
-        self.fund += self.bought_amount * dataset['close'].iloc[-1]
+        self.fund += self.bought_amount * self.training_set['close'].iloc[-1]
         self.bought_amount = 0
 
 
-        win_rate, profit,profit_per_day,profit_per_session,holding_days=0,0,0,0,0
+        win_rate, profit,profit_per_day,profit_per_round,holding_days=0,0,0,0,0
         new_strategy_profit,new_strategy_win_rate, \
-        new_strategy_holding_days,new_strategy_session_count=0,0,0,0
-        baseline_profit = (dataset['close'].iloc[-1] - dataset['close'].iloc[self.lookback_size] )/ dataset['close'].iloc[self.lookback_size]
+        new_strategy_holding_days,new_strategy_round_count=0,0,0,0
+        baseline_profit = (self.training_set['close'].iloc[-1] - self.training_set['close'].iloc[self.lookback_size] )/ self.training_set['close'].iloc[self.lookback_size]
         if rounds.shape[0]>0:
             profit = (self.fund - self.init_fund) / self.init_fund
-            win_rate = rounds[rounds.eval('session_profit>0')].shape[0] / rounds.shape[0]
+            win_rate = rounds[rounds.eval('round_profit>0')].shape[0] / rounds.shape[0]
             holding_days = rounds['holding_days'].sum()
 
             ns_rounds = rounds[rounds.eval('kb_id=="_"')]
             if ns_rounds.shape[0]>=STRATEGY_MIN_rounds:
                 new_strategy_profit = 1
                 for _, row in ns_rounds.iterrows():
-                    new_strategy_profit *= (1+row['session_profit'])
+                    new_strategy_profit *= (1+row['round_profit'])
                 new_strategy_profit = new_strategy_profit - 1
-                new_strategy_win_rate = ns_rounds[ns_rounds.eval('session_profit>0')].shape[0] / ns_rounds.shape[0]
+                new_strategy_win_rate = ns_rounds[ns_rounds.eval('round_profit>0')].shape[0] / ns_rounds.shape[0]
                 new_strategy_holding_days = ns_rounds['holding_days'].sum()
-                new_strategy_session_count = ns_rounds.shape[0]
+                new_strategy_round_count = ns_rounds.shape[0]
 
         report = {  "baseline":{
                         "baseline_profit": baseline_profit,
-                        "trading_days": dataset.shape[0],
+                        "trading_days": self.training_set.shape[0],
                     },
                     "overall":{
                         "rounds": rounds.shape[0],
@@ -350,12 +385,12 @@ class strategy(object):
                         "holding_days": holding_days,
                     },
                     "new_strategy":{
-                        "rounds": new_strategy_session_count,
+                        "rounds": new_strategy_round_count,
                         "win_rate": new_strategy_win_rate,
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
-                    "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_session_count/100
+                    "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_round_count/100
                 }
 
 

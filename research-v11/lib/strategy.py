@@ -296,7 +296,7 @@ class strategy(object):
                 if self.bought_amount == 0:
                     for kb_id in self.knowledge_base:
                         settings = self.knowledge_base[kb_id]
-                        if self.should_buy(subset, settings):
+                        if self.test_buy_setting(subset, settings, kb_id):
                             dataset.loc[idx,'covered'] = 1
                             self.bought_date = date
                             self.bought_price = close
@@ -321,7 +321,7 @@ class strategy(object):
 
             if subset['round_profit'].iloc[-1]!=0:
                 self.fund*=(1+subset['round_profit'].iloc[-1])
-                
+
             if subset['covered'].iloc[-1] == 1: continue
 
             if self.bought_amount > 0:

@@ -275,6 +275,10 @@ class strategy(object):
                 dataset.loc[idx,'round_profit'] = 0
                 if self.bought_amount > 0:
                     self.holding_days += 1
+                    if close > self.highest_price_after_bought:
+                        self.highest_price_after_bought = close
+                    if close < self.lowset_price_after_bought:
+                        self.lowset_price_after_bought = close
                     # mark covered date
                     dataset.loc[idx,'covered'] = 1
                     if self.should_sell(subset):
@@ -289,6 +293,7 @@ class strategy(object):
                         dataset.loc[idx,'covered'] = 0
                         self.bought_price = 0
                         self.highest_price_after_bought = 0
+                        self.lowset_price_after_bought = 0
                         self.fund += self.bought_amount*close
                         self.bought_amount = 0
                         self.bought_date = None
@@ -305,6 +310,7 @@ class strategy(object):
                             self.bought_date = date
                             self.bought_price = close
                             self.highest_price_after_bought = close
+                            self.lowset_price_after_bought = close
                             self.holding_days = 0
                             self.bought_amount = int(self.fund / (close *100))*100
                             self.fund -= self.bought_amount * close
@@ -333,6 +339,8 @@ class strategy(object):
                 self.holding_days += 1
                 if close > self.highest_price_after_bought:
                     self.highest_price_after_bought = close
+                if close < self.lowset_price_after_bought:
+                    self.lowset_price_after_bought = close
                 if self.should_sell(subset):
                     stat = {
                         'bought_date': self.bought_date,
@@ -343,6 +351,7 @@ class strategy(object):
                     }
                     self.bought_price = 0
                     self.highest_price_after_bought = 0
+                    self.lowset_price_after_bought = 0
                     self.fund += self.bought_amount*close
                     self.bought_amount = 0
                     self.bought_date = None
@@ -356,6 +365,7 @@ class strategy(object):
                     self.bought_date = date
                     self.bought_price = close
                     self.highest_price_after_bought = close
+                    self.lowset_price_after_bought = close
                     self.holding_days = 0
                     self.bought_amount = int(self.fund / (close *100))*100
                     self.fund -= self.bought_amount * close

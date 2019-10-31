@@ -432,6 +432,6 @@ class strategy(object):
                 }
 
         # 100% is overfitting
-        if new_strategy_win_rate==1: report['score']=0
+        # if new_strategy_win_rate==1: report['score']=0
         # print(rounds)
         return report

@@ -278,10 +278,11 @@ class strategy(object):
         if len(self.knowledge_base)>0:
             for i in range(dataset.shape[0]):
                 if i<=self.lookback_size: continue
-                idx = dataset.index[i]
+
                 subset = dataset.iloc[(i-self.lookback_size):i]
                 close = subset['close'].iloc[-1]
                 date = subset['date'].iloc[-1]
+                idx = subset.index[-1]
 
                 # update fund
                 dataset.loc[idx,'round_profit'] = 0
@@ -336,8 +337,7 @@ class strategy(object):
 
     def backtest(self, settings=None):
         self.fund = self.init_fund
-
-        rounds = self.rounds
+        rounds = self.rounds.copy()
         for i in range(self.training_set.shape[0]):
             if i<=self.lookback_size: continue
             subset = self.training_set.iloc[(i-self.lookback_size):i]
@@ -347,7 +347,8 @@ class strategy(object):
             if subset['round_profit'].iloc[-1]!=0:
                 self.fund*=(1+subset['round_profit'].iloc[-1])
 
-            if subset['covered'].iloc[-1] == 1: continue
+            if subset['covered'].iloc[-1] == 1:
+                continue
 
             if self.bought_amount > 0:
                 self.holding_days += 1
@@ -408,6 +409,7 @@ class strategy(object):
                 new_strategy_win_rate = ns_rounds[ns_rounds.eval('round_profit>0')].shape[0] / ns_rounds.shape[0]
                 new_strategy_holding_days = ns_rounds['holding_days'].sum()
                 new_strategy_round_count = ns_rounds.shape[0]
+            rounds = rounds.sort_values(by=['bought_date'], ascending=True)
 
         report = {  "baseline":{
                         "baseline_profit": baseline_profit,

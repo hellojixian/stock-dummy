@@ -165,7 +165,7 @@ class strategy(object):
     def should_save_knowledge(self,result):
         decision = False
         node = result['new_strategy']
-        if node['win_rate']==1 and node['rounds']>=2:
+        if node['win_rate']<1 and node['win_rate']>=0.7 and node['rounds']>4:
             decision = True
         if node['rounds']>0 and node['profit']/node['rounds']>0.1:
             decision = True
@@ -394,5 +394,7 @@ class strategy(object):
                     "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_round_count/100
                 }
 
+        # 100% is overfitting
+        if new_strategy_win_rate==1: report['score']=0
 
         return report

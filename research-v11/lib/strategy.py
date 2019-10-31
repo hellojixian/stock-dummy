@@ -129,10 +129,12 @@ class strategy(object):
         else:
             improving = new_result['score']
 
-        self.rounds = self.rounds[['kb_id','bought_date','sold_date','holding_days','round_profit','sold_reason']]
+        rounds = new_result['rounds'].copy()
+        del new_result['rounds']
+        rounds = rounds[['kb_id','bought_date','sold_date','holding_days','round_profit','sold_reason']]
         print("Trading transcations:")
         print("-"*LINE_WIDTH)
-        print(self.rounds)
+        print(rounds)
         print("-"*LINE_WIDTH)
 
         pprint.pprint({
@@ -433,6 +435,7 @@ class strategy(object):
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
+                    "rounds": rounds,
                     "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_round_count/100
                 }
 

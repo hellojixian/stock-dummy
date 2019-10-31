@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 import argparse
+import numpy as np
 
 from lib.datasource import fetch_dataset
 from lib.strategies import strategies
+
+np.random.seed(10)
 
 DEFAULT_STRATEGY = 'fantan'
 parser = argparse.ArgumentParser(description='Strategy Algorithm Traininer')
 parser.add_argument('--strategy', '-s',
                     help='The strategy will be evolved ',
                     default=DEFAULT_STRATEGY)
+parser.add_argument('--datasource', '-d',
+                    help='Data source ID',
+                    default=1)
 args = parser.parse_args()
 
 strategy = strategies[args.strategy]()
-dataset = fetch_dataset()
+dataset = fetch_dataset(args.datasource)
 print("Dataset loaded: {} records".format(dataset.shape[0]))
 
 for i in range(100):

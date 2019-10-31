@@ -201,20 +201,24 @@ class strategy(object):
         max_holding_days = int(settings['max_holding_days'])
         early_stop_win_rate = settings['early_stop_win_rate']*0.01
         early_stop_lose_rate = settings['early_stop_win_rate']*0.01
+
+        profit = (close - self.bought_price )/self.bought_price
+
         if close >= self.stop_winning:
             self.sell_reason = 'stop_winning'
             decision = True
         elif close <= self.stop_lossing:
-            profit = (close - self.bought_price )/self.bought_price
             self.sell_reason = 'stop_lossing'
             assert(profit<0)
             decision = True
         elif grow_from_low_after_bought >= early_stop_win_rate:
-            self.sell_reason = 'early_stop_win'
-            decision = True
+            if profit>0:
+                self.sell_reason = 'early_stop_win'
+                decision = True
         elif drop_from_high_after_bought <= early_stop_lose_rate:
-            self.sell_reason = 'early_stop_lose'
-            decision = True
+            if profit>0:
+                self.sell_reason = 'early_stop_lose'
+                decision = True
         elif self.holding_days >= max_holding_days:
             self.sell_reason = 'max_holding_days_exceed'
             decision = True
@@ -421,10 +425,11 @@ class strategy(object):
                         "profit": new_strategy_profit,
                         "holding_days": new_strategy_holding_days,
                     },
+                    "rounds": rounds,
                     "score": new_strategy_win_rate*4 + new_strategy_profit + new_strategy_round_count/100
                 }
 
         # 100% is overfitting
         if new_strategy_win_rate==1: report['score']=0
-
+        # print(rounds)
         return report

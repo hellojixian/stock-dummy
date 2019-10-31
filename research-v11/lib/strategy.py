@@ -196,6 +196,7 @@ class strategy(object):
         last_close = subset['close'].iloc[-2]
         change = (close - last_close) / last_close
         drop_from_high_after_bought = (close - self.highest_price_after_bought) / self.highest_price_after_bought
+        grow_from_low_after_bought = (close - self.lowset_price_after_bought) / self.lowset_price_after_bought
 
         max_holding_days = int(settings['max_holding_days'])
         early_stop_win_rate = settings['early_stop_win_rate']*0.01
@@ -204,7 +205,7 @@ class strategy(object):
             decision = True
         elif close <= self.stop_lossing:
             decision = True
-        elif change >= early_stop_win_rate:
+        elif grow_from_low_after_bought >= early_stop_win_rate:
             decision = True
         elif drop_from_high_after_bought <= early_stop_lose_rate:
             decision = True

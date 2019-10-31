@@ -165,7 +165,8 @@ class strategy(object):
     def should_save_knowledge(self,result):
         decision = False
         node = result['new_strategy']
-        if node['win_rate']<1 and node['win_rate']>=0.7 and node['rounds']>4:
+        if node['win_rate']<1 and node['win_rate']>=0.7 \
+            and node['holding_days']>node['rounds']*1.5:
             decision = True
         if node['rounds']>0 and node['profit']/node['rounds']>0.1:
             decision = True
@@ -194,6 +195,7 @@ class strategy(object):
         close = subset['close'].iloc[-1]
         last_close = subset['close'].iloc[-2]
         change = (close - last_close) / last_close
+        drop_from_high_after_bought = (close - self.highest_price_after_bought) / self.highest_price_after_bought
 
         max_holding_days = int(settings['max_holding_days'])
         early_stop_win_rate = settings['early_stop_win_rate']*0.01
@@ -204,7 +206,7 @@ class strategy(object):
             decision = True
         elif change >= early_stop_win_rate:
             decision = True
-        elif change <= early_stop_lose_rate:
+        elif drop_from_high_after_bought <= early_stop_lose_rate:
             decision = True
         elif self.holding_days >= max_holding_days:
             decision = True
@@ -286,6 +288,7 @@ class strategy(object):
                         dataset.loc[idx,'round_profit'] = stat['round_profit']
                         dataset.loc[idx,'covered'] = 0
                         self.bought_price = 0
+                        self.highest_price_after_bought = 0
                         self.fund += self.bought_amount*close
                         self.bought_amount = 0
                         self.bought_date = None
@@ -301,6 +304,7 @@ class strategy(object):
                             dataset.loc[idx,'covered'] = 1
                             self.bought_date = date
                             self.bought_price = close
+                            self.highest_price_after_bought = close
                             self.holding_days = 0
                             self.bought_amount = int(self.fund / (close *100))*100
                             self.fund -= self.bought_amount * close
@@ -327,6 +331,8 @@ class strategy(object):
 
             if self.bought_amount > 0:
                 self.holding_days += 1
+                if close > self.highest_price_after_bought:
+                    self.highest_price_after_bought = close
                 if self.should_sell(subset):
                     stat = {
                         'bought_date': self.bought_date,
@@ -336,6 +342,7 @@ class strategy(object):
                         'kb_id': self.current_settings_id
                     }
                     self.bought_price = 0
+                    self.highest_price_after_bought = 0
                     self.fund += self.bought_amount*close
                     self.bought_amount = 0
                     self.bought_date = None
@@ -348,6 +355,7 @@ class strategy(object):
                 if self.should_buy(subset, settings):
                     self.bought_date = date
                     self.bought_price = close
+                    self.highest_price_after_bought = close
                     self.holding_days = 0
                     self.bought_amount = int(self.fund / (close *100))*100
                     self.fund -= self.bought_amount * close

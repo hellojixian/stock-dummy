@@ -19,6 +19,7 @@ parser.add_argument('--strategy', '-s',
                     help='The strategy will be evolved ',
                     default=DEFAULT_STRATEGY)
 parser.add_argument('--datasource', '-d',
+                    type=int,
                     help='Data source ID',
                     default=1)
 args = parser.parse_args()

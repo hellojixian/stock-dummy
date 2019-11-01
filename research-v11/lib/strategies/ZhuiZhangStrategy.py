@@ -22,14 +22,14 @@ class ZhuiZhangStrategy(strategy):
 
     def __init__(self,dataset=None):
         self.settings_range = [
-            {"max_holding_days" :   [3,15,1]},
+            {"max_holding_days" :   [2,5,1]},
             {"min_days_after_high" :[1,10,1]},
             {"min_days_high" :      [3,25,1]},
             {"max_droprate_after_high" : [1,10,0.5]},
             {"max_safe_zone" :      [35,150,5]},
-            {"early_stop_win_rate": [1.5,9.5,0.25]},
-            {"early_stop_lose_rate": [-9.5,-1,0.5]},
-            {"stop_win_rate" :      [1,25,0.5]},
+            {"early_stop_win_rate": [1,10,0.5]},
+            {"early_stop_lose_rate": [-15,-1,0.5]},
+            {"stop_win_rate" :      [1,10,0.5]},
             {"stop_loss_rate" :     [-10,1,0.5]}
         ]
         self.lookback_size = 90

@@ -217,19 +217,21 @@ class strategy(object):
             decision = True
         elif close <= self.stop_lossing:
             self.sell_reason = 'stop_lossing'
-            assert(profit<0)
+            # assert(profit<=0)
             decision = True
-        elif grow_from_low_after_bought >= early_stop_win_rate:
-            if profit>0:
-                self.sell_reason = 'early_stop_win'
-                decision = True
-        elif drop_from_high_after_bought <= early_stop_lose_rate:
-            if profit>0:
-                self.sell_reason = 'early_stop_lose'
-                decision = True
-        elif self.holding_days >= max_holding_days:
+
+        if self.holding_days >= max_holding_days:
             self.sell_reason = 'max_holding_days_exceed'
             decision = True
+
+        if profit>0 and decision == False :
+            if grow_from_low_after_bought >= early_stop_win_rate:
+                    self.sell_reason = 'early_stop_win'
+                    decision = True
+
+            elif drop_from_high_after_bought <= early_stop_lose_rate:
+                    self.sell_reason = 'early_stop_lose'
+                    decision = True
 
         if decision == True:
             self.stop_winning = None
